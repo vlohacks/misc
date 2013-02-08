@@ -6,7 +6,6 @@ with large gaps
 progress so far:
 
 - DONE: headerdata scrambled xor 71
-  (revealed by riprot.c)
 
 - DONE: sampledata scrambled xor i++ where i starts at 0 and wraps
   at 256 (unsigned char) or aka 
@@ -27,9 +26,36 @@ progress so far:
   data shows 4x4 regularities on 4chn (M.K.) MOD, but sometimes
   shifted by one byte
   ==== UPDATE ====
-  Data is run length encoded: 
+  Data is run-length encoded: 
   * a 0xff means RLE starts here 
   * if the following byte is > 0 this is the count of the data
   * in this case the next byte is the data repated count times
   * if the count byte is 0, a *real* 0xff gets written
+  revealed by reversing some VIBES code dealing with the TTAP 
+  values:
+
+00011e28 33f6                           xor         si, si
+00011e2a 33ff                           xor         di, di
+00011e2c 66813c54544150                 cmp         dword ptr [si], 50415454  
+00011e33 0f85b600                       jnz         0x1eed
+00011e37 83c604                         add         si, 4
+00011e3a 66813c54544150                 cmp         dword ptr [si], 50415454  
+00011e41 741c                           jz          0x1e5f
+00011e43 2e3b3e4803                     cmp         di, cs:[0x348]            
+00011e48 7415                           jz          0x1e5f
+00011e4a ac                             lodsb
+00011e4b 3cff                           cmp         al, ff
+00011e4d 750d                           jnz         0x1e5c
+00011e4f ac                             lodsb
+00011e50 0fb6c8                         movzx       cx, al
+00011e53 e305                           jcxz        0x1e5a
+00011e55 ac                             lodsb
+00011e56 f3aa                           repz stosb
+00011e58 ebe0                           jmp         0x1e3a
+00011e5a b0ff                           mov         al, ff
+00011e5c aa                             stosb
+00011e5d ebdb                           jmp         0x1e3a
+
+  
+
  
