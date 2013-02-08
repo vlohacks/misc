@@ -1,0 +1,35 @@
+Various attempts to rip mods from vibes musicdisk
+effort reaches from several lame attempts in the 90ies
+(check the BASIC code :-) ) until 2013 - of course
+with large gaps
+
+progress so far:
+
+- DONE: headerdata scrambled xor 71
+  (revealed by riprot.c)
+
+- DONE: sampledata scrambled xor i++ where i starts at 0 and wraps
+  at 256 (unsigned char) or aka 
+  mov cx, [SAMPLEDATASIZE]
+  xor al, al
+  loop:
+  xor bl, al
+  inc al
+  dec cx
+  jnz loop
+  === UPDATE ===
+  also the data is stored unsigend 8 bit pcm, standard spec for
+  MODs is signed 8 bit pcm data
+
+- DONE: patterndata somehow packed, reformatted - noticeable the  
+  pattern "TTAP" which reappears severat time through the 
+  data (reverse(TTAP) = PATT = PATTern?)
+  data shows 4x4 regularities on 4chn (M.K.) MOD, but sometimes
+  shifted by one byte
+  ==== UPDATE ====
+  Data is run length encoded: 
+  * a 0xff means RLE starts here 
+  * if the following byte is > 0 this is the count of the data
+  * in this case the next byte is the data repated count times
+  * if the count byte is 0, a *real* 0xff gets written
+ 
