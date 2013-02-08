@@ -133,6 +133,7 @@ void rip_header(struct vibes * target, struct modinfo * info, FILE * dest) {
 
 	struct modhdr header;
 	char * header_ptr = (char *) &header;
+	uint16_t size_le;
 
 	for (i=info->offset; i<(info->offset + sizeof(struct modhdr)); i++) 
 		*(header_ptr++) = buffer[i] ^ HEADER_XOR_MAGIC; 
@@ -142,9 +143,10 @@ void rip_header(struct vibes * target, struct modinfo * info, FILE * dest) {
 	info->samples_total_size = 0;
 	info->num_patterns = 0;
 
-	for (i=0; i<31; i++) {
-		if (header.samples[i].size > 1) 
-			info->samples_total_size += ((int)header.samples[i].size) << 1;
+	for (i=0; i<31; i++) {	
+		size_le = (header.samples[i].size << 8) | (header.samples[i].size >> 8);
+		if (size_le > 1) 
+			info->samples_total_size += size_le << 1;
 	}
 
 	for (i=0; i<128; i++) {
