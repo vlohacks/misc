@@ -1,0 +1,45 @@
+Eurosignal / Europager / Europieper "Emulation" Tools
+
+Generates eurosignal audiodata, outputs 44100Hz 16Bit Mono PCM data
+through stdout. The audio is a sine, spiced with a bit overdrive and noise
+for more vintage feeling
+This behaviour can be changed in the config file (the file with the .c 
+extension ;-) )
+
+
+es.c: "sometimes" generates random numbers and outputs them, and otherwise
+it plays the idle signal
+
+
+espipe.c: like es.c, but this reads numbers from named pipe 
+(name/path is also configured in .c config files ;-))
+
+
+eurosignal.pl: quick'n'dirty ugly fucking CGI frontend for espipe
+
+
+compiling:
+$ gcc -o es -lm es.c
+$ gcc -o espipe -lm espipe.c
+
+
+usage example es:
+$ ./es | aplay -r 44100 -f S16_LE
+(listen & enjoy)
+
+
+usage example espipe:
+(create pipe)
+$ mkdir -p /opt/es
+$ mknod /opt/es/europipe p
+
+(run in background, suppress stderr output)
+$ ./espipe | aplay -r 44100 -f S16_LE 2>/dev/null &
+
+(play a number)
+$ echo 100382 > /opt/es/europipe
+
+
+Kudos to
+http://www.oebl.de/Eurosignal/Eurosignal.html
+for excellent technical background-information for the EuroSignal
