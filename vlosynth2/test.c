@@ -7,6 +7,7 @@
 #include "types.h"
 #include "osc.h"
 #include "filter_moog.h"
+#include "note.h"
 
 void make_noise(osc_t * osc, int osc_count, scalar_t duration, scalar_t sample_freq, scalar_t decay, filter_moog_t *f) 
 {
@@ -32,35 +33,6 @@ void make_noise(osc_t * osc, int osc_count, scalar_t duration, scalar_t sample_f
 
 }
 
-typedef enum {
-	A	= 0,
-	Cb	= 1,
-	C 	= 2,
-	Db	= 3,
-	D 	= 4,
-	Eb	= 5,
-	E	= 6,
-	F	= 7,
-	Gb	= 8,
-	G	= 9,
-	Ab	= 10
-
-} note_t;
-
-scalar_t note2freq(note_t note, int octave) 
-{
-	const scalar_t sqr2 = 1.0594630943593;
-	
-	scalar_t freq = 440 * pow(sqr2, note);
-
-
-	if (octave < 4)
-		freq /=  (scalar_t)(1 << (4 - octave));
-	else 
-		freq *= (scalar_t)(1 << (octave - 4));
-
-	return freq;
-}
 
 int main(void) 
 {
