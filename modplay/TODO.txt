@@ -1,0 +1,9 @@
+player: Implement missing effects
+player: Remove hardcoded 0x3 (Note Portamento exception) from player code
+player: reset frequency after vibrato? (some mods sound weird: TODO examples)
+player: Implement Panning
+player: fix little noises on looping points of samples (bug in interpolation?) (overture.mod)
+loader_mod: fix FLT8 loading
+DONE 20130706 - player: Fix pattern loop when occuring in 2 colums (darkwond.mod getting into endless loop)
+
+
