@@ -8,7 +8,11 @@
 #ifndef MAIN_H
 #define	MAIN_H
 
-void usage(char * prog);
+#include "player.h"
+#include "module.h"
+#include "output.h"
+
+
 
 #endif	/* MAIN_H */
 

@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 effect_callback_t * effects_mod_init()
 {
@@ -91,7 +92,8 @@ void effects_mod_0_arpeggio(player_t * player, int channel_num)
         return;
     
     uint8_t temp = player->current_tick % 3;
-    int temp2 = protracker_lookup_period_index(channel->period);
+    //protracker_lookup_period_index(channel->period);
+    int temp2 = channel->period;
     
     // arpeggio without note makes no sense (bladswed.mod))
     if (!channel->period)
@@ -102,13 +104,15 @@ void effects_mod_0_arpeggio(player_t * player, int channel_num)
     }
     switch (temp) {
     case 0:
-        temp2 = protracker_periods[temp2];
+        //temp2 = protracker_periods[temp2];
         break;
     case 1:
-        temp2 = protracker_periods[temp2 + (channel->current_effect_value >> 4)];
+        //temp2 = protracker_periods[temp2 + (channel->current_effect_value >> 4)];
+        temp2 *= pow(2.0f, (float)(channel->current_effect_value >> 4) / -12.0f);
         break;
     case 2:
-        temp2 = protracker_periods[temp2 + (channel->current_effect_value & 0x0f)];
+        //temp2 = protracker_periods[temp2 + (channel->current_effect_value & 0x0f)];
+        temp2 *= pow(2.0f, (float)(channel->current_effect_value & 0xf) / -12.0f);
         break;
     }
     player_channel_set_frequency(player, (uint16_t)temp2, channel_num);
@@ -335,6 +339,13 @@ void effects_mod_a_volumeslide(player_t * player, int channel)
 
 void effects_mod_b_positionjump(player_t * player, int channel)
 {
+    
+    // prevent egoist-mods from looping back if no single-mod-loop is enabled
+    if (player->channels[channel].current_effect_value < player->current_order) {
+        if (!player->loop_module)
+            return;
+    }
+        
     if (player->current_tick == 0) {
         player->next_order = player->channels[channel].current_effect_value;
         player->next_row = 0;
@@ -351,7 +362,7 @@ void effects_mod_c_setvolume(player_t * player, int channel)
 void effects_mod_d_patternbreak(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
-        player->next_row = (((player->channels[channel].current_effect_value & 0xf0) >> 4) * 10 + (player->channels[channel].current_effect_value & 0x0f));
+        player->next_row = ((player->channels[channel].current_effect_value >> 4) * 10 + (player->channels[channel].current_effect_value & 0x0f));
         player->do_break = 1;
     }    
 }
@@ -481,6 +492,11 @@ void effects_mod_ee_patterndelay(player_t * player, int channel)
 
 void effects_mod_f_setspeed(player_t * player, int channel)
 {
+    // normally f00 stops module, but we might want to play other mods
+    // so we ignore f00
+    if (player->channels[channel].current_effect_value == 0)
+        return;
+            
     if (player->current_tick == 0) {
         if (player->channels[channel].current_effect_value <= 32) {
             player->speed = player->channels[channel].current_effect_value;

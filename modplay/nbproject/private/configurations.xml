@@ -2,10 +2,10 @@
 <configurationDescriptor version="89">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="modplay">
-      <in>TODO.txt</in>
+      <in>application.h</in>
       <in>arch.h</in>
-      <in>config.c</in>
-      <in>config.h</in>
+      <in>cmdline.c</in>
+      <in>cmdline.h</in>
       <in>effects_mod.c</in>
       <in>effects_mod.h</in>
       <in>loader_mod.c</in>
@@ -27,6 +27,7 @@
       <in>protracker.h</in>
       <in>ui.c</in>
       <in>ui.h</in>
+      <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>
     </df>

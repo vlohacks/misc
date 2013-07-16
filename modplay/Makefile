@@ -1,8 +1,10 @@
 CC	= gcc
+CXX	= g++
 OBJ	= loader_mod.o module.o player.o effects_mod.o protracker.o ui.o ui_terminal.o main.o cmdline.o output_portaudio.o
 BIN	= modplay
 #CCFLAGS = -Wall -g
 CCFLAGS	= -Wall -O3
+CXXFLAGS = -Wall -O3
 #linux
 LDFLAGS = -lm libportaudio.a -lpthread -lasound
 #win32
@@ -17,8 +19,8 @@ clean:
 
 %.o: %.c
 	$(CC) $(CCFLAGS) -c $<
-
-
-
-
+	
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+	
 

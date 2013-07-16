@@ -1,7 +1,9 @@
 #include "ui_terminal.h"
 #include "module.h"
 #include "ui.h"
+#include "application.h"
 #include <stdio.h>
+
 
 FILE * ui_terminal_fd;
 
@@ -107,3 +109,4 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
     fflush(ui_terminal_fd);
     
 }
+

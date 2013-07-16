@@ -9,10 +9,13 @@
 #define	CMDLINE_H
 
 #include "player.h"
+#include "application.h"
 #include "output.h"
 #include "protracker.h"
 
-int cmdline_parse(int argc, char ** argv, player_t * player, output_opts_t * output_opts, char *** module_files, int * module_files_count);
+void cmdline_set_default_config_player(player_t * player);
+void cmdline_set_default_config_output(output_opts_t * output_opts);
+int cmdline_parse(int argc, char ** argv, modplay_application_t * app);
 void cmdline_usage (char * prog);
 
 #endif	/* CMDLINE_H */

@@ -17,6 +17,7 @@
 player_t * player_init(const float sample_rate, const player_resampling_t resampling) 
 {
     player_t * player = (player_t *)malloc(sizeof(player_t));
+    
     player->sample_rate = sample_rate;
     player->resampling = resampling;
     player->channels = 0;

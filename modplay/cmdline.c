@@ -5,37 +5,37 @@
 #include <string.h>
 #include <getopt.h>
 
-void set_default_config_player(player_t * player)
+void cmdline_set_default_config_player(player_t * player)
 {
     player->resampling = player_resampling_linear;
     player->paula_freq_index = PAL;
     player->loop_module = 0;
 }
 
-void set_default_config_output(output_opts_t * output_opts)
+void cmdline_set_default_config_output(output_opts_t * output_opts)
 {
     output_opts->buffer_size = 1024;
     output_opts->sample_rate = 44100;
 }
 
-int cmdline_parse(int argc, char ** argv, player_t * player, output_opts_t * output_opts, char *** module_files, int * module_files_count) {
+int cmdline_parse(int argc, char ** argv, modplay_application_t * app) {
     int c;
     
-    set_default_config_player(player);    
-    set_default_config_output(output_opts);
+    cmdline_set_default_config_player(app->player);    
+    cmdline_set_default_config_output(app->output_opts);
     
     if (argc < 2) {
         cmdline_usage(argv[0]);
         return 1;
     }
 
-    while ((c = getopt(argc, argv, "i:r:f:b:hP")) != -1) {
+    while ((c = getopt(argc, argv, "i:r:f:b:hPlL")) != -1) {
         switch (c) {
             case 'i':           // interpolation
                 if (!strcmp(optarg, "linear")) {
-                    player->resampling = player_resampling_linear;
+                    app->player->resampling = player_resampling_linear;
                 } else if (!strcmp(optarg, "none")) {
-                    player->resampling = player_resampling_none;
+                    app->player->resampling = player_resampling_none;
                 } else { 
                     fprintf(stderr, "illegal interpolation option: %s\n", optarg);
                 }
@@ -43,32 +43,42 @@ int cmdline_parse(int argc, char ** argv, player_t * player, output_opts_t * out
                 break;
                 
             case 'r':           // sample rate
-                output_opts->sample_rate = atoi(optarg);
-                player->sample_rate = (float)output_opts->sample_rate;
+                app->output_opts->sample_rate = atoi(optarg);
+                app->player->sample_rate = (float)app->output_opts->sample_rate;
                 break;
                 
-            case 'f':
+            case 'f':           // amiga timing
                 if (!strcmp(optarg, "ntsc")) {
-                    player->paula_freq_index = NTSC;
+                    app->player->paula_freq_index = NTSC;
                 } else if (!strcmp(optarg, "pal")) {
-                    player->paula_freq_index = PAL;
+                    app->player->paula_freq_index = PAL;
                 } else { 
                     fprintf(stderr, "illegal amiga frequency option: %s\n", optarg);
                 }
                 break;
                 
-            case 'b':
-                output_opts->buffer_size = atoi(optarg);
+            case 'b':           // output buffer size
+                app->output_opts->buffer_size = atoi(optarg);
                 break;
                 
-            case 'P':
-                player_set_protracker_strict_mode(player, 1);
+            case 'P':           // Protracker strict mode
+                player_set_protracker_strict_mode(app->player, 1);
+                break;
+                
+            case 'L':           // loop single module
+                app->player->loop_module = 1;
+                break;
+                
+            case 'l':           // loop playlist
+                app->loop_playlist = 1;
                 break;
                 
             case '?':
                 switch (optopt) {
                     case 'r':
                     case 'i':
+                    case 'f':
+                    case 'b':
                         fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                         return 1;
                         break;
@@ -92,12 +102,12 @@ int cmdline_parse(int argc, char ** argv, player_t * player, output_opts_t * out
     
     if (optind > (argc - 1)) {
         fprintf(stderr, "error: no mod file specified\n");
-        *module_files = 0;
-        *module_files_count = 0;
+        app->playlist = 0;
+        app->playlist_count = 0;
         return 1;
     } else {
-        *module_files = &argv[optind];
-        *module_files_count = argc - optind;
+        app->playlist = &argv[optind];
+        app->playlist_count = argc - optind;
     }
             
     return 0;
@@ -106,7 +116,7 @@ int cmdline_parse(int argc, char ** argv, player_t * player, output_opts_t * out
 void cmdline_usage (char * prog)
 {
     fprintf (stderr, 
-            "Usage: %s [options] <modulefile>\n\n"
+            "Usage: %s [options] <modulefile> [<modulefile2> ...]\n\n"
             "Options:\n"
             "   -r <rate>               Use sample rate <rate>, default is 44100\n"
             "   -i <interpolation>      Use interpolation type <interpolation>\n"
@@ -116,6 +126,8 @@ void cmdline_usage (char * prog)
             "   -f <amiga frequency>    Set the amiga paula base frequecy\n"
             "                           possible values: pal, ntsc. Default is pal.\n"
             "   -b <buffer size>        Set audio output buffer size. Default is 1024\n"
+            "   -l                      Loop the modules list\n"
+            "   -L                      Loop single module\n"
             "   -h                      This text\n", prog);
 
 }
