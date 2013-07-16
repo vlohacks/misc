@@ -11,6 +11,8 @@
 #include <stdint.h>
 
 void ui_period2note(uint16_t period, char * dest);
+void ui_protracker_effect_to_humanreadable(char * buf, uint8_t effect_num, uint8_t effect_val);
+
 
 #endif	/* UI_H */
 

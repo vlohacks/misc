@@ -7,6 +7,7 @@
 #include "module.h"
 #include "loader_mod.h"
 #include "ui_terminal.h"
+#include "ui_ncurses.h"
 //#include "output_alsa.h"
 #include "output_portaudio.h"
 #include "output.h"
@@ -29,18 +30,30 @@ int main (int argc, char ** argv)
 
     output_portaudio_init(app.output_opts);
     
+    /*
     ui_terminal_init();
+    
     
     player_register_order_callback(app.player, ui_terminal_print_order_info);
     player_register_row_callback(app.player, ui_terminal_print_row_info);
+    */
+    
+    
+    
+    ui_ncurses_init();
+    
+    player_register_order_callback(app.player, ui_ncurses_order_handler);
+    player_register_row_callback(app.player, ui_ncurses_row_handler);
+    player_register_tick_callback(app.player, ui_ncurses_tick_handler);
     
     while (app.running) {
         
         for (i = 0; i < app.playlist_count; i++) {
             module_t * mod = loader_mod_loadfile(app.playlist[i]);
             player_set_module(app.player, mod);
+            ui_ncurses_new_song_handler(mod);
 
-            ui_terminal_print_moduleinfo(mod);
+            //ui_terminal_print_moduleinfo(mod);
             output_portaudio_start(app.player);
 
             while (app.player->playing) {
@@ -56,9 +69,13 @@ int main (int argc, char ** argv)
             app.running = 0;
     }
     
+    
+    
     player_free(app.player);
     free(app.output_opts);
     output_portaudio_cleanup();
+    
+    ui_ncurses_cleanup();
             
     return 0;
     

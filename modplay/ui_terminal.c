@@ -99,7 +99,7 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
     
     module_pattern_row_t * row = &(module->patterns[current_pattern].rows[current_row]);
     
-    fprintf(ui_terminal_fd, "%s%02d: |", the_std_color, current_row );
+    fprintf(ui_terminal_fd, "%s%02d |", the_std_color, current_row );
     for (i = 0; i < module->num_channels; i++) {
         ui_period2note(row->data[i].period, note);
         fprintf(ui_terminal_fd, " %s %02d %s%01x%02x%s |", 

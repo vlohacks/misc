@@ -209,6 +209,11 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
         player->current_tick++;
         player->tick_pos = player->tick_duration;
 
+        // maintain tick callback
+        if (player->tick_callback)
+            (player->tick_callback)(player->module, player->current_order, player->current_pattern, player->current_row, player->current_tick, player->channels);
+        
+
     }
 
     // mixing

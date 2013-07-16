@@ -239,7 +239,7 @@ void effects_mod_6_vibrato_volumeslide(player_t * player, int channel)
     temp = player->channels[channel].vibrato_state & 0x1f;
     delta = protracker_sine_table[temp];
     
-    delta *= player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num];
+    delta *= player->channels[channel].effect_last_value_y[0x4];
     delta /= 128;
     
     if (player->channels[channel].vibrato_state >= 0)
@@ -510,6 +510,6 @@ void effects_mod_f_setspeed(player_t * player, int channel)
 void effects_mod_unimplemented(player_t * player, int channel)
 {
     // only alert once per row
-    if (player->current_tick == 0)
-        fprintf(stderr, "\nUnimplemented: %01x%02x\n", player->channels[channel].current_effect_num, player->channels[channel].current_effect_value);
+    //if (player->current_tick == 0)
+        //fprintf(stderr, "\nUnimplemented: %01x%02x\n", player->channels[channel].current_effect_num, player->channels[channel].current_effect_value);
 }

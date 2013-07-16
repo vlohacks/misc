@@ -43,7 +43,7 @@ typedef struct {
 
 typedef void (*order_callback_t)(module_t *, int current_order, int current_pattern);
 typedef void (*row_callback_t)(module_t *, int current_order, int current_pattern, int current_row);
-typedef void (*tick_callback_t)(module_t *, int current_order, int current_pattern, int current_row, int current_tick);
+typedef void (*tick_callback_t)(module_t *, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 
 
 struct player_t;
