@@ -1,9 +1,21 @@
-player: Implement missing effects
-player: Remove hardcoded 0x3 (Note Portamento exception) from player code
-player: reset frequency after vibrato? (some mods sound weird: TODO examples)
-player: Implement Panning
-player: fix little noises on looping points of samples (bug in interpolation?) (overture.mod)
-loader_mod: fix FLT8 loading
-DONE 20130706 - player: Fix pattern loop when occuring in 2 colums (darkwond.mod getting into endless loop)
+Fixes:
+- player: Implement missing effects (still some exotic shit missing... maybe 
+  i'll leave them out...)
+- player: fix little noises on looping points of samples (bug in interpolation?) 
+  (overture.mod)
+- loader_mod: fix FLT8 loading
+- Effects: Vibrato still sounds weird in some mods which run faster than speed 6. 
+  Documentation (FMODDOC) says vibrato state should reset every new row, so I 
+  implemented it this way, but I don't think that's true. Maybe it must only 
+  reset with NEW NOTE.
 
+Features:
+- s3m Loader
+- s3m Effects
+- Graphical (QT?) UI
 
+Done:
+- DONE 20130706 player: Fix pattern loop when occuring in 2 colums (darkwond.mod getting into endless loop)
+- DONE ???????? player: Implement Panning
+- DONE ???????? player: Remove hardcoded 0x3 (Note Portamento exception) from player code
+- DONE ???????? player: reset frequency after vibrato? (some mods sound weird: TODO examples)
