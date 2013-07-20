@@ -94,7 +94,7 @@ void ui_ncurses_tick_handler(module_t * module, int current_order, int current_p
         
         ui_period2note(channels[i].period, note);
         ui_protracker_effect_to_humanreadable(tmp2, data->effect_num, data->effect_value);
-        sprintf(tmp, "%-35s | %3s | %2i | %-30s |  ", module->samples[channels[i].sample_num - 1].header.name, note, channels[i].volume, tmp2);
+        sprintf(tmp, "%-35s | %3s | %2i | %-25s |  ", module->samples[channels[i].sample_num - 1].header.name, note, channels[i].volume, tmp2);
         mvwprintw(ui_ncurses_layout.channel_view, i+1, 1, tmp);
         wattroff(ui_ncurses_layout.channel_view, A_BOLD);
     }
@@ -113,7 +113,7 @@ void ui_ncurses_row_handler(module_t * module, int current_order, int current_pa
     int i, j, k;
     char note[4];
     char tmp[20];
-    char tmp2[200];
+    char tmp2[400];
     
     j = ui_ncurses_layout.pattern_view->_begy + 1;
     for (j = 0; j < ui_ncurses_layout.pattern_view->_maxy - 1; j++) {

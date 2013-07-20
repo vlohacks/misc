@@ -22,6 +22,8 @@
       <in>protracker.h</in>
       <in>ui.c</in>
       <in>ui.h</in>
+      <in>ui_ncurses.c</in>
+      <in>ui_ncurses.h</in>
       <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>
@@ -107,6 +109,10 @@
         </cTool>
       </item>
       <item path="ui.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ui_ncurses.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="ui_ncurses.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ui_qt.cpp" ex="false" tool="1" flavor2="0">
       </item>

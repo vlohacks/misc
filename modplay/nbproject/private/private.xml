@@ -8,4 +8,19 @@
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/1">
+        <file>file:/home/vlo/code/misc/modplay/player.h</file>
+        <file>file:/home/vlo/code/misc/modplay/main.c</file>
+        <file>file:/home/vlo/code/misc/modplay/Makefile</file>
+        <file>file:/home/vlo/code/misc/modplay/ui_qt.cpp</file>
+        <file>file:/home/vlo/code/misc/modplay/arch.h</file>
+        <file>file:/home/vlo/code/misc/modplay/TODO.txt</file>
+        <file>file:/home/vlo/code/misc/modplay/application.h</file>
+        <file>file:/home/vlo/code/misc/modplay/loader_mod.c</file>
+        <file>file:/home/vlo/code/misc/modplay/ui_ncurses.c</file>
+        <file>file:/home/vlo/code/misc/modplay/ui_ncurses.h</file>
+        <file>file:/home/vlo/code/misc/modplay/ui.c</file>
+        <file>file:/home/vlo/code/misc/modplay/player.c</file>
+        <file>file:/home/vlo/code/misc/modplay/effects_mod.c</file>
+    </open-files>
 </project-private>

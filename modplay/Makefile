@@ -4,7 +4,7 @@ OBJ	= loader_mod.o module.o player.o effects_mod.o protracker.o ui.o ui_terminal
 BIN	= modplay
 #CCFLAGS = -Wall -g
 CCFLAGS	= -Wall -O3
-CXXFLAGS = -Wall -O3
+#CXXFLAGS = -Wall -O3
 #linux
 LDFLAGS = -lm libportaudio.a -lpthread -lasound -lncurses
 #win32

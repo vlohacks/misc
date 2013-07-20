@@ -27,6 +27,8 @@
       <in>protracker.h</in>
       <in>ui.c</in>
       <in>ui.h</in>
+      <in>ui_ncurses.c</in>
+      <in>ui_ncurses.h</in>
       <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>
