@@ -13,7 +13,8 @@
 #include <stdint.h>
 
 typedef enum {
-    module_type_mod
+    module_type_mod,
+    module_type_s3m
 } module_type_t;
 
 typedef struct {
@@ -23,7 +24,7 @@ typedef struct {
 } module_info_t;
 
 typedef struct {
-    char name[23];
+    char name[29];              // s3m support: extended to 29
     uint32_t length;
     int8_t finetune;
     uint8_t volume;
@@ -40,6 +41,7 @@ typedef struct {
     uint8_t sample_num;
     uint16_t period;
     int period_index;
+    uint8_t volume;             // s3m support: added for s3m support
     uint8_t effect_num;
     uint8_t effect_value;
 } module_pattern_data_t;
@@ -64,6 +66,11 @@ typedef struct {
     uint8_t orders[128];
     module_sample_t * samples;
     module_pattern_t * patterns;
+    uint8_t initial_speed;              // s3m support
+    uint8_t initial_tempo;
+    uint8_t initial_master_volume;
+    uint8_t initial_panning;
+    
 } module_t;
 
 
