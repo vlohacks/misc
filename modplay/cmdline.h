@@ -11,7 +11,7 @@
 #include "player.h"
 #include "application.h"
 #include "output.h"
-#include "protracker.h"
+#include "defs_mod.h"
 
 void cmdline_set_default_config_player(player_t * player);
 void cmdline_set_default_config_output(output_opts_t * output_opts);

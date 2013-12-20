@@ -73,7 +73,8 @@ void ui_terminal_print_moduleinfo(module_t * module)
     
     fprintf(ui_terminal_fd, "\n");    
     fprintf(ui_terminal_fd, "song title   : %s\n", module->song_title);
-    fprintf(ui_terminal_fd, "module info  : %s (signature: %s)\n", module->module_info.description, module->module_info.signature);
+    //fprintf(ui_terminal_fd, "module info  : %s (signature: %s)\n", module->module_info.description, module->module_info.signature);
+    // TODO: output module info dependent on type
     fprintf(ui_terminal_fd, "channels     : %i\n", (int)module->num_channels);
     fprintf(ui_terminal_fd, "patterns     : %i\n", (int)module->num_patterns);
     fprintf(ui_terminal_fd, "orders       : %i\n", (int)module->num_orders);
@@ -101,7 +102,7 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
     
     fprintf(ui_terminal_fd, "%s%02d |", the_std_color, current_row );
     for (i = 0; i < module->num_channels; i++) {
-        ui_period2note(row->data[i].period, note);
+        ui_periodindex2note(row->data[i].period_index, note);
         fprintf(ui_terminal_fd, " %s %02d %s%01x%02x%s |", 
                 note, row->data[i].sample_num, (row->data[i].effect_num || row->data[i].effect_value) ? color_fx_map[row->data[i].effect_num] : the_std_color, row->data[i].effect_num, row->data[i].effect_value, the_std_color);
     }

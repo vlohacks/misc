@@ -10,6 +10,7 @@
 #ifndef LOADER_MOD_H
 #define	LOADER_MOD_H
 
+#include <stdio.h>
 #include "module.h"
 
 /* MOD specific tables / structures
@@ -45,6 +46,6 @@ module_t * loader_mod_loadfile(char * filename);
 int loader_mod_read_sample_header(module_sample_header_t * hdr, FILE * f);
 int loader_mod_read_pattern_data(module_pattern_data_t * data, FILE * f);
 void loader_mod_read_sample_data(module_sample_t * sample, FILE * f);
-
+int loader_mod_lookup_period_index(const uint16_t period);
 #endif	/* LOADER_MOD_H */
 

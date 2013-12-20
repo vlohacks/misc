@@ -7,11 +7,10 @@
  * Created on 29. Juni 2013, 13:57
  */
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "loader_mod.h"
-#include "protracker.h"
+#include "defs_mod.h"
 #include "arch.h"
 
 /* Loads a protracker/startrekker/soundtracker module file (*.mod, *.stk)
@@ -39,6 +38,10 @@ module_t * loader_mod_loadfile(char * filename)
     // is mod, regardless of being a stm or multichannel MOD file
     module->module_type = module_type_mod;
     
+    // Default values for MOD files
+    module->initial_bpm = 125;
+    module->initial_speed = 6;
+    
     // Determine mod file type by checking the signatuer (M.K., nCHN...)
     fseek(f, 0x438, SEEK_SET);
     r = fread(&signature, 1, 4, f);
@@ -55,8 +58,8 @@ module_t * loader_mod_loadfile(char * filename)
             // valid signature means protracker mod with 31 sample slots
             module->num_channels = loader_mod_modtypes[i].num_channels;
             module->num_samples = 31;
-            memcpy(module->module_info.signature, &signature, 4);
-            module->module_info.signature[4] = 0;
+            memcpy(module->module_info.flags_mod.signature, &signature, 4);
+            module->module_info.flags_mod.signature[4] = 0;
             strcpy(module->module_info.description, loader_mod_modtypes[i].description);
             strcpy(module->module_info.default_file_extension, "MOD");
             break;
@@ -69,8 +72,8 @@ module_t * loader_mod_loadfile(char * filename)
         if (memcmp (&signature, tmp, 4) == 0) {
             module->num_channels = i;
             module->num_samples = 31;
-            memcpy(module->module_info.signature, &signature, 4);
-            module->module_info.signature[4] = 0;
+            memcpy(module->module_info.flags_mod.signature, &signature, 4);
+            module->module_info.flags_mod.signature[4] = 0;
             strcpy(module->module_info.description, "Fasttracker Multichannel MOD");
             strcpy(module->module_info.default_file_extension, "MOD");
             break;
@@ -83,7 +86,7 @@ module_t * loader_mod_loadfile(char * filename)
         module->num_samples = 15;
         module->num_channels = 4;
         strcpy(module->module_info.default_file_extension, "STK");
-        strcpy(module->module_info.signature, "(none)");
+        strcpy(module->module_info.flags_mod.signature, "(none)");
         strcpy(module->module_info.description, "Amiga Ultimate Soundtracker module");
     }
 
@@ -160,9 +163,6 @@ module_t * loader_mod_loadfile(char * filename)
             module->patterns[i].rows[j].data = (module_pattern_data_t *)malloc(sizeof(module_pattern_data_t) * module->num_channels);
             for (k = 0; k < module->num_channels; k++) {
                 if(loader_mod_read_pattern_data (&(module->patterns[i].rows[j].data[k]), f)) {
-                    if (module->patterns[i].rows[j].data[k].period_index == -1) {
-                        fprintf(stderr, "Loader: WARNING: Non-standard period in pattern: %i, channel: %i, row: %i\n", i, j, k);
-                    }                    
                     free(module);
                     fclose(f);
                     return 0;
@@ -224,6 +224,7 @@ int loader_mod_read_sample_header(module_sample_header_t * hdr, FILE * f)
 int loader_mod_read_pattern_data(module_pattern_data_t * data, FILE * f) 
 {
     uint32_t dw;
+    uint16_t tmp;
     int r;
 
     r = fread(&dw, 4, 1, f);
@@ -234,10 +235,16 @@ int loader_mod_read_pattern_data(module_pattern_data_t * data, FILE * f)
 
     // AWFUL Amiga SHIT (piss doch drauf... scheiß doch rein... zünd ihn an...)
     data->sample_num = ((uint8_t)(dw >> 24) & 0xf0) | ((uint8_t)(dw >> 12) & 0x0f);
-    data->period = (uint16_t)((dw >> 16) & 0x0fff);
-    data->period_index = protracker_lookup_period_index(data->period);
+    tmp = (uint16_t)((dw >> 16) & 0x0fff);
+    data->period_index = loader_mod_lookup_period_index(tmp);
+    
+    if (tmp && data->period_index == -1) {
+        fprintf(stderr, "Loader: WARNING: Non-standard period: %i @ %x\n", tmp, ftell(f));
+    }                    
+    
     data->effect_num = (uint8_t)((dw & 0x0f00) >> 8);
     data->effect_value = (uint8_t)(dw & 0xff);
+    data->volume = 255;  // mod has no volume bar
     
     return 0;
 }
@@ -256,4 +263,14 @@ void loader_mod_read_sample_data(module_sample_t * sample, FILE * f)
     p = sample->data;
     for (i = 0; i < sample->header.length; i++)
         *p++ = fgetc(f);
+}
+
+int loader_mod_lookup_period_index(const uint16_t period)
+{
+    int i;
+    for (i = 0; i < defs_mod_num_periods; i++) {
+        if (defs_mod_periods[i] == period)
+            return i;
+    }
+    return -1;
 }

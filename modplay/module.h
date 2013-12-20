@@ -20,7 +20,21 @@ typedef enum {
 typedef struct {
     char default_file_extension[8];
     char description[64];
-    char signature[8];
+    union {
+        struct {
+            char signature[8];
+        } flags_mod;
+        struct {
+            uint8_t st2vibrato;            // Vibrato of Scream Tracker 2
+            uint8_t st2tempo;              
+            uint8_t amigaslides;           // Amiga type volume/pitch slides
+            uint8_t amigalimits;           // Amiga period limits for pitch slides
+            uint8_t st30volumeslides;      // bugged ST 3.0 Volume slides also performed on tick 0
+            uint16_t st3_version;       // used st3 version
+            uint8_t default_panning;
+        } flags_s3m;
+    };
+        
 } module_info_t;
 
 typedef struct {
@@ -39,7 +53,7 @@ typedef struct {
 
 typedef struct {
     uint8_t sample_num;
-    uint16_t period;
+    //uint16_t period;
     int period_index;
     uint8_t volume;             // s3m support: added for s3m support
     uint8_t effect_num;
@@ -63,13 +77,13 @@ typedef struct {
     uint16_t num_samples;
     uint16_t num_patterns;
     uint16_t num_orders;
-    uint8_t orders[128];
+    uint8_t orders[256];
     module_sample_t * samples;
     module_pattern_t * patterns;
     uint8_t initial_speed;              // s3m support
-    uint8_t initial_tempo;
+    uint8_t initial_bpm;
     uint8_t initial_master_volume;
-    uint8_t initial_panning;
+    uint8_t initial_panning[32];
     
 } module_t;
 

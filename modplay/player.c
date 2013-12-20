@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "player.h"
-#include "protracker.h"
+#include "defs_mod.h"
 #include "effects_mod.h"
 #include "math.h"
 
@@ -47,13 +47,21 @@ void player_free(player_t * player)
 
 void player_set_protracker_strict_mode(player_t * player, int enabled)
 {
+    /* protracker_strict_mode for non-protracker modules makes no sense */
+    /*
+    if (player->module->module_type != module_type_mod) {
+        player->protracker_strict_mode = 0;
+        return;
+    }
+    */
+    
     player->protracker_strict_mode = enabled;
     if (enabled) {
         player->period_bottom = 113;
         player->period_top = 856;
     } else {
-        player->period_bottom = protracker_periods[protracker_num_periods - 1];
-        player->period_top = protracker_periods[0];
+        player->period_bottom = defs_mod_periods[defs_mod_num_periods - 1];
+        player->period_top = defs_mod_periods[0];
     }
 }
 
@@ -86,7 +94,11 @@ void player_set_module(player_t * player, module_t * module)
         case module_type_mod: 
             player->effect_map = effects_mod_init(); 
             player->newrow_action = (newrowaction_callback_t)effects_mod_newrowaction;
+            player->period_table = defs_mod_periods;
             break;
+            
+        case module_type_s3m:
+            player->period_table = defs_s3m_periods;
     }
 }
 
@@ -259,8 +271,8 @@ void player_register_order_callback(player_t * player, order_callback_t func)
 
 void player_init_defaults(player_t * player) 
 {
-    player->bpm = 125;
-    player->speed = 6;
+    player->bpm = player->module->initial_bpm;
+    player->speed = player->module->initial_speed;
 }
 
 float player_calc_tick_duration(const uint16_t bpm, const float sample_rate) 
@@ -280,7 +292,7 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
             ? -(16 - sample->header.finetune) 
             : sample->header.finetune;
     
-    channel->frequency = protracker_paulafreq[player->paula_freq_index] / ((float)period * 2.0f);
+    channel->frequency = defs_mod_paulafreq[player->paula_freq_index] / ((float)period * 2.0f);
     
     if (finetune)
         channel->frequency *= pow(x, finetune);

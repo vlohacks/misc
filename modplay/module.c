@@ -61,7 +61,7 @@ void module_dump(module_t * module, FILE * fd)
             fprintf(fd, "%02d | ", j);
             for (k = 0; k < module->num_channels; k++) {
                 module_pattern_data_t * data = &(module->patterns[i].rows[j].data[k]);
-                ui_period2note(data->period, note);
+                ui_periodindex2note(data->period_index, note);
                 fprintf(fd, "%s %02d %01x%02x | ", note, data->sample_num, data->effect_num, data->effect_value);
             }
             fprintf(fd, "\n");

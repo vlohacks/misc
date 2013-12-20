@@ -10,6 +10,8 @@
       <in>effects_mod.h</in>
       <in>loader_mod.c</in>
       <in>loader_mod.h</in>
+      <in>loader_s3m.c</in>
+      <in>loader_s3m.h</in>
       <in>main.c</in>
       <in>main.h</in>
       <in>module.c</in>
@@ -77,6 +79,10 @@
         </cTool>
       </item>
       <item path="loader_mod.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="loader_s3m.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="loader_s3m.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>

@@ -2,6 +2,8 @@
 <configurationDescriptor version="89">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="modplay">
+      <df name="docs">
+      </df>
       <in>application.h</in>
       <in>arch.h</in>
       <in>cmdline.c</in>
@@ -10,6 +12,8 @@
       <in>effects_mod.h</in>
       <in>loader_mod.c</in>
       <in>loader_mod.h</in>
+      <in>loader_s3m.c</in>
+      <in>loader_s3m.h</in>
       <in>main.c</in>
       <in>main.h</in>
       <in>module.c</in>

@@ -15,16 +15,16 @@
 /* Protracker-specific tables and definitions
  */
 // amiga-specific periods for tone frequencies (notes)
-static const int protracker_num_periods = 60;
-static const uint16_t protracker_periods[] = {
+static const int defs_mod_num_periods = 60;
+static const uint16_t const defs_mod_periods[] = {
     1712,1616,1525,1440,1357,1281,1209,1141,1077,1017, 961, 907,
      856, 808, 762, 720, 678, 640, 604, 570, 538, 508, 480, 453,
      428, 404, 381, 360, 339, 320, 302, 285, 269, 254, 240, 226,
      214, 202, 190, 180, 170, 160, 151, 143, 135, 127, 120, 113,
      107, 101,  95,  90,  85,  80,  76,  71,  67,  64,  60,  57
 };
-
-static const uint16_t protracker_periods_finetune[16][36] = 
+/*
+static const uint16_t defs_mod_periods_finetune[16][36] = 
 { 
     { 
         856, 808, 762, 720, 678, 640, 604, 570, 538, 508, 480, 453, 
@@ -123,19 +123,20 @@ static const uint16_t protracker_periods_finetune[16][36] =
     }
 };
 
-
+*/
 
 
 // sinetable for tremolo and vibrato effect
-static const uint8_t protracker_sine_table[] = {
+static const uint8_t defs_mod_sine_table[] = {
     0x00, 0x18, 0x31, 0x4A, 0x61, 0x78, 0x8D, 0xA1,
     0xB4, 0xC5, 0xD4, 0xE0, 0xEB, 0xF4, 0xFA, 0xFD,
     0xFF, 0xFD, 0xFA, 0xF4, 0xEB, 0xE0, 0xD4, 0xC5,
     0xB4, 0xA1, 0x8D, 0x78, 0x61, 0x4A, 0x31, 0x18
 };
 
+
 // base frequency of the amiga "paula" sound chip
-static const float protracker_paulafreq[] = { 
+static const float defs_mod_paulafreq[] = { 
     7093789.2,          // PAL
     7159090.5           // NTSC
 };
@@ -143,11 +144,8 @@ static const float protracker_paulafreq[] = {
 typedef enum {
     PAL  = 0,
     NTSC = 1
-} protracker_paulafreq_index_t;
+} defs_mod_paulafreq_index_t;
 
-/* Prototypes
- */
-int protracker_lookup_period_index(const uint16_t period);
 
 #endif	/* PROTRACKER_H */
 

@@ -8,7 +8,7 @@
  */
 
 #include "effects_mod.h"
-#include "protracker.h"
+#include "defs_mod.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +48,7 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
     
     // special behaviour for sample / note delay
     if ((data->effect_num == 0xe) && ((data->effect_value >> 4) == 0xd)) {
-        player->channels[channel_num].dest_period = data->period;
+        player->channels[channel_num].dest_period = player->period_table[data->period_index];
         player->channels[channel_num].dest_sample_num = data->sample_num;
         return;
     }
@@ -60,13 +60,13 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
     }
 
     // set period (note)
-    if (data->period > 0) {
+    if (data->period_index >= 0) {
         // special hack for note portamento... TODO remove here
         if (data->effect_num == 0x3) {
-            player->channels[channel_num].dest_period = data->period;
+            player->channels[channel_num].dest_period = player->period_table[data->period_index];
         } else {
             if (!(player->pattern_delay_active)) {
-                player->channels[channel_num].period = data->period;
+                player->channels[channel_num].period = player->period_table[data->period_index];
                 player->channels[channel_num].sample_pos = 0;
                 //player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
             }
@@ -78,7 +78,7 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
     player->channels[channel_num].volume_master = 64;
     
     if ((data->effect_num) != 0x3 && (data->effect_num != 0x5)) {
-        if (data->period > 0)
+        if (data->period_index >= 0)
             player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
     }
 }
@@ -179,7 +179,7 @@ void effects_mod_4_vibrato(player_t * player, int channel)
         player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value & 0xf);
 
     temp = player->channels[channel].vibrato_state & 0x1f;
-    delta = protracker_sine_table[temp];
+    delta = defs_mod_sine_table[temp];
     
     delta *= player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num];
     delta /= 128;
@@ -237,7 +237,7 @@ void effects_mod_6_vibrato_volumeslide(player_t * player, int channel)
     
     // maintain vibrato using last vibrato effect params
     temp = player->channels[channel].vibrato_state & 0x1f;
-    delta = protracker_sine_table[temp];
+    delta = defs_mod_sine_table[temp];
     
     delta *= player->channels[channel].effect_last_value_y[0x4];
     delta /= 128;
@@ -281,7 +281,7 @@ void effects_mod_7_tremolo(player_t * player, int channel)
         player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value & 0xf);
 
     temp = player->channels[channel].tremolo_state & 0x1f;
-    delta = protracker_sine_table[temp];
+    delta = defs_mod_sine_table[temp];
     
     delta *= player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num];
     delta /= 64;

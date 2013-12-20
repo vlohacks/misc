@@ -11,7 +11,8 @@
 #define	PLAYER_H
 
 #include "module.h"
-#include "protracker.h"
+#include "defs_mod.h"
+#include "defs_s3m.h"
 
 typedef enum {
     player_resampling_none = 0,
@@ -62,8 +63,10 @@ struct player_t {
     row_callback_t row_callback;                        // callback pointer which gets called every row (patter view..)
     tick_callback_t tick_callback;                      // callback pointer which gets called every tick (effects, volumebars)
 
+    const uint16_t * period_table;                            // will be set when initializing the player with an module.. different formats have different tables
+    
     player_resampling_t resampling;                     // sample intermpolation method: linear, none...
-    protracker_paulafreq_index_t paula_freq_index;      // ntsc or pal
+    defs_mod_paulafreq_index_t paula_freq_index;        // ntsc or pal
     
     int protracker_strict_mode;                         // disable panning etc.
     

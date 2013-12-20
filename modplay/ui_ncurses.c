@@ -89,10 +89,10 @@ void ui_ncurses_tick_handler(module_t * module, int current_order, int current_p
     for (i = 0; i < ui_ncurses_layout.num_channels; i++) {
         module_pattern_data_t * data = &(module->patterns[current_pattern].rows[current_row].data[i]);
         
-        if (data->period)
+        if (data->period_index >= 0)
             wattron(ui_ncurses_layout.channel_view, A_BOLD);
         
-        ui_period2note(channels[i].period, note);
+        ui_periodindex2note(ui_lookup_period_index(module->module_type, channels[i].period), note);
         ui_protracker_effect_to_humanreadable(tmp2, data->effect_num, data->effect_value);
         sprintf(tmp, "%-35s | %3s | %2i | %-25s |  ", module->samples[channels[i].sample_num - 1].header.name, note, channels[i].volume, tmp2);
         mvwprintw(ui_ncurses_layout.channel_view, i+1, 1, tmp);
@@ -124,7 +124,7 @@ void ui_ncurses_row_handler(module_t * module, int current_order, int current_pa
             sprintf(tmp2, "%02d | ", i);
             for (k = 0; k < module->num_channels; k++) {
                 module_pattern_data_t * data = &(module->patterns[current_pattern].rows[i].data[k]);
-                ui_period2note(data->period, note);
+                ui_periodindex2note(data->period_index, note);
                 sprintf(tmp, "%s %02d %01x%02x | ", note, data->sample_num, data->effect_num, data->effect_value);
                 strcat (tmp2, tmp);
             }

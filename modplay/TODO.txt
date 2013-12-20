@@ -15,6 +15,7 @@ Features:
 - Graphical (QT?) UI
 
 Done:
+- DONE 20131220 module: get rid of periods in module, only use indices
 - DONE 20130706 player: Fix pattern loop when occuring in 2 colums (darkwond.mod getting into endless loop)
 - DONE ???????? player: Implement Panning
 - DONE ???????? player: Remove hardcoded 0x3 (Note Portamento exception) from player code

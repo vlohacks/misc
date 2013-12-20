@@ -1,9 +1,12 @@
 #include "ui.h"
-#include "protracker.h"
+#include "module.h"
 #include <string.h>
 #include <stdio.h>
 
-void ui_period2note(uint16_t period, char * dest)
+#include "defs_mod.h"
+#include "defs_s3m.h"
+
+void ui_periodindex2note(int period_index, char * dest)
 {
     
     static const char * notes[] = {
@@ -27,8 +30,8 @@ void ui_period2note(uint16_t period, char * dest)
 
     dest[3] = 0;
 
-    i = protracker_lookup_period_index(period);
-    if (i >= 8)
+    //i = protracker_lookup_period_index(period);
+    if (period_index >= 8)
         sprintf(dest, "%s%1u", notes[i % 12], i / 12);
     
 }
@@ -71,4 +74,36 @@ void ui_protracker_effect_to_humanreadable(char * buf, uint8_t effect_num, uint8
             break;
         case 0xf: strcpy(buf, "set speed"); break;
     }
+    
 }
+
+int ui_lookup_period_index(const module_type_t type, const uint16_t period)
+{
+    int i;
+    
+    int num_periods;
+    uint16_t * period_table;
+    
+    switch (type) {
+        case module_type_mod: 
+            num_periods = defs_mod_num_periods; 
+            period_table  = defs_mod_periods;
+            break;
+            
+        case module_type_s3m:
+            num_periods = defs_s3m_num_periods; 
+            period_table  = defs_s3m_periods;
+            break;
+            
+        default:
+            return -1;
+            
+    }
+    
+    for (i = 0; i < num_periods; i++) {
+        if (period_table[i] == period)
+            return i;
+    }
+    return -1;
+}
+
