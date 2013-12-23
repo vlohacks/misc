@@ -306,8 +306,8 @@ float player_channel_fetch_sample(player_t * player,  const int channel_num)
     int sample_index = channel->sample_num - 1;
 
     // maintain looping
-    if (player->module->samples[sample_index].header.loop_length > 2) {
-        while (channel->sample_pos >= (float)(player->module->samples[sample_index].header.loop_length + player->module->samples[sample_index].header.loop_start)) {
+    if (player->module->samples[sample_index].header.loop_enabled) {
+        while (channel->sample_pos >= (float)(player->module->samples[sample_index].header.loop_end)) {
             channel->sample_pos -= (float)player->module->samples[sample_index].header.loop_length;
         }
     } else {

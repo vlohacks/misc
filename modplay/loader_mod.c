@@ -217,6 +217,13 @@ int loader_mod_read_sample_header(module_sample_header_t * hdr, FILE * f)
     if (r != 1)
         return 1;
     hdr->loop_length = swap_endian_u16(word) << 1;
+    hdr->loop_end = hdr->loop_length + hdr->loop_start;
+    
+    hdr->loop_enabled = 0;
+    if (hdr->loop_length > 2)
+        hdr->loop_enabled = 1;
+    
+        
     
     return 0;
 }

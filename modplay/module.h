@@ -32,6 +32,7 @@ typedef struct {
             uint8_t st30volumeslides;      // bugged ST 3.0 Volume slides also performed on tick 0
             uint16_t st3_version;       // used st3 version
             uint8_t default_panning;
+            uint8_t mono;                  // mono flag
         } flags_s3m;
     };
         
@@ -41,9 +42,12 @@ typedef struct {
     char name[29];              // s3m support: extended to 29
     uint32_t length;
     int8_t finetune;
+    uint16_t c2spd;
     uint8_t volume;
+    uint8_t loop_enabled;
     uint32_t loop_start;
     uint32_t loop_length;
+    uint32_t loop_end;                                     
 } module_sample_header_t;
 
 typedef struct {

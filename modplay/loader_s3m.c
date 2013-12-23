@@ -9,9 +9,15 @@ module_t * loader_s3m_loadfile(char * filename)
 {
     char signature[4];
     int r, i, j;
+    uint32_t tmp_u32;
     uint16_t tmp_u16;
     uint8_t tmp_u8;
     uint8_t channel_map[32];
+    
+    uint16_t num_patterns_internal;
+    uint16_t * parapointer_pattern;
+    uint16_t * parapointer_sample;
+    uint32_t * parapointer_sample_memseg;
     
     module_t * module = (module_t *)malloc(sizeof(module_t));
     FILE * f = fopen(filename, "rb");
@@ -26,7 +32,7 @@ module_t * loader_s3m_loadfile(char * filename)
     
     module->module_type = module_type_s3m;
 
-    /* chech if we really deal with a S3M file */
+    /* chech if we really deal with a S3M file. IF not, bail out */
     fseek(f, 0x2c, SEEK_SET);
     r = fread(signature, 1, 4, f);
     if (memcmp(signature, "SCRM", 4)) {
@@ -45,7 +51,7 @@ module_t * loader_s3m_loadfile(char * filename)
     /* read num_orders, num_samples, num_patterns */
     r = fread(&(module->num_orders), sizeof(uint16_t), 1, f);
     r = fread(&(module->num_samples), sizeof(uint16_t), 1, f);
-    r = fread(&(module->num_patterns), sizeof(uint16_t), 1, f);
+    r = fread(&num_patterns_internal, sizeof(uint16_t), 1, f);
     
     /* read flags */
     r = fread(&tmp_u16, sizeof(uint16_t), 1, f);
@@ -123,6 +129,164 @@ module_t * loader_s3m_loadfile(char * filename)
     printf ("num orders: %i, num_patterns: %i, num_channels: %i\n", module->num_orders, module->num_patterns, module->num_channels);
     for (i = 0; i < module->num_orders; i++)
         printf(" %i\n", module->orders[i]);
+    
+    /* read sample and patter parapointers */
+    parapointer_sample = (uint16_t *)malloc(sizeof(uint16_t) * module->num_samples);
+    parapointer_pattern = (uint16_t *)malloc(sizeof(uint16_t) * num_patterns_internal);
+    parapointer_sample_memseg = (uint32_t *)malloc(sizeof(uint32_t) * module->num_samples); // we need this l8r
+        
+    fread(parapointer_sample, sizeof(uint16_t), module->num_samples, f);
+    fread(parapointer_pattern, sizeof(uint16_t), num_patterns_internal, f);
+    
+    
+    /* read default pan positions 
+     * TODO: calculate the right panning values for 256 steps
+     */
+    if (module->module_info.flags_s3m.default_panning = 0xfc) {
+        fread (module->initial_panning, sizeof(uint8_t), 32, f);
+    } else {
+        /* TODO: unclear, what are the default pannings if there is no panning
+         * info in the s3m ??? We make a default LRLRLR... pattern for now
+         */
+        for (i=0; i<32; i++) {
+            if (i & 1)
+                module->initial_panning[i] = 0x0f;
+            else
+                module->initial_panning[i] = 0x00;
+        }
+    }
+    
+
+    if ((module->initial_master_volume & 128) == 0) {
+        /* make the song mono */
+        for (i=0; i<32; i++) 
+            module->initial_panning[i] = 0x07;
+        
+        module->module_info.flags_s3m.mono = 1;
+    } else {
+        /* remove any garbage from the upper 4 bits */
+        for (i=0; i<32; i++)
+            module->initial_panning[i] &= 0x0f;     
+       
+        module->module_info.flags_s3m.mono = 0;
+    }
+    
+    module->samples = malloc(sizeof(module_sample_t) * module->num_samples) ;
+    /* read sample headers (instruments) */
+    for (i = 0; i < module->num_samples; i++) {
+        uint8_t sample_type;
+        fseek(f, parapointer_sample[i] << 4, SEEK_SET);
+        
+        /* read sample type */
+        fread(&sample_type, sizeof(uint8_t), 1, f);
+        
+        /* skip the "dos filename" 
+         * FS3MDOC.TXT is wrong here, it states this are 13 chars,
+         * actually it's 12 chars according to ST3 TECH.DOC
+         */
+        fseek(f, 12, SEEK_CUR);
+        
+        /* read sample "memseg" - which is stored in 3 bytes */
+        fread(&tmp_u8, sizeof(uint8_t), 1, f);
+        fread(&tmp_u16, sizeof(uint16_t), 1, f);
+        parapointer_sample_memseg[i] = ((uint32_t)tmp_u8 << 16) + tmp_u16;
+        
+        /* sample length */
+        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        module->samples[i].header.length = tmp_u32 & 0xffff;
+        
+        /* loop start */
+        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        module->samples[i].header.loop_start = tmp_u32 & 0xffff;
+
+        /* loop end */
+        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        module->samples[i].header.loop_end = tmp_u32 & 0xffff;
+        module->samples[i].header.loop_length = module->samples[i].header.loop_end - module->samples[i].header.loop_start;
+        
+        /* volume */
+        fread(&(module->samples[i].header.volume), sizeof(uint8_t), 1, f);
+        
+        /* Skip unused byte and packing scheme */
+        fseek(f, 2, SEEK_CUR);
+        
+        /* flags 
+         * (1)          = loop
+         * (1<<1)       = stereo sample (never used, ignored for now)
+         * (1<<2)       = 16 bit sample (never used, ignored for now)
+         */
+        fread(&tmp_u8, sizeof(uint8_t), 1, f);
+        module->samples[i].header.loop_enabled = tmp_u8 & 1;    // loop flag
+        
+        /* c2spd */
+        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        module->samples[i].header.c2spd = tmp_u32 & 0xffff;
+
+        /* Skip unused bytes */
+        fseek(f, 12, SEEK_CUR);
+
+        /* sample name */
+        fread(module->samples[i].header.name, 1, 28, f);
+        
+        /* if we deal with a adlib instrument or a empty sample slot, continue
+         * without loading data
+         */
+        if (sample_type != 1) {
+            if (sample_type > 1)
+                fprintf(stderr, __FILE__ " sample %i - unsupported type: %i (most likely ADLIB)\n", i ,sample_type);
+            continue;
+        }
+        
+        /* fetch sample data */
+        module->samples[i].data = malloc(module->samples[i].header.length);
+        fseek(f, parapointer_sample_memseg[i]);
+        fread(module->samples[i].data, 1, module->samples[i].header.length, f);
+        
+        /* we use unsigned samples interally */
+        for (j=0; j<module->samples[i].header.length; j++)
+            module->samples[i].data[j] ^= 128;
+            
+    }
+    
+    for (i=0; i< module->num_samples; i++) {
+        module_sample_header_t * h = &(module->samples[i].header);
+        printf ("l: %02i ls:%02i le:%02i v:%02i c2:%02i name:%s\n",
+                h->length,
+                h->loop_start,
+                h->loop_end,
+                h->volume,
+                h->c2spd,
+                h->name);
+    }
+        
+    /* allocate patterns */
+    module->patterns = (module_pattern_t *)malloc(sizeof(module_pattern_t) * module->num_patterns);
+   
+    /* read pattern data */
+    int pattern_nr = 0;
+    uint8_t packed_flags;
+    uint8_t channel_num;
+    uint16_t packed_size;
+    module_pattern_data_t tmp_data;
+    
+    for (i = 0; i < num_patterns_internal; i++) {
+        fseek(f, parapointer_pattern[i] << 4, SEEK_SET);
+        
+        
+        fread(&packed_size, sizeof(uint16_t), 1, f);
+        do {
+            fread(&packed_flags, sizeof(uint8_t), 1, f);
+            channel_num = packed_flags & 31;
+            
+        } while (packed_flags);
+        pattern_nr++;
+    }
+        
+    
+    /* free memory temporary occupied by parapointers */
+    free (parapointer_sample_memseg);
+    free (parapointer_sample);
+    free (parapointer_pattern);
     
     return module;
 }

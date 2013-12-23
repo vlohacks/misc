@@ -28,20 +28,19 @@ int main (int argc, char ** argv)
         return 1;
     }
 
+    //ui_ncurses_init();
+    
     output_portaudio_init(app.output_opts);
     
     
     ui_terminal_init();
-    
-    
     player_register_order_callback(app.player, ui_terminal_print_order_info);
     player_register_row_callback(app.player, ui_terminal_print_row_info);
     
     
     
-    /*
-    ui_ncurses_init();
     
+    /*
     player_register_order_callback(app.player, ui_ncurses_order_handler);
     player_register_row_callback(app.player, ui_ncurses_row_handler);
     player_register_tick_callback(app.player, ui_ncurses_tick_handler);
@@ -51,7 +50,7 @@ int main (int argc, char ** argv)
         
         for (i = 0; i < app.playlist_count; i++) {
             module_t * mod = loader_loadfile_by_extension(app.playlist[i]);
-		
+            
             player_set_module(app.player, mod);
             
             //ui_ncurses_new_song_handler(mod);

@@ -127,7 +127,7 @@ static const uint16_t defs_mod_periods_finetune[16][36] =
 
 
 // sinetable for tremolo and vibrato effect
-static const uint8_t defs_mod_sine_table[] = {
+static const uint8_t const defs_mod_sine_table[] = {
     0x00, 0x18, 0x31, 0x4A, 0x61, 0x78, 0x8D, 0xA1,
     0xB4, 0xC5, 0xD4, 0xE0, 0xEB, 0xF4, 0xFA, 0xFD,
     0xFF, 0xFD, 0xFA, 0xF4, 0xEB, 0xE0, 0xD4, 0xC5,
@@ -136,7 +136,7 @@ static const uint8_t defs_mod_sine_table[] = {
 
 
 // base frequency of the amiga "paula" sound chip
-static const float defs_mod_paulafreq[] = { 
+static const float const defs_mod_paulafreq[] = { 
     7093789.2,          // PAL
     7159090.5           // NTSC
 };

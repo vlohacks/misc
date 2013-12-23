@@ -31,8 +31,8 @@ void ui_periodindex2note(int period_index, char * dest)
     dest[3] = 0;
 
     //i = protracker_lookup_period_index(period);
-    if (period_index >= 8)
-        sprintf(dest, "%s%1u", notes[i % 12], i / 12);
+    if (period_index >= 0)
+        sprintf(dest, "%s%1u", notes[period_index % 12], period_index / 12);
     
 }
 
