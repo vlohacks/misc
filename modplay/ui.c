@@ -30,6 +30,11 @@ void ui_periodindex2note(int period_index, char * dest)
 
     dest[3] = 0;
 
+    if (period_index == 254) {
+        strcpy(dest, "^^^");
+        return;
+    }
+    
     //i = protracker_lookup_period_index(period);
     if (period_index >= 0)
         sprintf(dest, "%s%1u", notes[period_index % 12], period_index / 12);
@@ -75,6 +80,21 @@ void ui_protracker_effect_to_humanreadable(char * buf, uint8_t effect_num, uint8
         case 0xf: strcpy(buf, "set speed"); break;
     }
     
+}
+
+void ui_map_effect_num(char * target, const module_type_t type, const uint8_t effect_num)
+{
+    switch (type) {
+        
+        case module_type_s3m:
+            sprintf(target, "%c", ".ABCDEFGHIJKLMNOPQRSTUVWXYZ"[effect_num]);
+            break;
+
+        case module_type_mod:
+        default:
+            sprintf(target, "%X", effect_num);
+            break;
+    }
 }
 
 int ui_lookup_period_index(const module_type_t type, const uint16_t period)

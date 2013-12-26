@@ -29,11 +29,11 @@ typedef struct {
     uint8_t dest_volume;
     uint8_t panning;                            // 0..63;
     float frequency;
-    uint8_t volume;
+    int8_t volume;
     uint8_t current_effect_num;
     uint8_t current_effect_value;
-    uint8_t effect_last_value[16];
-    uint8_t effect_last_value_y[16];
+    uint8_t effect_last_value[26];
+    uint8_t effect_last_value_y[26];
     int vibrato_state;
     int tremolo_state;
     uint8_t volume_master;

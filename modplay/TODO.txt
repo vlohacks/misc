@@ -8,13 +8,16 @@ Fixes:
   Documentation (FMODDOC) says vibrato state should reset every new row, so I 
   implemented it this way, but I don't think that's true. Maybe it must only 
   reset with NEW NOTE.
+- Dynamic mapping of effect color in terminal output depending on module type
+  (s3m, mod...)
 
 Features:
-- s3m Loader
+
 - s3m Effects
 - Graphical (QT?) UI
 
 Done:
+- DONE 20131226 loader: S3M Loader
 - DONE 20131220 module: get rid of periods in module, only use indices
 - DONE 20130706 player: Fix pattern loop when occuring in 2 colums (darkwond.mod getting into endless loop)
 - DONE ???????? player: Implement Panning

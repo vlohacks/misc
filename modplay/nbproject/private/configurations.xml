@@ -8,8 +8,14 @@
       <in>arch.h</in>
       <in>cmdline.c</in>
       <in>cmdline.h</in>
+      <in>defs_mod.h</in>
+      <in>defs_s3m.h</in>
       <in>effects_mod.c</in>
       <in>effects_mod.h</in>
+      <in>effects_s3m.c</in>
+      <in>effects_s3m.h</in>
+      <in>loader.c</in>
+      <in>loader.h</in>
       <in>loader_mod.c</in>
       <in>loader_mod.h</in>
       <in>loader_s3m.c</in>
@@ -27,8 +33,7 @@
       <in>output_winmm.h</in>
       <in>player.c</in>
       <in>player.h</in>
-      <in>protracker.c</in>
-      <in>protracker.h</in>
+      <in>source.mod</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>
@@ -75,8 +80,10 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" FLO20F.S3M</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" FLO20E.S3M</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <runcommand>"${OUTPUT_PATH}" FLO20E.S3M</runcommand>
         <rundir>.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

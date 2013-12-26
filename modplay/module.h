@@ -59,7 +59,7 @@ typedef struct {
     uint8_t sample_num;
     //uint16_t period;
     int period_index;
-    uint8_t volume;             // s3m support: added for s3m support
+    int8_t volume;             // s3m support: added for s3m support
     uint8_t effect_num;
     uint8_t effect_value;
 } module_pattern_data_t;

@@ -12,6 +12,7 @@
 #include "player.h"
 #include "defs_mod.h"
 #include "effects_mod.h"
+#include "effects_s3m.h"
 #include "math.h"
 
 player_t * player_init(const float sample_rate, const player_resampling_t resampling) 
@@ -81,7 +82,7 @@ void player_set_module(player_t * player, module_t * module)
     player->tick_pos = 0;
     player->tick_duration = player_calc_tick_duration(player->bpm, player->sample_rate);
     player->do_break = 1;       // to initialize state 
-    player->current_tick = 6;
+    player->current_tick = player->module->initial_speed;
     player->pattern_delay = 0;
     
     if (player->effect_map) {
@@ -98,7 +99,12 @@ void player_set_module(player_t * player, module_t * module)
             break;
             
         case module_type_s3m:
+            player->effect_map = effects_s3m_init();
+            player->newrow_action = (newrowaction_callback_t)effects_s3m_newrowaction;
             player->period_table = defs_s3m_periods;
+            player->period_top = defs_s3m_periods[0];
+            player->period_bottom = defs_s3m_periods[defs_s3m_num_periods - 1];
+            break;
     }
 }
 
@@ -112,11 +118,12 @@ void player_init_channels(player_t * player)
     player->channels = (player_channel_t *)malloc(sizeof(player_channel_t) * player->module->num_channels);
     
     for (i = 0; i < player->module->num_channels; i++) {
+        player->channels[i].period = 0;
         player->channels[i].sample_num = 0;
         player->channels[i].sample_pos = 0;
         player->channels[i].volume = 64;
         player->channels[i].volume_master = 64;
-        for (j = 0; j < 16; j++)
+        for (j = 0; j < 32; j++)
                 player->channels[i].effect_last_value[j] = 0;
         player->channels[i].current_effect_num = 0;
         player->channels[i].current_effect_value = 0;
@@ -214,8 +221,10 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
         }
 
         // maintain effects
-        for (k=0; k < player->module->num_channels; k++) 
-            (player->effect_map)[player->channels[k].current_effect_num](player, k);
+        for (k=0; k < player->module->num_channels; k++) {
+            if ((player->effect_map)[player->channels[k].current_effect_num])
+                (player->effect_map)[player->channels[k].current_effect_num](player, k);
+        }
         
         // go for next tick
         player->current_tick++;
@@ -287,15 +296,29 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
     player_channel_t * channel = &(player->channels[channel_num]);
     module_sample_t * sample = &(player->module->samples[channel->sample_num - 1]);
     
-    // unusual: finetune is a signed nibble
-    int8_t finetune = sample->header.finetune >= 8 
-            ? -(16 - sample->header.finetune) 
-            : sample->header.finetune;
+    int8_t finetune;
+    uint16_t tuned_period;
     
-    channel->frequency = defs_mod_paulafreq[player->paula_freq_index] / ((float)period * 2.0f);
+    switch (player->module->module_type) {
+        case module_type_mod:
+            // unusual: finetune is a signed nibble
+            finetune = (sample->header.finetune >= 8 
+                    ? -(16 - sample->header.finetune) 
+                    : sample->header.finetune);
+
+            channel->frequency = defs_mod_paulafreq[player->paula_freq_index] / ((float)period * 2.0f);
+
+            if (finetune)
+                channel->frequency *= pow(x, finetune);
+
+            break;
+        
+        case module_type_s3m:
+            tuned_period = (period * 8363) / sample->header.c2spd;
+            channel->frequency = 14317056L / tuned_period;
+            break;
+    }
     
-    if (finetune)
-        channel->frequency *= pow(x, finetune);
 }
 
 float player_channel_fetch_sample(player_t * player,  const int channel_num) 

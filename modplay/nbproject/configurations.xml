@@ -8,6 +8,8 @@
       <in>cmdline.h</in>
       <in>effects_mod.c</in>
       <in>effects_mod.h</in>
+      <in>effects_s3m.c</in>
+      <in>effects_s3m.h</in>
       <in>loader_mod.c</in>
       <in>loader_mod.h</in>
       <in>loader_s3m.c</in>
@@ -20,8 +22,6 @@
       <in>output_portaudio.h</in>
       <in>player.c</in>
       <in>player.h</in>
-      <in>protracker.c</in>
-      <in>protracker.h</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>
@@ -57,7 +57,7 @@
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
           <buildCommand>${MAKE} -f Makefile</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
-          <executablePath></executablePath>
+          <executablePath>modplay</executablePath>
         </makeTool>
       </makefileType>
       <item path="application.h" ex="false" tool="3" flavor2="0">
@@ -73,6 +73,10 @@
         </cTool>
       </item>
       <item path="effects_mod.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="effects_s3m.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="effects_s3m.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="loader_mod.c" ex="false" tool="0" flavor2="2">
         <cTool>
@@ -103,12 +107,6 @@
         </cTool>
       </item>
       <item path="player.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="protracker.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
-      </item>
-      <item path="protracker.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ui.c" ex="false" tool="0" flavor2="2">
         <cTool>

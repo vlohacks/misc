@@ -8,7 +8,7 @@
 module_t * loader_s3m_loadfile(char * filename)
 {
     char signature[4];
-    int r, i, j;
+    int r, i, j, k;
     uint32_t tmp_u32;
     uint16_t tmp_u16;
     uint8_t tmp_u8;
@@ -85,6 +85,8 @@ module_t * loader_s3m_loadfile(char * filename)
     fseek(f, 0x35, SEEK_SET); // skip ultraclick stuff... gus is dead.
     r = fread(&(module->module_info.flags_s3m.default_panning), sizeof(uint8_t), 1, f);
     
+    printf("init speed: %i, init_bpm: %i, init_master_vol: %i\n", module->initial_speed, module->initial_bpm, module->initial_master_volume);
+    
     /* TODO: we currently ignore GLOBAL_VOLUME .. maybe it will turn out that
      it is a good idea to deal with it... */
     
@@ -142,7 +144,7 @@ module_t * loader_s3m_loadfile(char * filename)
     /* read default pan positions 
      * TODO: calculate the right panning values for 256 steps
      */
-    if (module->module_info.flags_s3m.default_panning = 0xfc) {
+    if (module->module_info.flags_s3m.default_panning == 0xfc) {
         fread (module->initial_panning, sizeof(uint8_t), 32, f);
     } else {
         /* TODO: unclear, what are the default pannings if there is no panning
@@ -232,6 +234,7 @@ module_t * loader_s3m_loadfile(char * filename)
          * without loading data
          */
         if (sample_type != 1) {
+            module->samples[i].data = 0;
             if (sample_type > 1)
                 fprintf(stderr, __FILE__ " sample %i - unsupported type: %i (most likely ADLIB)\n", i ,sample_type);
             continue;
@@ -239,10 +242,10 @@ module_t * loader_s3m_loadfile(char * filename)
         
         /* fetch sample data */
         module->samples[i].data = malloc(module->samples[i].header.length);
-        fseek(f, parapointer_sample_memseg[i]);
+        fseek(f, parapointer_sample_memseg[i] << 4, SEEK_SET);
         fread(module->samples[i].data, 1, module->samples[i].header.length, f);
         
-        /* we use unsigned samples interally */
+         /* we use unsigned samples interally */
         for (j=0; j<module->samples[i].header.length; j++)
             module->samples[i].data[j] ^= 128;
             
@@ -260,7 +263,7 @@ module_t * loader_s3m_loadfile(char * filename)
     }
         
     /* allocate patterns */
-    module->patterns = (module_pattern_t *)malloc(sizeof(module_pattern_t) * module->num_patterns);
+    module->patterns = (module_pattern_t *)malloc(sizeof(module_pattern_t) * num_patterns_internal);
    
     /* read pattern data */
     int pattern_nr = 0;
@@ -272,13 +275,63 @@ module_t * loader_s3m_loadfile(char * filename)
     for (i = 0; i < num_patterns_internal; i++) {
         fseek(f, parapointer_pattern[i] << 4, SEEK_SET);
         
-        
         fread(&packed_size, sizeof(uint16_t), 1, f);
-        do {
-            fread(&packed_flags, sizeof(uint8_t), 1, f);
-            channel_num = packed_flags & 31;
+        
+        module->patterns[pattern_nr].rows = (module_pattern_row_t *)malloc(sizeof(module_pattern_row_t) * 64);
+        module->patterns[pattern_nr].num_rows = 64;
+        
+        for (j = 0; j < 64; j++) {
+            module->patterns[pattern_nr].rows[j].data = (module_pattern_data_t *)malloc(sizeof(module_pattern_data_t) * module->num_channels);
+            for (k = 0; k < module->num_channels; k++) {
+                memset(&(module->patterns[pattern_nr].rows[j].data[k]), 0, sizeof(module_pattern_data_t));
+                module->patterns[pattern_nr].rows[j].data[k].period_index = -1;
+                module->patterns[pattern_nr].rows[j].data[k].volume = -1;
+            }
+        }
+        
+        for (j = 0; j < 64; j++) {
             
-        } while (packed_flags);
+            do {
+                memset(&tmp_data, 0, sizeof(module_pattern_data_t));
+                tmp_data.period_index = -1;
+                tmp_data.volume = -1;
+                
+                fread(&packed_flags, sizeof(uint8_t), 1, f);
+                
+                if (packed_flags > 0) {
+                
+                    channel_num = packed_flags & 31;
+
+                    if (packed_flags & 32) {
+                        fread(&(tmp_u8), 1, 1, f);
+                        if (tmp_u8 == 255)
+                            tmp_data.period_index = -1;
+                        else if (tmp_u8 == 254)
+                            tmp_data.period_index = 254;
+                        else
+                            tmp_data.period_index = (int)(((tmp_u8 >> 4) * 12) + (tmp_u8 & 0x0f));
+
+                        fread(&(tmp_data.sample_num), 1, 1, f);
+                    }
+
+                    if (packed_flags & 64)
+                        fread(&tmp_data.volume, 1, 1, f);
+
+                    if (packed_flags & 128) {
+                        fread(&tmp_data.effect_num, 1, 1, f);
+                        fread(&tmp_data.effect_value, 1, 1, f);
+                    }
+                    
+                    if (channel_map[channel_num] < 255) {
+                        //printf("r=%i, cn=%i, ch=%i\n", j, channel_num, channel_map[channel_num]);
+                        memcpy(&(module->patterns[pattern_nr].rows[j].data[channel_map[channel_num]]), &tmp_data, sizeof(module_pattern_data_t));
+                    }                    
+                }
+                
+
+                
+            } while (packed_flags);
+        }
         pattern_nr++;
     }
         
@@ -287,6 +340,8 @@ module_t * loader_s3m_loadfile(char * filename)
     free (parapointer_sample_memseg);
     free (parapointer_sample);
     free (parapointer_pattern);
+    
+    //module_dump(module, stdout);
     
     return module;
 }

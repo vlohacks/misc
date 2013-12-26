@@ -251,7 +251,7 @@ int loader_mod_read_pattern_data(module_pattern_data_t * data, FILE * f)
     
     data->effect_num = (uint8_t)((dw & 0x0f00) >> 8);
     data->effect_value = (uint8_t)(dw & 0xff);
-    data->volume = 255;  // mod has no volume bar
+    data->volume = -1;  // mod has no volume bar
     
     return 0;
 }

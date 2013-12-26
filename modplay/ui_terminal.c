@@ -3,7 +3,7 @@
 #include "ui.h"
 #include "application.h"
 #include <stdio.h>
-
+#include <string.h>
 
 FILE * ui_terminal_fd;
 
@@ -95,6 +95,7 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
 {
     int i;
     char note[4];
+    char volume[3];
     
     char * the_std_color = current_row % 4 ? color_otherrow : color_4throw;
     
@@ -103,8 +104,15 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
     fprintf(ui_terminal_fd, "%s%02d |", the_std_color, current_row );
     for (i = 0; i < module->num_channels; i++) {
         ui_periodindex2note(row->data[i].period_index, note);
-        fprintf(ui_terminal_fd, " %s %02d %s%01x%02x%s |", 
-                note, row->data[i].sample_num, (row->data[i].effect_num || row->data[i].effect_value) ? color_fx_map[row->data[i].effect_num] : the_std_color, row->data[i].effect_num, row->data[i].effect_value, the_std_color);
+        
+        if (row->data[i].volume >= 0)
+            sprintf(volume, "%02i", row->data[i].volume);
+        else
+            strcpy(volume, "..");
+        
+        fprintf(ui_terminal_fd, " %s %02d %s %s%01x%02x%s |", 
+                note, row->data[i].sample_num, volume, (row->data[i].effect_num || row->data[i].effect_value) ? color_fx_map[row->data[i].effect_num] : the_std_color, row->data[i].effect_num, row->data[i].effect_value, the_std_color);
+         
     }
     fprintf(ui_terminal_fd, "%s\n", color_std);
     fflush(ui_terminal_fd);

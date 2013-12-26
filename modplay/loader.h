@@ -9,6 +9,7 @@
 #define	LOADER_H
 
 #include <string.h>
+#include "module.h"
 #include "loader_mod.h"
 #include "loader_s3m.h"
 

@@ -46,6 +46,8 @@ void module_dump(module_t * module, FILE * fd)
     int i, j, k;
     
     char note[4];
+    char effect[2];
+    char volume[3];
     
     if (fd == 0)    
         fd = stderr;
@@ -62,7 +64,14 @@ void module_dump(module_t * module, FILE * fd)
             for (k = 0; k < module->num_channels; k++) {
                 module_pattern_data_t * data = &(module->patterns[i].rows[j].data[k]);
                 ui_periodindex2note(data->period_index, note);
-                fprintf(fd, "%s %02d %01x%02x | ", note, data->sample_num, data->effect_num, data->effect_value);
+                //sprintf(note, "%03i", data->period_index);
+                ui_map_effect_num(effect, module->module_type, data->effect_num);
+                if (data->volume > 64)
+                    sprintf(volume, "%s", "..");
+                else
+                    sprintf(volume, "%02i", data->volume);
+                
+                fprintf(fd, "%s %02d %s %s%02X | ", note, data->sample_num, volume, effect, data->effect_value);
             }
             fprintf(fd, "\n");
         }
