@@ -32,8 +32,8 @@ int main (int argc, char ** argv)
 
     //ui_ncurses_init();
     
-    //output_portaudio_init(app.output_opts);
-    output_alsa_init(0, 0);
+    output_portaudio_init(app.output_opts);
+    //output_alsa_init(0, 0);
     
     
     ui_terminal_init();
@@ -60,14 +60,14 @@ int main (int argc, char ** argv)
             //ui_ncurses_new_song_handler(mod);
             ui_terminal_print_moduleinfo(mod);
             
-            //output_portaudio_start(app.player);
+            output_portaudio_start(app.player);
 
             app.player->playing = 1;
             while (app.player->playing) {
                 // TODO here: UI input stuff etc.
-                //output_portaudio_wait();
-                player_read(app.player, &l, &r);
-                output_alsa_write(l, r);
+                output_portaudio_wait();
+                //player_read(app.player, &l, &r);
+                //output_alsa_write(l, r);
             }
 
             output_portaudio_stop();
@@ -82,7 +82,7 @@ int main (int argc, char ** argv)
     
     player_free(app.player);
     free(app.output_opts);
-    //output_portaudio_cleanup();
+    output_portaudio_cleanup();
     
     //ui_ncurses_cleanup();
             

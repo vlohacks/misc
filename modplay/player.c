@@ -289,6 +289,8 @@ float player_calc_tick_duration(const uint16_t bpm, const float sample_rate)
     return (((sample_rate / ((float)bpm / 60.0f)) / 4.0f) / 6.0f);
 }
 
+
+
 void player_channel_set_frequency(player_t * player, const uint16_t period, const int channel_num)
 {
     const float x = 1.007246412;
@@ -297,7 +299,7 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
     module_sample_t * sample = &(player->module->samples[channel->sample_num - 1]);
     
     int8_t finetune;
-    uint16_t tuned_period;
+    //uint16_t tuned_period;
     
     switch (player->module->module_type) {
         case module_type_mod:
@@ -314,8 +316,7 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
             break;
         
         case module_type_s3m:
-            tuned_period = (period * 8363) / sample->header.c2spd;
-            channel->frequency = 14317056L / tuned_period;
+            channel->frequency = 14317056L / period;
             break;
     }
     
@@ -328,6 +329,15 @@ float player_channel_fetch_sample(player_t * player,  const int channel_num)
     player_channel_t * channel = &(player->channels[channel_num]);
     int sample_index = channel->sample_num - 1;
 
+    // no sample, no sound... 
+    if (channel->sample_num == 0)
+        return 0.0f;
+
+    // trying to play a empty sample slot... play silence instead of segfault :)
+    if (player->module->samples[sample_index].data == 0)
+        return 0.0f;
+    
+    
     // maintain looping
     if (player->module->samples[sample_index].header.loop_enabled) {
         while (channel->sample_pos >= (float)(player->module->samples[sample_index].header.loop_end)) {
@@ -337,14 +347,6 @@ float player_channel_fetch_sample(player_t * player,  const int channel_num)
         if (channel->sample_pos >= (float)player->module->samples[sample_index].header.length)
             return 0.0f;
     }
-
-    // no sample, no sound... 
-    if (channel->sample_num == 0)
-        return 0.0f;
-
-    // trying to play a empty sample slot... play silence instead of segfault :)
-    if (player->module->samples[sample_index].data == 0)
-        return 0.0f;
     
     // fetch sample and convert to float
     s = (float)player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos)] / 128.0f;

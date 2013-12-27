@@ -13,11 +13,11 @@ module_t * loader_s3m_loadfile(char * filename)
     uint16_t tmp_u16;
     uint8_t tmp_u8;
     uint8_t channel_map[32];
+    uint32_t sample_memseg;
     
     uint16_t num_patterns_internal;
     uint16_t * parapointer_pattern;
     uint16_t * parapointer_sample;
-    uint32_t * parapointer_sample_memseg;
     
     module_t * module = (module_t *)malloc(sizeof(module_t));
     FILE * f = fopen(filename, "rb");
@@ -135,7 +135,6 @@ module_t * loader_s3m_loadfile(char * filename)
     /* read sample and patter parapointers */
     parapointer_sample = (uint16_t *)malloc(sizeof(uint16_t) * module->num_samples);
     parapointer_pattern = (uint16_t *)malloc(sizeof(uint16_t) * num_patterns_internal);
-    parapointer_sample_memseg = (uint32_t *)malloc(sizeof(uint32_t) * module->num_samples); // we need this l8r
         
     fread(parapointer_sample, sizeof(uint16_t), module->num_samples, f);
     fread(parapointer_pattern, sizeof(uint16_t), num_patterns_internal, f);
@@ -146,23 +145,16 @@ module_t * loader_s3m_loadfile(char * filename)
      */
     if (module->module_info.flags_s3m.default_panning == 0xfc) {
         fread (module->initial_panning, sizeof(uint8_t), 32, f);
-    } else {
-        /* TODO: unclear, what are the default pannings if there is no panning
-         * info in the s3m ??? We make a default LRLRLR... pattern for now
-         */
-        for (i=0; i<32; i++) {
-            if (i & 1)
-                module->initial_panning[i] = 0x0f;
-            else
-                module->initial_panning[i] = 0x00;
-        }
+        for (i = 0; i < 32; i++) 
+            module->initial_panning[i] = (module->initial_panning[i] << 4) | ((module->initial_panning[i] << 1) + (module->initial_panning[i]>6?1:0));
     }
+    
     
 
     if ((module->initial_master_volume & 128) == 0) {
         /* make the song mono */
         for (i=0; i<32; i++) 
-            module->initial_panning[i] = 0x07;
+            module->initial_panning[i] = 0x7f;
         
         module->module_info.flags_s3m.mono = 1;
     } else {
@@ -177,6 +169,10 @@ module_t * loader_s3m_loadfile(char * filename)
     /* read sample headers (instruments) */
     for (i = 0; i < module->num_samples; i++) {
         uint8_t sample_type;
+        
+        /* we use c2spd - initialize finetune with 0 */
+        module->samples[i].header.finetune = 0;
+        
         fseek(f, parapointer_sample[i] << 4, SEEK_SET);
         
         /* read sample type */
@@ -191,7 +187,7 @@ module_t * loader_s3m_loadfile(char * filename)
         /* read sample "memseg" - which is stored in 3 bytes */
         fread(&tmp_u8, sizeof(uint8_t), 1, f);
         fread(&tmp_u16, sizeof(uint16_t), 1, f);
-        parapointer_sample_memseg[i] = ((uint32_t)tmp_u8 << 16) + tmp_u16;
+        sample_memseg = ((uint32_t)tmp_u8 << 16) + tmp_u16;
         
         /* sample length */
         fread(&tmp_u32, sizeof(uint32_t), 1, f);
@@ -242,7 +238,7 @@ module_t * loader_s3m_loadfile(char * filename)
         
         /* fetch sample data */
         module->samples[i].data = malloc(module->samples[i].header.length);
-        fseek(f, parapointer_sample_memseg[i] << 4, SEEK_SET);
+        fseek(f, sample_memseg << 4, SEEK_SET);
         fread(module->samples[i].data, 1, module->samples[i].header.length, f);
         
          /* we use unsigned samples interally */
@@ -337,7 +333,6 @@ module_t * loader_s3m_loadfile(char * filename)
         
     
     /* free memory temporary occupied by parapointers */
-    free (parapointer_sample_memseg);
     free (parapointer_sample);
     free (parapointer_pattern);
     

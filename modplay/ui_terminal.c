@@ -95,13 +95,14 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
 {
     int i;
     char note[4];
+    char effect[2];
     char volume[3];
     
     char * the_std_color = current_row % 4 ? color_otherrow : color_4throw;
     
     module_pattern_row_t * row = &(module->patterns[current_pattern].rows[current_row]);
     
-    fprintf(ui_terminal_fd, "%s%02d |", the_std_color, current_row );
+    fprintf(ui_terminal_fd, "%s%02d|", the_std_color, current_row );
     for (i = 0; i < module->num_channels; i++) {
         ui_periodindex2note(row->data[i].period_index, note);
         
@@ -110,8 +111,10 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
         else
             strcpy(volume, "..");
         
-        fprintf(ui_terminal_fd, " %s %02d %s %s%01x%02x%s |", 
-                note, row->data[i].sample_num, volume, (row->data[i].effect_num || row->data[i].effect_value) ? color_fx_map[row->data[i].effect_num] : the_std_color, row->data[i].effect_num, row->data[i].effect_value, the_std_color);
+        ui_map_effect_num(effect,module->module_type,row->data[i].effect_num);
+        
+        fprintf(ui_terminal_fd, "%s%02d%s%s%02X%s|", 
+                note, row->data[i].sample_num, volume, effect, row->data[i].effect_value, the_std_color);
          
     }
     fprintf(ui_terminal_fd, "%s\n", color_std);
