@@ -119,6 +119,7 @@ void player_init_channels(player_t * player)
     
     for (i = 0; i < player->module->num_channels; i++) {
         player->channels[i].period = 0;
+        player->channels[i].period_index = -1;
         player->channels[i].sample_num = 0;
         player->channels[i].sample_pos = 0;
         player->channels[i].volume = 64;
@@ -134,15 +135,7 @@ void player_init_channels(player_t * player)
         player->channels[i].sample_delay = 0;
         
         // default pannings
-        switch (player->module->module_type) {
-            default:
-            case module_type_mod:
-                if (((i % 4) == 1) || ((i % 4) == 2))           // RLLR RLLR ...
-                    player->channels[i].panning = 0x00;
-                else
-                    player->channels[i].panning = 0xff;
-                break;
-        }
+        player->channels[i].panning = player->module->initial_panning[i];
     }
     
 }
@@ -200,13 +193,13 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
                 player->current_pattern = player->module->orders[player->current_order];
 
                 if (player->order_callback)
-                    (player->order_callback)(player->module, player->current_order, player->current_pattern);
+                    (player->order_callback)(player, player->current_order, player->current_pattern);
 
             }
 
             // maintain row callback
             if (player->row_callback)
-                (player->row_callback)(player->module, player->current_order, player->current_pattern, player->current_row);
+                (player->row_callback)(player, player->current_order, player->current_pattern, player->current_row);
 
             // fetch new pattern data from module
             for (k = 0; k < player->module->num_channels; k++) {
@@ -232,7 +225,7 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
 
         // maintain tick callback
         if (player->tick_callback)
-            (player->tick_callback)(player->module, player->current_order, player->current_pattern, player->current_row, player->current_tick, player->channels);
+            (player->tick_callback)(player, player->current_order, player->current_pattern, player->current_row, player->current_tick, player->channels);
         
 
     }
@@ -245,6 +238,11 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
         *mix_l += (s * panning);
         *mix_r += (s * (1.0f - panning));
     }
+    
+    *mix_l /= ((float)player->module->num_channels / 2.0f);
+    *mix_r /= ((float)player->module->num_channels / 2.0f);
+
+#if 0    
     if (player->protracker_strict_mode) {
         /* in pt strict mode without panning, channels are mapped strictly
          * RLLR RLLR... therefore we have exactly 50% on each channel 
@@ -256,7 +254,7 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
         *mix_l /= ((float)player->module->num_channels);
         *mix_r /= ((float)player->module->num_channels);
     }
-        
+#endif
 
     player->tick_pos--;
     

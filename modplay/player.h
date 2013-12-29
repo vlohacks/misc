@@ -25,9 +25,10 @@ typedef struct {
     uint8_t sample_delay;
     uint16_t period;
     uint16_t dest_period;
+    int period_index;
     uint8_t dest_sample_num;
     uint8_t dest_volume;
-    uint8_t panning;                            // 0..63;
+    uint8_t panning;                            
     float frequency;
     int8_t volume;
     uint8_t current_effect_num;
@@ -42,12 +43,13 @@ typedef struct {
 } player_channel_t;
 
 
-typedef void (*order_callback_t)(module_t *, int current_order, int current_pattern);
-typedef void (*row_callback_t)(module_t *, int current_order, int current_pattern, int current_row);
-typedef void (*tick_callback_t)(module_t *, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 
 
 struct player_t;
+
+typedef void (*order_callback_t)(struct player_t *, int current_order, int current_pattern);
+typedef void (*row_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row);
+typedef void (*tick_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 
 typedef void (*effect_callback_t)(struct player_t *, int);
 typedef void (*newrowaction_callback_t)(struct player_t *, module_pattern_data_t *, int);

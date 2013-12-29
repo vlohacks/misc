@@ -176,6 +176,15 @@ module_t * loader_mod_loadfile(char * filename)
         loader_mod_read_sample_data(&(module->samples[i]), f);
 	
     fclose(f);
+
+    // initial pannings 
+    for (i = 0; i < module->num_channels; i++) {
+        if (((i % 4) == 1) || ((i % 4) == 2))           // RLLR RLLR ...
+            module->initial_panning[i] = 0x00;
+        else
+            module->initial_panning[i] = 0xff;
+        break;
+    }
     
     return module;
 }

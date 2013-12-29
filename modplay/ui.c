@@ -37,49 +37,125 @@ void ui_periodindex2note(int period_index, char * dest)
     
     //i = protracker_lookup_period_index(period);
     if (period_index >= 0)
-        sprintf(dest, "%s%1u", notes[period_index % 12], period_index / 12);
+        sprintf(dest, "%s%1u", notes[period_index % 12], (period_index / 12) + 1);
     
 }
 
-void ui_protracker_effect_to_humanreadable(char * buf, uint8_t effect_num, uint8_t effect_val)
+void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint8_t * effect_values, const module_type_t module_type)
 {
+    
+    
     *buf = 0;
-    switch (effect_num) {
-        case 0: 
-            if (effect_val)
-                strcpy(buf, "arpeggio");
-            break;
-        case 0x1: strcpy(buf, "portamento up"); break;
-        case 0x2: strcpy(buf, "portamento down"); break;
-        case 0x3: strcpy(buf, "portamento to note"); break;
-        case 0x4: strcpy(buf, "vibrato"); break;
-        case 0x5: strcpy(buf, "port. to note + vol. slide"); break;
-        case 0x6: strcpy(buf, "vibrato + vol. slide"); break;
-        case 0x7: strcpy(buf, "tremolo"); break;
-        case 0x8: strcpy(buf, "panning"); break;
-        case 0x9: strcpy(buf, "sample offset"); break;
-        case 0xa: strcpy(buf, "volume slide"); break;
-        case 0xb: strcpy(buf, "position jump"); break;
-        case 0xc: strcpy(buf, "set volume"); break;
-        case 0xd: strcpy(buf, "pattern break"); break;
-        case 0xe: 
-            switch (effect_val >> 4) {
-                case 0x1: strcpy(buf, "fine porta up"); break;
-                case 0x2: strcpy(buf, "fine porta down"); break;
-                case 0x6: strcpy(buf, "pattern loop"); break;
+    char effect[2];
+    uint8_t effect_val = effect_values[effect_num];
+    
+    switch (module_type) {
+        case module_type_mod:
+            switch (effect_num) {
+                case 0: 
+                    if (effect_val)
+                        strcpy(buf, "arpeggio");
+                    break;
+                case 0x1: strcpy(buf, "portamento up"); break;
+                case 0x2: strcpy(buf, "portamento down"); break;
+                case 0x3: strcpy(buf, "portamento to note"); break;
+                case 0x4: strcpy(buf, "vibrato"); break;
+                case 0x5: strcpy(buf, "port. to note + vol. slide"); break;
+                case 0x6: strcpy(buf, "vibrato + vol. slide"); break;
+                case 0x7: strcpy(buf, "tremolo"); break;
                 case 0x8: strcpy(buf, "panning"); break;
-                case 0x9: strcpy(buf, "retrigger sample"); break;
-                case 0xa: strcpy(buf, "fine volume up"); break;
-                case 0xb: strcpy(buf, "fine volume down"); break;
-                case 0xc: strcpy(buf, "note cut"); break;
-                case 0xd: strcpy(buf, "note delay"); break;
-                case 0xe: strcpy(buf, "pattern delay"); break;
-                default: sprintf(buf, "UNIMPLEMENTED: %1x%2x", effect_num, effect_val); break;
+                case 0x9: strcpy(buf, "sample offset"); break;
+                case 0xa: strcpy(buf, "volume slide"); break;
+                case 0xb: strcpy(buf, "position jump"); break;
+                case 0xc: strcpy(buf, "set volume"); break;
+                case 0xd: strcpy(buf, "pattern break"); break;
+                case 0xe: 
+                    switch (effect_val >> 4) {
+                        case 0x1: strcpy(buf, "fine porta up"); break;
+                        case 0x2: strcpy(buf, "fine porta down"); break;
+                        case 0x6: strcpy(buf, "pattern loop"); break;
+                        case 0x8: strcpy(buf, "panning"); break;
+                        case 0x9: strcpy(buf, "retrigger sample"); break;
+                        case 0xa: strcpy(buf, "fine volume up"); break;
+                        case 0xb: strcpy(buf, "fine volume down"); break;
+                        case 0xc: strcpy(buf, "note cut"); break;
+                        case 0xd: strcpy(buf, "note delay"); break;
+                        case 0xe: strcpy(buf, "pattern delay"); break;
+                        default: sprintf(buf, "UNIMPLEMENTED: %1x%2x", effect_num, effect_val); break;
+                    }
+                    break;
+                case 0xf: strcpy(buf, "set speed"); break;            
             }
             break;
-        case 0xf: strcpy(buf, "set speed"); break;
+            
+        case module_type_s3m:
+            switch (effect_num) {
+                case 0: break;
+                case 1: strcpy(buf, "set speed"); break;
+                
+                case 3: strcpy(buf, "pattern break"); break;
+                case 4: 
+                    if ((effect_val & 0x0f) == 0x0f)
+                        strcpy(buf, "fine volslide up"); 
+                    else if ((effect_val & 0xf0) == 0xf0)
+                        strcpy(buf, "fine volslide down"); 
+                    
+                    if ((effect_val & 0x0f) == 0x00)
+                        strcpy(buf, "volume slide up"); 
+                    else if ((effect_val & 0xf0) == 0x00)
+                        strcpy(buf, "volume slide down"); 
+                    
+                    break;
+                    
+                case 5:
+                    if ((effect_val & 0xf0) == 0xf0)
+                        strcpy(buf, "fine portamento down"); 
+                    else if ((effect_val & 0xf0) == 0xe0)
+                        strcpy(buf, "extrafine portamento down"); 
+                    else 
+                        strcpy(buf, "portamento down"); 
+                    break;                    
+
+                case 6:
+                    effect_val = effect_values[5];
+                    if ((effect_val & 0xf0) == 0xf0)
+                        strcpy(buf, "fine portamento up"); 
+                    else if ((effect_val & 0xf0) == 0xe0)
+                        strcpy(buf, "extrafine portamento up"); 
+                    else 
+                        strcpy(buf, "portamento up"); 
+                    break;                    
+
+                case 7: strcpy(buf, "portamento to note"); break;
+                
+                case 8: strcpy(buf, "vibrato"); break;
+                
+                case 11: strcpy(buf, "vibrato + volume slide"); break;
+                
+                case 15: strcpy(buf, "sample offset"); break;
+                
+                case 19: 
+                    switch (effect_val >> 4) {
+                        case 8: strcpy(buf, "stereo control"); break;
+                        default: 
+                            ui_map_effect_num(effect, module_type, effect_num);
+                            sprintf(buf, "UNIMPLEMENTED: %s%2x", effect, effect_val); 
+                            break;                        
+                    }
+                    break;
+                
+                case 20: strcpy(buf, "set tempo"); 
+                    
+                default: 
+                    ui_map_effect_num(effect, module_type, effect_num);
+                    sprintf(buf, "UNIMPLEMENTED: %s%2x", effect, effect_val); 
+                    break;
+                
+            }
+            break;
     }
-    
+        
+       
 }
 
 void ui_map_effect_num(char * target, const module_type_t type, const uint8_t effect_num)

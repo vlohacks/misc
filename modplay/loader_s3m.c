@@ -109,6 +109,8 @@ module_t * loader_s3m_loadfile(char * filename)
             else 
                 module->initial_panning[module->num_channels] = 0xff;
             
+            printf("== %i == %i ==\n", module->num_channels, tmp_u8);
+            
             module->num_channels ++;
         }
     }
@@ -141,16 +143,25 @@ module_t * loader_s3m_loadfile(char * filename)
     
     
     /* read default pan positions 
-     * TODO: calculate the right panning values for 256 steps
+     * TODO: This does not work as described in FS3MDOC: Sometimes there are
+     * default pan positions all with 0 leaving the S3M panned completely to 
+     * the left.
+     * so we leave it out for now. Further investigation needed here
      */
+    
+    /*
     if (module->module_info.flags_s3m.default_panning == 0xfc) {
-        fread (module->initial_panning, sizeof(uint8_t), 32, f);
-        for (i = 0; i < 32; i++) 
-            module->initial_panning[i] = (module->initial_panning[i] << 4) | ((module->initial_panning[i] << 1) + (module->initial_panning[i]>6?1:0));
+        //fread (module->initial_panning, sizeof(uint8_t), 32, f);
+        
+        for (i = 0; i < 32; i++)  {
+            fread(&tmp_u8, sizeof(uint8_t), 1, f);
+            module->initial_panning[i] = tmp_u8;//(module->initial_panning[i] << 4) | ((module->initial_panning[i] << 1) + (module->initial_panning[i]>6?1:0));
+            printf("===>>>%i<<<===\n", tmp_u8);
+        }
+        
     }
+    */
     
-    
-
     if ((module->initial_master_volume & 128) == 0) {
         /* make the song mono */
         for (i=0; i<32; i++) 
@@ -158,10 +169,6 @@ module_t * loader_s3m_loadfile(char * filename)
         
         module->module_info.flags_s3m.mono = 1;
     } else {
-        /* remove any garbage from the upper 4 bits */
-        for (i=0; i<32; i++)
-            module->initial_panning[i] &= 0x0f;     
-       
         module->module_info.flags_s3m.mono = 0;
     }
     
@@ -229,8 +236,8 @@ module_t * loader_s3m_loadfile(char * filename)
         /* if we deal with a adlib instrument or a empty sample slot, continue
          * without loading data
          */
+        module->samples[i].data = 0;
         if (sample_type != 1) {
-            module->samples[i].data = 0;
             if (sample_type > 1)
                 fprintf(stderr, __FILE__ " sample %i - unsupported type: %i (most likely ADLIB)\n", i ,sample_type);
             continue;

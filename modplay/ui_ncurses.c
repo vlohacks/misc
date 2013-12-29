@@ -72,36 +72,58 @@ void ui_ncurses_layout_init()
     ui_ncurses_layout.init = 0;
 }
 
-void ui_ncurses_order_handler(module_t * module, int current_order, int current_pattern)
+void ui_ncurses_order_handler(player_t * player, int current_order, int current_pattern)
 {
-    mvwprintw(ui_ncurses_layout.song_view, 0, 0, "VloSoft MOD Player | song: %s | ord: %03i/%03i | pat: %03i/%03i", module->song_title, current_order, module->num_orders, current_pattern, module->num_patterns);
+    mvwprintw(ui_ncurses_layout.song_view, 0, 0, "VloSoft MOD Player | song: %s | ord: %03i/%03i | pat: %03i/%03i", player->module->song_title, current_order, player->module->num_orders, current_pattern, player->module->num_patterns);
     wrefresh(ui_ncurses_layout.song_view);
 }
 
-void ui_ncurses_tick_handler(module_t * module, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels)
+void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels)
 {
     char tmp[100];
     char tmp2[40];
+    char tmp3[30];
     char note[4];
     
-    int i;
+    int i, j, k;
        
     for (i = 0; i < ui_ncurses_layout.num_channels; i++) {
-        module_pattern_data_t * data = &(module->patterns[current_pattern].rows[current_row].data[i]);
+        module_pattern_data_t * data = &(player->module->patterns[current_pattern].rows[current_row].data[i]);
         
         if (data->period_index >= 0)
             wattron(ui_ncurses_layout.channel_view, A_BOLD);
         
-        ui_periodindex2note(ui_lookup_period_index(module->module_type, channels[i].period), note);
-        ui_protracker_effect_to_humanreadable(tmp2, data->effect_num, data->effect_value);
-        sprintf(tmp, "%-35s | %3s | %2i | %-25s |  ", module->samples[channels[i].sample_num - 1].header.name, note, channels[i].volume, tmp2);
+        sprintf(note, "...");
+        if (channels[i].period_index < 254)
+            ui_periodindex2note(channels[i].period_index, note);
+
+        /*
+        tmp3[0] = 0;
+        k = 0;
+        if (channels[i].sample_num > 0) {
+            for (j = 0; j < strlen(player->module->samples[channels[i].sample_num - 1].header.name); j++) {
+                if (isprint(player->module->samples[channels[i].sample_num - 1].header.name[j])) {
+                    tmp3[k++] = player->module->samples[channels[i].sample_num - 1].header.name[j];
+                }
+            }
+            tmp3[k] = 0;
+        }
+        */
+        
+        
+        
+        tmp2[0] = 0;
+        if (data->effect_num)
+            ui_effect_to_humanreadable(tmp2, data->effect_num, player->channels[i].effect_last_value, player->module->module_type);
+        
+        sprintf(tmp, "%-30s | %3s | %2i | %02x | %-25s |  ", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
         mvwprintw(ui_ncurses_layout.channel_view, i+1, 1, tmp);
         wattroff(ui_ncurses_layout.channel_view, A_BOLD);
     }
     wrefresh(ui_ncurses_layout.channel_view);    
 }
 
-void ui_ncurses_row_handler(module_t * module, int current_order, int current_pattern, int current_row) 
+void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row) 
 {
     if (term_resized) {
         ui_ncurses_layout_init();
@@ -114,18 +136,28 @@ void ui_ncurses_row_handler(module_t * module, int current_order, int current_pa
     char note[4];
     char tmp[20];
     char tmp2[400];
+    char effect[2];
+    char volume[3];
     
     j = ui_ncurses_layout.pattern_view->_begy + 1;
     for (j = 0; j < ui_ncurses_layout.pattern_view->_maxy - 1; j++) {
         
         i = j + (current_row - current_pos_location);
         
-        if ((i >= 0) && (i < module->patterns[current_pattern].num_rows)) {
-            sprintf(tmp2, "%02d | ", i);
-            for (k = 0; k < module->num_channels; k++) {
-                module_pattern_data_t * data = &(module->patterns[current_pattern].rows[i].data[k]);
+        if ((i >= 0) && (i < player->module->patterns[current_pattern].num_rows)) {
+            sprintf(tmp2, "%02d|", i);
+            for (k = 0; k < player->module->num_channels; k++) {
+                module_pattern_data_t * data = &(player->module->patterns[current_pattern].rows[i].data[k]);
                 ui_periodindex2note(data->period_index, note);
-                sprintf(tmp, "%s %02d %01x%02x | ", note, data->sample_num, data->effect_num, data->effect_value);
+                
+            if (data->volume >= 0)
+                sprintf(volume, "%02i", data->volume);
+            else
+                strcpy(volume, "..");
+
+            ui_map_effect_num(effect, player->module->module_type, data->effect_num);
+                
+                sprintf(tmp, "%s%02i%s%s%02X|", note, data->sample_num, volume, effect, data->effect_value);
                 strcat (tmp2, tmp);
             }
         } else {

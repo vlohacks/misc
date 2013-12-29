@@ -30,24 +30,25 @@ int main (int argc, char ** argv)
         return 1;
     }
 
-    //ui_ncurses_init();
+    ui_ncurses_init();
     
     output_portaudio_init(app.output_opts);
     //output_alsa_init(0, 0);
     
     
+    /*
     ui_terminal_init();
     player_register_order_callback(app.player, ui_terminal_print_order_info);
     player_register_row_callback(app.player, ui_terminal_print_row_info);
+    */
     
     
     
     
-    /*
     player_register_order_callback(app.player, ui_ncurses_order_handler);
     player_register_row_callback(app.player, ui_ncurses_row_handler);
     player_register_tick_callback(app.player, ui_ncurses_tick_handler);
-    */
+    
     
     while (app.running) {
         
@@ -57,8 +58,8 @@ int main (int argc, char ** argv)
             
             player_set_module(app.player, mod);
             
-            //ui_ncurses_new_song_handler(mod);
-            ui_terminal_print_moduleinfo(mod);
+            ui_ncurses_new_song_handler(mod);
+            //ui_terminal_print_moduleinfo(mod);
             
             output_portaudio_start(app.player);
 
@@ -84,7 +85,7 @@ int main (int argc, char ** argv)
     free(app.output_opts);
     output_portaudio_cleanup();
     
-    //ui_ncurses_cleanup();
+    ui_ncurses_cleanup();
             
     return 0;
     

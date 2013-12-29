@@ -62,6 +62,7 @@ void effects_s3m_newrowaction(player_t * player, module_pattern_data_t * data, i
 
     // set period (note)
     if (data->period_index >= 0) {
+        player->channels[channel_num].period_index = data->period_index;
         if (data->period_index == 254) { // note off
             player->channels[channel_num].sample_num = 0;
             return;
@@ -95,6 +96,9 @@ void effects_s3m_newrowaction(player_t * player, module_pattern_data_t * data, i
 
 uint16_t effects_s3m_get_tuned_period(player_t * player, uint16_t base_period, int channel)
 {
+    if (player->channels[channel].sample_num == 0)
+        return 1;
+    
     module_sample_t * sample = &(player->module->samples[player->channels[channel].sample_num - 1]);
     return (base_period * 8363) / sample->header.c2spd;
 }
@@ -392,12 +396,13 @@ void effects_s3m_T_setbpm(player_t * player, int channel)
 
 void effects_s3m_unimplemented(player_t * player, int channel)
 {
-
+/*
     char effect[2];
     // only alert once per row
     if (player->current_tick == 0) {
         ui_map_effect_num(effect, player->module->module_type, player->channels[channel].current_effect_num);
         fprintf(stderr, "\nUnimplemented: %s%02x\n", effect, player->channels[channel].current_effect_value);
     }
+ */
    
 }

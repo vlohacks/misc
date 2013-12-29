@@ -28,9 +28,9 @@ void ui_ncurses_cleanup();
 void ui_ncurses_term_resized(int i);
 void ui_ncurses_layout_init();
 void ui_ncurses_new_song_handler(module_t * mod);
-void ui_ncurses_order_handler(module_t * module, int current_order, int current_pattern);
-void ui_ncurses_tick_handler(module_t * module, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
-void ui_ncurses_row_handler(module_t * module, int current_order, int current_pattern, int current_row);
+void ui_ncurses_order_handler(player_t * player, int current_order, int current_pattern);
+void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
+void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row);
 
 #endif	/* UI_NCURSES_H */
 
