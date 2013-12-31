@@ -169,8 +169,10 @@ void effects_s3m_E_slidedown(player_t * player, int channel)
     
     if (player->current_tick == 0) {
         /* remember last slide down command parameter */
-        if (player->channels[channel].current_effect_value)
+        if (player->channels[channel].current_effect_value) {
             player->channels[channel].effect_last_value[5] = player->channels[channel].current_effect_value;
+            player->channels[channel].effect_last_value[6] = player->channels[channel].effect_last_value[5];
+        }
         
         if ((player->channels[channel].effect_last_value[5] & 0xf0) == 0xf0) {
             /* fine portamento */
@@ -207,26 +209,23 @@ void effects_s3m_F_slideup(player_t * player, int channel)
 {
     int tmp;
     
-    /* notice:
-     * effect_last_value[5] is NO copy paste bug! Slide Up / Down share one
-     * saved parameter!!!
-     */
-    
     if (player->current_tick == 0) {
         /* remember last slide down command parameter */
-        if (player->channels[channel].current_effect_value)
-            player->channels[channel].effect_last_value[5] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].current_effect_value) {
+            player->channels[channel].effect_last_value[6] = player->channels[channel].current_effect_value;
+            player->channels[channel].effect_last_value[5] = player->channels[channel].effect_last_value[6];
+        }
         
-        if ((player->channels[channel].effect_last_value[5] & 0xf0) == 0xf0) {
+        if ((player->channels[channel].effect_last_value[6] & 0xf0) == 0xf0) {
             /* fine portamento */
-            tmp = (int)player->channels[channel].period - ((player->channels[channel].effect_last_value[5] & 0x0f) << 2);
+            tmp = (int)player->channels[channel].period - ((player->channels[channel].effect_last_value[6] & 0x0f) << 2);
             if (tmp < player->period_bottom)
                 tmp = player->period_bottom;
             player->channels[channel].period = tmp;
             player_channel_set_frequency(player, player->channels[channel].period, channel);
-        } else if ((player->channels[channel].effect_last_value[5] & 0xf0) == 0xe0) {
+        } else if ((player->channels[channel].effect_last_value[6] & 0xf0) == 0xe0) {
             /* extra fine portamento */
-            tmp = (int)player->channels[channel].period - ((player->channels[channel].effect_last_value[5] & 0x0f));
+            tmp = (int)player->channels[channel].period - ((player->channels[channel].effect_last_value[6] & 0x0f));
             if (tmp < player->period_bottom)
                 tmp = player->period_bottom;
             player->channels[channel].period = tmp;
@@ -236,9 +235,9 @@ void effects_s3m_F_slideup(player_t * player, int channel)
         return;
     }
     
-    if ((player->channels[channel].effect_last_value[5]) < 0xe0) {
+    if ((player->channels[channel].effect_last_value[6]) < 0xe0) {
         /* regular portamento */
-        tmp = (int)player->channels[channel].period - ((player->channels[channel].effect_last_value[5]) << 2);
+        tmp = (int)player->channels[channel].period - ((player->channels[channel].effect_last_value[6]) << 2);
         if (tmp < player->period_bottom)
             tmp = player->period_bottom;
         player->channels[channel].period = tmp;

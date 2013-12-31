@@ -215,6 +215,10 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
 
         // maintain effects
         for (k=0; k < player->module->num_channels; k++) {
+            if (player->current_tick == 0) {
+                if (player->channels[k].current_effect_value)
+                    player->channels[k].effect_last_value[player->channels[k].current_effect_num] = player->channels[k].current_effect_value;
+            }
             if ((player->effect_map)[player->channels[k].current_effect_num])
                 (player->effect_map)[player->channels[k].current_effect_num](player, k);
         }
