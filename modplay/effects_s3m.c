@@ -379,7 +379,7 @@ void effects_s3m_S8_stereocontrol(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
         uint8_t i = player->channels[channel].current_effect_value & 0x0f;
-        player->channels[channel].panning = (i << 4) | ((i << 1) + (i>6?1:0));
+        player->channels[channel].panning = (i << 4) | i;//  (i << 4) | ((i << 1) + (i>6?1:0));
     }
 }
 
