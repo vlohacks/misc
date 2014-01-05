@@ -48,6 +48,7 @@ int main (int argc, char ** argv)
     player_register_order_callback(app.player, ui_ncurses_order_handler);
     player_register_row_callback(app.player, ui_ncurses_row_handler);
     player_register_tick_callback(app.player, ui_ncurses_tick_handler);
+    player_register_channel_sample_callback(app.player, ui_ncurses_channel_sample_handler, 0b11111111111);
     
     
     while (app.running) {

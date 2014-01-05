@@ -30,6 +30,7 @@ typedef struct {
     uint8_t dest_volume;
     uint8_t panning;                            
     float frequency;
+    float peak_sample[2];
     int8_t volume;
     uint8_t current_effect_num;
     uint8_t current_effect_value;
@@ -37,6 +38,7 @@ typedef struct {
     uint8_t effect_last_value_y[26];
     int vibrato_state;
     int tremolo_state;
+    int tremor_state;
     uint8_t volume_master;
     uint8_t pattern_loop_position;
     uint8_t pattern_loop_count;
@@ -50,6 +52,7 @@ struct player_t;
 typedef void (*order_callback_t)(struct player_t *, int current_order, int current_pattern);
 typedef void (*row_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row);
 typedef void (*tick_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
+typedef void (*channel_sample_callback_t)(float l, float r, float peak_l, float peak_r, int channel);
 
 typedef void (*effect_callback_t)(struct player_t *, int);
 typedef void (*newrowaction_callback_t)(struct player_t *, module_pattern_data_t *, int);
@@ -64,6 +67,9 @@ struct player_t {
     order_callback_t order_callback;                    // callback pointer which gets called every order change
     row_callback_t row_callback;                        // callback pointer which gets called every row (patter view..)
     tick_callback_t tick_callback;                      // callback pointer which gets called every tick (effects, volumebars)
+    channel_sample_callback_t channel_sample_callback;  // callback pointer which gets called every sample & sample_callback_mask
+    
+    uint32_t channel_sample_callback_mask;
 
     const uint16_t * period_table;                            // will be set when initializing the player with an module.. different formats have different tables
     
@@ -95,6 +101,9 @@ struct player_t {
     int pattern_delay_active;
     
     int loop_module;
+    int loop_pattern;
+    int solo_channel;
+    
     int playing;
 };
 

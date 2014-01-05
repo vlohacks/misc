@@ -31,6 +31,7 @@ void ui_ncurses_new_song_handler(module_t * mod);
 void ui_ncurses_order_handler(player_t * player, int current_order, int current_pattern);
 void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row);
+void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float peak_r, int channel);
 
 #endif	/* UI_NCURSES_H */
 

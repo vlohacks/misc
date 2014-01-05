@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="89">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <df root="." name="modplay">
+    <df root="." name="0">
       <df name="docs">
+      </df>
+      <df name="testmods">
+        <in>DreamIt3.mod</in>
       </df>
       <in>application.h</in>
       <in>arch.h</in>
@@ -33,7 +36,6 @@
       <in>output_winmm.h</in>
       <in>player.c</in>
       <in>player.h</in>
-      <in>source.mod</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>

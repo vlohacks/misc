@@ -183,7 +183,6 @@ module_t * loader_mod_loadfile(char * filename)
             module->initial_panning[i] = 0x00;
         else
             module->initial_panning[i] = 0xff;
-        break;
     }
     
     return module;

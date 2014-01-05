@@ -109,7 +109,7 @@ module_t * loader_s3m_loadfile(char * filename)
             else 
                 module->initial_panning[module->num_channels] = 0xff;
             
-            printf("== %i == %i ==\n", module->num_channels, tmp_u8);
+            //printf("== %i == %i ==\n", module->num_channels, tmp_u8);
             
             module->num_channels ++;
         }
@@ -130,9 +130,11 @@ module_t * loader_s3m_loadfile(char * filename)
     module->num_orders = j;
     module->num_patterns++;
     
+    /*
     printf ("num orders: %i, num_patterns: %i, num_channels: %i\n", module->num_orders, module->num_patterns, module->num_channels);
     for (i = 0; i < module->num_orders; i++)
         printf(" %i\n", module->orders[i]);
+     */
     
     /* read sample and patter parapointers */
     parapointer_sample = (uint16_t *)malloc(sizeof(uint16_t) * module->num_samples);
@@ -254,6 +256,7 @@ module_t * loader_s3m_loadfile(char * filename)
             
     }
     
+    /*
     for (i=0; i< module->num_samples; i++) {
         module_sample_header_t * h = &(module->samples[i].header);
         printf ("l: %02i ls:%02i le:%02i v:%02i c2:%02i name:%s\n",
@@ -264,6 +267,7 @@ module_t * loader_s3m_loadfile(char * filename)
                 h->c2spd,
                 h->name);
     }
+    */
         
     /* allocate patterns */
     module->patterns = (module_pattern_t *)malloc(sizeof(module_pattern_t) * num_patterns_internal);
@@ -280,9 +284,11 @@ module_t * loader_s3m_loadfile(char * filename)
         
         fread(&packed_size, sizeof(uint16_t), 1, f);
         
+        /* s3m always has 64 rows per pattern */
         module->patterns[pattern_nr].rows = (module_pattern_row_t *)malloc(sizeof(module_pattern_row_t) * 64);
         module->patterns[pattern_nr].num_rows = 64;
         
+        /* initialize all data with empty values */
         for (j = 0; j < 64; j++) {
             module->patterns[pattern_nr].rows[j].data = (module_pattern_data_t *)malloc(sizeof(module_pattern_data_t) * module->num_channels);
             for (k = 0; k < module->num_channels; k++) {
@@ -330,8 +336,6 @@ module_t * loader_s3m_loadfile(char * filename)
                         memcpy(&(module->patterns[pattern_nr].rows[j].data[channel_map[channel_num]]), &tmp_data, sizeof(module_pattern_data_t));
                     }                    
                 }
-                
-
                 
             } while (packed_flags);
         }

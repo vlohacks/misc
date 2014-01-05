@@ -29,6 +29,7 @@ player_t * player_init(const float sample_rate, const player_resampling_t resamp
     player->tick_callback = 0;
     player->row_callback = 0;
     player->order_callback = 0;
+    player->channel_sample_callback = 0;
     
     player_set_protracker_strict_mode(player, 0);
 
@@ -78,7 +79,11 @@ void player_set_module(player_t * player, module_t * module)
     player->next_order = 0;
     player->current_row = 0;
     player->next_row = player->current_row++;
-    player->current_pattern = player->module->orders[player->current_order];
+    
+    player->current_pattern = player->loop_pattern >= 0
+        ? player->loop_pattern
+        : player->module->orders[player->current_order];
+    
     player->tick_pos = 0;
     player->tick_duration = player_calc_tick_duration(player->bpm, player->sample_rate);
     player->do_break = 1;       // to initialize state 
@@ -130,6 +135,7 @@ void player_init_channels(player_t * player)
         player->channels[i].current_effect_value = 0;
         player->channels[i].vibrato_state = 0;
         player->channels[i].tremolo_state = 0;
+        player->channels[i].tremor_state = 0;
         player->channels[i].pattern_loop_position = 0;
         player->channels[i].pattern_loop_count = 0;     
         player->channels[i].sample_delay = 0;
@@ -145,6 +151,7 @@ void player_init_channels(player_t * player)
 int player_read(player_t * player, float * mix_l, float * mix_r)
 {
     int k;
+    static uint32_t samplectr;
     
     // reaching new tick
     if (player->tick_pos <= 0) {
@@ -190,7 +197,10 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
                 
 
                 // lookup pattern to play in order list
-                player->current_pattern = player->module->orders[player->current_order];
+                if (player->loop_pattern >= 0)
+                    player->current_pattern = player->loop_pattern;
+                else 
+                    player->current_pattern = player->module->orders[player->current_order];
 
                 if (player->order_callback)
                     (player->order_callback)(player, player->current_order, player->current_pattern);
@@ -236,12 +246,39 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
 
     // mixing
     *mix_l = *mix_r = 0;
+    
     for (k = 0; k < player->module->num_channels; k++) {
+        if ((player->solo_channel >= 0) && (k != player->solo_channel))
+            continue;
+        
         float panning = ((float)player->channels[k].panning) / 255.0f;
         float s = player_channel_fetch_sample(player, k) * ((float)player->channels[k].volume_master / 64.0f);
-        *mix_l += (s * panning);
-        *mix_r += (s * (1.0f - panning));
+        float cl = (s * panning);
+        float cr = (s * (1.0f - panning));
+        float tmp;
+        
+        *mix_l += cl;
+        *mix_r += cr;
+        
+        if (player->channel_sample_callback) {
+            tmp = cl < 0 ? cl * -1 : cl;
+            if (tmp > player->channels[k].peak_sample[0])
+                player->channels[k].peak_sample[0] = tmp;
+            
+            tmp = cr < 0 ? cr * -1 : cr;
+            if (tmp > player->channels[k].peak_sample[1])
+                player->channels[k].peak_sample[1] = tmp;
+            
+            if ((samplectr & player->channel_sample_callback_mask) == 0) {
+                (player->channel_sample_callback)(cl, cr, player->channels[k].peak_sample[0], player->channels[k].peak_sample[1], k);
+                player->channels[k].peak_sample[0] = 0;
+                player->channels[k].peak_sample[1] = 0;
+            }
+        }
+        
     }
+    
+    samplectr++;
     
     *mix_l /= ((float)player->module->num_channels / 2.0f);
     *mix_r /= ((float)player->module->num_channels / 2.0f);
@@ -278,6 +315,12 @@ void player_register_row_callback(player_t * player, row_callback_t func)
 void player_register_order_callback(player_t * player, order_callback_t func)
 {
     player->order_callback = func;
+}
+
+void player_register_channel_sample_callback(player_t * player, channel_sample_callback_t func, uint32_t callback_mask)
+{
+    player->channel_sample_callback_mask = callback_mask;
+    player->channel_sample_callback = func;
 }
 
 void player_init_defaults(player_t * player) 

@@ -5,8 +5,10 @@ BIN	= modplay
 CCFLAGS = -Wall -g
 #CCFLAGS	= -Wall -O3
 #CXXFLAGS = -Wall -O3
-#linux
+#linux portaudio
 LDFLAGS = libportaudio.a -lm -lpthread -lasound -lncurses
+#linux alsa
+#LDFLAGS = -lm -lpthread -lasound -lncurses
 #win32
 #LDFLAGS = -lm libportaudio.a -lwinmm
 

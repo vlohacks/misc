@@ -10,6 +10,8 @@ void cmdline_set_default_config_player(player_t * player)
     player->resampling = player_resampling_linear;
     player->paula_freq_index = PAL;
     player->loop_module = 0;
+    player->loop_pattern = -1;
+    player->solo_channel = -1;
 }
 
 void cmdline_set_default_config_output(output_opts_t * output_opts)
@@ -29,7 +31,7 @@ int cmdline_parse(int argc, char ** argv, modplay_application_t * app) {
         return 1;
     }
 
-    while ((c = getopt(argc, argv, "i:r:f:b:hPlL")) != -1) {
+    while ((c = getopt(argc, argv, "i:r:f:b:hPlLp:s:")) != -1) {
         switch (c) {
             case 'i':           // interpolation
                 if (!strcmp(optarg, "linear")) {
@@ -71,6 +73,14 @@ int cmdline_parse(int argc, char ** argv, modplay_application_t * app) {
                 
             case 'l':           // loop playlist
                 app->loop_playlist = 1;
+                break;
+                
+            case 'p':
+                app->player->loop_pattern = atoi(optarg);
+                break;
+                
+            case 's':
+                app->player->solo_channel = atoi(optarg);
                 break;
                 
             case '?':
@@ -128,6 +138,8 @@ void cmdline_usage (char * prog)
             "   -b <buffer size>        Set audio output buffer size. Default is 1024\n"
             "   -l                      Loop the modules list\n"
             "   -L                      Loop single module\n"
-            "   -h                      This text\n", prog);
+            "   -h                      This text\n"
+            "   -s <channel>            solo <channel>"
+            "   -p <pattern>            loop <pattern>", prog);
 
 }

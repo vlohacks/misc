@@ -92,8 +92,8 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
             switch (effect_num) {
                 case 0: break;
                 case 1: strcpy(buf, "set speed"); break;
-                
                 case 3: strcpy(buf, "pattern break"); break;
+                
                 case 4: 
                     if ((effect_val & 0x0f) == 0x0f)
                         strcpy(buf, "fine volslide up"); 
@@ -117,7 +117,6 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
                     break;                    
 
                 case 6:
-                    effect_val = effect_values[5];
                     if ((effect_val & 0xf0) == 0xf0)
                         strcpy(buf, "fine portamento up"); 
                     else if ((effect_val & 0xf0) == 0xe0)
@@ -127,16 +126,17 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
                     break;                    
 
                 case 7: strcpy(buf, "portamento to note"); break;
-                
                 case 8: strcpy(buf, "vibrato"); break;
-                
+                case 10: strcpy(buf, "arpeggio"); break;
                 case 11: strcpy(buf, "vibrato + volume slide"); break;
-                
+                case 12: strcpy(buf, "note portamento + vol slide"); break;
                 case 15: strcpy(buf, "sample offset"); break;
-                
+                case 17: strcpy(buf, "retrigger + volume slide"); break;
+
                 case 19: 
                     switch (effect_val >> 4) {
-                        case 8: strcpy(buf, "stereo control"); break;
+                        case 0x8: strcpy(buf, "panning"); break;
+                        case 0xA: strcpy(buf, "stereo control"); break;
                         default: 
                             ui_map_effect_num(effect, module_type, effect_num);
                             sprintf(buf, "UNIMPLEMENTED: %s%2x", effect, effect_val); 

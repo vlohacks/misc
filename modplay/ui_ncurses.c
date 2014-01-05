@@ -78,6 +78,38 @@ void ui_ncurses_order_handler(player_t * player, int current_order, int current_
     wrefresh(ui_ncurses_layout.song_view);
 }
 
+#define SCOPE_SIZE 15
+
+void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float peak_r, int channel)
+{
+    char tmp[(SCOPE_SIZE * 2) + 2];
+    int i;
+    
+    for (i = 0; i < SCOPE_SIZE; i++) {
+        if ((int)(peak_l*SCOPE_SIZE) >= (SCOPE_SIZE - i)) 
+            tmp[i] = '=';
+        else 
+            tmp[i] = '-';
+    }
+    
+    
+    for (i = SCOPE_SIZE; i < SCOPE_SIZE * 2 + 1; i++) {
+        if ((int)(peak_r * SCOPE_SIZE) >= (i - SCOPE_SIZE))
+            tmp[i] = '=';
+        else
+            tmp[i] = '-';
+    }
+    
+    
+    
+    tmp[SCOPE_SIZE] = '|';
+    tmp[SCOPE_SIZE * 2 + 1] = 0;
+    
+    mvwprintw(ui_ncurses_layout.channel_view, channel+1, 80, tmp);
+    wrefresh(ui_ncurses_layout.channel_view);
+    
+}
+
 void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels)
 {
     char tmp[100];
@@ -116,7 +148,7 @@ void ui_ncurses_tick_handler(player_t * player, int current_order, int current_p
         if (data->effect_num)
             ui_effect_to_humanreadable(tmp2, data->effect_num, player->channels[i].effect_last_value, player->module->module_type);
         
-        sprintf(tmp, "%-30s | %3s | %2i | %02x | %-25s |  ", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
+        sprintf(tmp, "%-30s | %3s | %2i | %02x | %-27s |", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
         mvwprintw(ui_ncurses_layout.channel_view, i+1, 1, tmp);
         wattroff(ui_ncurses_layout.channel_view, A_BOLD);
     }
