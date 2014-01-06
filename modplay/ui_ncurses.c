@@ -1,5 +1,6 @@
 #include "ui_ncurses.h"
 #include "ui.h"
+#include "player_command.h"
 #include "string.h"
 #include <signal.h>
 #include <ncurses.h>
@@ -55,7 +56,15 @@ void ui_ncurses_layout_init()
         endwin();
     
     initscr();
+    curs_set(0);
+    noecho();
     ui_ncurses_layout.ncurses_inited = 1;
+    ui_ncurses_layout.use_colors = has_colors();
+    
+    if (ui_ncurses_layout.use_colors) {
+        start_color();
+        init_pair(UI_NCURSES_COLORPAIR_WINDOW, COLOR_WHITE, COLOR_BLUE);
+    }
     
     getmaxyx(stdscr, h, w);
     
@@ -65,10 +74,24 @@ void ui_ncurses_layout_init()
     ui_ncurses_layout.song_view = newwin(1, w, 0, 0);
     ui_ncurses_layout.channel_view = newwin(ui_ncurses_layout.num_channels + 2, w, 1, 0);
     ui_ncurses_layout.pattern_view = newwin((h - (ui_ncurses_layout.num_channels + 3)), w, ui_ncurses_layout.num_channels + 3, 0);
+    if (ui_ncurses_layout.use_colors) {
+       wattron(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+       wattron(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+    }
+
+
+    
     box(ui_ncurses_layout.channel_view, 0, 0);
     box(ui_ncurses_layout.pattern_view, 0, 0);
-    wrefresh(ui_ncurses_layout.channel_view);
-    wrefresh(ui_ncurses_layout.pattern_view);
+
+    
+    
+    if (ui_ncurses_layout.use_colors) {
+        wattroff(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattroff(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+    }
+        
+
     ui_ncurses_layout.init = 0;
 }
 
@@ -148,7 +171,7 @@ void ui_ncurses_tick_handler(player_t * player, int current_order, int current_p
         if (data->effect_num)
             ui_effect_to_humanreadable(tmp2, data->effect_num, player->channels[i].effect_last_value, player->module->module_type);
         
-        sprintf(tmp, "%-30s | %3s | %2i | %02x | %-27s |", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
+        sprintf(tmp, "%-30s | %3s | %2i | %02x | %-27s | ", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
         mvwprintw(ui_ncurses_layout.channel_view, i+1, 1, tmp);
         wattroff(ui_ncurses_layout.channel_view, A_BOLD);
     }
@@ -208,7 +231,50 @@ void ui_ncurses_row_handler(player_t * player, int current_order, int current_pa
         wattroff(ui_ncurses_layout.pattern_view, A_BOLD);
     }
     wrefresh(ui_ncurses_layout.pattern_view);
-
-        
     
 }
+
+player_command_action_t ui_ncurses_handle_input() 
+{
+    int c;
+    int i = 0;
+    
+    char buf[5];
+    
+    while(c = getch()) {
+        cbreak();
+        buf[i++] = c;
+        if (i == 3)
+            break;
+    }
+    
+    buf[i++] = 0;
+    
+    mvwprintw(ui_ncurses_layout.song_view, 0, 0, "%x%x%x%x%x", buf[0], buf[1], buf[2], buf[3], buf[4] );
+    wrefresh(ui_ncurses_layout.song_view);
+    
+    switch (buf[0]) {
+        case 0x3b:
+            switch (buf[1]) {
+                case 0x35:              // ctrl
+                    switch(buf[2]) {
+                        case 0x43: return player_command_action_next_order;
+                        case 0x44: return player_command_action_prev_order;
+                    }
+                    break;
+                    
+                case 0x33:              // alt
+                    switch(buf[2]) {
+                        case 0x43: return player_command_action_next_song;
+                        case 0x44: return player_command_action_prev_song;
+                    }
+                    break;
+                    
+            }
+            break;
+        default: return player_command_action_none;
+    }
+    
+    
+}
+

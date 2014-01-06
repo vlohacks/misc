@@ -27,7 +27,7 @@ typedef struct {
     uint16_t dest_period;
     int period_index;
     uint8_t dest_sample_num;
-    uint8_t dest_volume;
+    int8_t dest_volume;
     uint8_t panning;                            
     float frequency;
     float peak_sample[2];

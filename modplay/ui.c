@@ -132,11 +132,12 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
                 case 12: strcpy(buf, "note portamento + vol slide"); break;
                 case 15: strcpy(buf, "sample offset"); break;
                 case 17: strcpy(buf, "retrigger + volume slide"); break;
-
+                case 18: strcpy(buf, "tremolo"); break;
                 case 19: 
                     switch (effect_val >> 4) {
                         case 0x8: strcpy(buf, "panning"); break;
                         case 0xA: strcpy(buf, "stereo control"); break;
+                        case 0xD: strcpy(buf, "note delay"); break;
                         default: 
                             ui_map_effect_num(effect, module_type, effect_num);
                             sprintf(buf, "UNIMPLEMENTED: %s%2x", effect, effect_val); 
@@ -144,7 +145,9 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
                     }
                     break;
                 
-                case 20: strcpy(buf, "set tempo"); 
+                case 20: strcpy(buf, "set tempo"); break;
+                
+                case 24: strcpy(buf, "panning"); break;
                     
                 default: 
                     ui_map_effect_num(effect, module_type, effect_num);

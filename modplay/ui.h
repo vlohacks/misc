@@ -16,5 +16,7 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
 void ui_map_effect_num(char * target, const module_type_t type, const uint8_t effect_num);
 int ui_lookup_period_index(const module_type_t type, const uint16_t period);
 
+
+
 #endif	/* UI_H */
 

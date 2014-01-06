@@ -12,9 +12,12 @@
 #include "module.h"
 #include "player.h"
 
+#define UI_NCURSES_COLORPAIR_WINDOW 1
+
 typedef struct  {
     int init;
     int ncurses_inited;
+    int use_colors;
     WINDOW * song_view;
     WINDOW * channel_view;
     WINDOW * pattern_view;
@@ -22,6 +25,8 @@ typedef struct  {
     int current_h;
     int num_channels;
 } ui_ncurses_layout_t;
+
+
 
 void ui_ncurses_init();
 void ui_ncurses_cleanup();

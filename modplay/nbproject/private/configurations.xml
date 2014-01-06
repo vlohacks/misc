@@ -4,9 +4,6 @@
     <df root="." name="0">
       <df name="docs">
       </df>
-      <df name="testmods">
-        <in>DreamIt3.mod</in>
-      </df>
       <in>application.h</in>
       <in>arch.h</in>
       <in>cmdline.c</in>
@@ -36,10 +33,15 @@
       <in>output_winmm.h</in>
       <in>player.c</in>
       <in>player.h</in>
+      <in>player_command.c</in>
+      <in>player_command.h</in>
+      <in>source.mod</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>
       <in>ui_ncurses.h</in>
+      <in>ui_ncurses_patternview.c</in>
+      <in>ui_ncurses_patternview.h</in>
       <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>

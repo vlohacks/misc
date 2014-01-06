@@ -4,6 +4,7 @@
 #include "main.h"
 #include "application.h"
 #include "player.h"
+#include "player_command.h"
 #include "module.h"
 #include "loader.h"
 #include "ui_terminal.h"
@@ -20,6 +21,7 @@ int main (int argc, char ** argv)
     modplay_application_t app;  
     int i;
     float l, r;
+    player_command_action_t action;
     
     app.player = player_init(44100.0f, player_resampling_linear);
     app.output_opts = malloc(sizeof(output_opts_t));
@@ -52,8 +54,9 @@ int main (int argc, char ** argv)
     
     
     while (app.running) {
-        
-        for (i = 0; i < app.playlist_count; i++) {
+
+        i = 0;
+        for (;;) {
             
             module_t * mod = loader_loadfile_by_extension(app.playlist[i]);
             
@@ -66,12 +69,37 @@ int main (int argc, char ** argv)
 
             app.player->playing = 1;
             while (app.player->playing) {
+                action = ui_ncurses_handle_input();
+                //fprintf(stderr, "%i\n", action);
+                switch(action) {
+                    case (player_command_action_next_song):
+                        if (i < (app.playlist_count - 1)) {
+                            app.player->playing = 0;
+                        }
+                        break;
+                        
+                    case (player_command_action_prev_song):
+                        if (i > 0) {
+                            i-=2;
+                            app.player->playing = 0;
+                        }
+                        break;
+                                    
+                    default: 
+                        player_command_action_dispatch(app.player, action);
+                        break;
+                    
+                }
                 // TODO here: UI input stuff etc.
                 output_portaudio_wait();
                 //player_read(app.player, &l, &r);
                 //output_alsa_write(l, r);
             }
 
+            i++;
+            if (i == app.playlist_count)
+                break;
+            
             output_portaudio_stop();
             module_free(mod);
         }

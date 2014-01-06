@@ -31,9 +31,12 @@ void effects_s3m_K_vibrato_volumeslide(player_t * player, int channel);
 void effects_s3m_L_slidetonote_volumeslide(player_t * player, int channel);
 void effects_s3m_O_sampleoffset(player_t * player, int channel);
 void effects_s3m_Q_retrigger_volumeslide(player_t * player, int channel);
+void effects_s3m_R_tremolo(player_t * player, int channel) ;
 void effects_s3m_S_special(player_t * player, int channel);
 void effects_s3m_S8_panning(player_t * player, int channel);
+void effects_s3m_SD_delaysample(player_t * player, int channel);
 void effects_s3m_T_setbpm(player_t * player, int channel);
+void effects_s3m_X_panning(player_t * player, int channel) ;
 
 void effects_s3m_unimplemented(player_t * player, int channel);
 #endif	/* EFFECTS_S3M_H */

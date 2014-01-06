@@ -22,10 +22,14 @@
       <in>output_portaudio.h</in>
       <in>player.c</in>
       <in>player.h</in>
+      <in>player_command.c</in>
+      <in>player_command.h</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>
       <in>ui_ncurses.h</in>
+      <in>ui_ncurses_patternview.c</in>
+      <in>ui_ncurses_patternview.h</in>
       <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>
@@ -107,6 +111,10 @@
       </item>
       <item path="player.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="player_command.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="player_command.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="ui.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
@@ -116,6 +124,10 @@
       <item path="ui_ncurses.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="ui_ncurses.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ui_ncurses_patternview.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="ui_ncurses_patternview.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ui_qt.cpp" ex="false" tool="1" flavor2="0">
       </item>

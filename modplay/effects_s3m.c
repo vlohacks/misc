@@ -31,11 +31,11 @@ effect_callback_t * effects_s3m_init()
     effect_map[15] = effects_s3m_O_sampleoffset;
     effect_map[16] = 0;                                 // no 'P' effect
     effect_map[17] = effects_s3m_Q_retrigger_volumeslide;
-    /*
-    effect_map[18] = effects_s3m_R_sampleoffset;
-    */
+    effect_map[18] = effects_s3m_R_tremolo;
     effect_map[19] = effects_s3m_S_special;
     effect_map[20] = effects_s3m_T_setbpm;
+    
+    effect_map[24] = effects_s3m_X_panning;
     
     return effect_map;
 }
@@ -44,11 +44,12 @@ void effects_s3m_newrowaction(player_t * player, module_pattern_data_t * data, i
 {
     
     // special behaviour for sample / note delay
-    if ((data->effect_num == 0xe) && ((data->effect_value >> 4) == 0xd)) {
+    if ((data->effect_num == 19) && ((data->effect_value >> 4) == 0xd)) {
         if (data->period_index >= 0) {
                 //player->channels[channel_num].dest_period = player->period_table[data->period_index];
                 player->channels[channel_num].dest_period = effects_s3m_get_tuned_period(player, player->period_table[data->period_index], channel_num);
                 player->channels[channel_num].dest_sample_num = data->sample_num;
+                player->channels[channel_num].dest_volume = data->volume;
         } else {
             player->channels[channel_num].dest_period = 0;
         }
@@ -89,7 +90,6 @@ void effects_s3m_newrowaction(player_t * player, module_pattern_data_t * data, i
         }
     } 
     
-    player->channels[channel_num].vibrato_state = 0;
     //player->channels[channel_num].tremolo_state = 0;
     player->channels[channel_num].volume_master = 64;
     
@@ -289,6 +289,8 @@ void effects_s3m_H_vibrato(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
+        player->channels[channel].vibrato_state = 0;
+        
         if ((player->channels[channel].current_effect_value >> 4) != 0x00) 
             player->channels[channel].effect_last_value[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value >> 4);
 
@@ -528,11 +530,55 @@ void effects_s3m_Q_retrigger_volumeslide(player_t * player, int channel)
     
 }
 
+void effects_s3m_R_tremolo(player_t * player, int channel) 
+{
+    uint8_t temp;
+    int temp2;
+    uint16_t delta;
+    
+    if (player->current_tick == 0) {
+        player->channels[channel].tremolo_state = 0;
+        if ((player->channels[channel].current_effect_value >> 4) != 0x00) 
+            player->channels[channel].effect_last_value[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value >> 4);
+
+        if ((player->channels[channel].current_effect_value & 0xf) != 0x00) 
+            player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value & 0xf);
+        
+        return;    
+    }
+
+    temp = player->channels[channel].tremolo_state & 0x1f;
+    delta = defs_mod_sine_table[temp];
+    
+    delta *= player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num];
+    delta /= 64;
+    
+    if (player->channels[channel].tremolo_state >= 0) {
+        if (player->channels[channel].volume + delta > 64) 
+            delta = 64 - player->channels[channel].volume;
+        temp2 = (int)player->channels[channel].volume + delta;
+        player->channels[channel].volume_master = (uint8_t)temp2;
+    } else {
+        if ((int)player->channels[channel].volume - delta < 0) 
+            delta = player->channels[channel].volume;
+
+        temp2 = (int)player->channels[channel].volume - delta;
+        player->channels[channel].volume_master = (uint8_t)temp2;
+    }
+    
+    player->channels[channel].tremolo_state += player->channels[channel].effect_last_value[player->channels[channel].current_effect_num];
+    if (player->channels[channel].tremolo_state > 31)
+        player->channels[channel].tremolo_state -= 64;
+}
+
+
+
 void effects_s3m_S_special(player_t * player, int channel)
 {
     switch (player->channels[channel].current_effect_value >> 4) {
         case 0x8: effects_s3m_S8_panning(player, channel); break;
         case 0xA: effects_s3m_SA_stereocontrol(player, channel); break;
+        case 0xD: effects_s3m_SD_delaysample(player, channel); break;
         default: effects_s3m_unimplemented(player, channel);
     }
 }
@@ -560,6 +606,31 @@ void effects_s3m_SA_stereocontrol(player_t * player, int channel)
     }
 }
 
+
+void effects_s3m_SD_delaysample(player_t * player, int channel)
+{
+    if (player->current_tick == 0)
+        player->channels[channel].sample_delay = 0;
+    
+    if (player->channels[channel].sample_delay == (player->channels[channel].current_effect_value & 0xf)) {
+        if (player->channels[channel].dest_sample_num > 0) {
+            player->channels[channel].sample_num = player->channels[channel].dest_sample_num;
+            player->channels[channel].volume = player->module->samples[player->channels[channel].sample_num - 1].header.volume;
+        }
+        
+        if (player->channels[channel].dest_period > 0) {
+            player->channels[channel].period = player->channels[channel].dest_period;
+            player->channels[channel].sample_pos = 0;
+            player_channel_set_frequency(player, player->channels[channel].period, channel);
+        }
+        
+        if (player->channels[channel].dest_volume >= 0)
+            player->channels[channel].volume = player->channels[channel].dest_volume;
+    }
+    
+    player->channels[channel].sample_delay++; // = (player->channels[channel].current_effect_value & 0xf);
+}
+
 void effects_s3m_T_setbpm(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
@@ -568,6 +639,18 @@ void effects_s3m_T_setbpm(player_t * player, int channel)
             player->tick_duration = player_calc_tick_duration(player->bpm, player->sample_rate);
          }
     }
+}
+
+// protracker panning
+void effects_s3m_X_panning(player_t * player, int channel) 
+{
+    if (player->current_tick == 0) {
+        int tmp = player->channels[channel].current_effect_value;
+        tmp = (tmp * 256) / 80;
+        //printf("%i\n", tmp);
+        player->channels[channel].panning = tmp;
+    }
+    
 }
 
 
