@@ -15,7 +15,7 @@ io_handle_t * io_mem_open(void * ptr, size_t size)
             free(handle);
             return 0;
         }
-        native_handle->pos = (char *)ptr;
+        native_handle->pos = 0;
         native_handle->size = size;
         native_handle->ptr = ptr;
         handle->native_handle = native_handle;
@@ -38,10 +38,10 @@ size_t io_mem_read(void * ptr, size_t size, size_t n, io_handle_t * handle)
 {
     size_t prod = size * n;
     io_mem_native_handle_t * native_handle = (io_mem_native_handle_t *)handle->native_handle;
-    if (prod > ((native_handle->size - 1) - native_handle->pos))
-        prod = ((native_handle->size - 1) - native_handle->pos);
+    if (prod > (native_handle->size - native_handle->pos))
+        prod = (native_handle->size - native_handle->pos);
     memcpy(ptr, (void *)(native_handle->ptr + native_handle->pos), prod);
-    ptr += prod;
+    native_handle->pos += prod;
     return prod;
 }
 
@@ -49,9 +49,10 @@ size_t io_mem_write(const void * ptr, size_t size, size_t n, io_handle_t * handl
 {
     size_t prod = size * n;
     io_mem_native_handle_t * native_handle = (io_mem_native_handle_t *)handle->native_handle;
-    if (prod > ((native_handle->size - 1) - native_handle->pos))
-        prod = ((native_handle->size - 1) - native_handle->pos);
+    if (prod > (native_handle->size - native_handle->pos))
+        prod = (native_handle->size - native_handle->pos);
     memcpy((void *)(native_handle->ptr + native_handle->pos), ptr, prod);
+    native_handle->pos += prod;
     return prod;
 }
 
@@ -74,9 +75,11 @@ int io_mem_seek(struct io_handle_t * handle, size_t n, io_seek_direction_t direc
             break;
 
         case io_seek_end: 
-            native_handle->pos = (native_handle->size - 1) - n;
+            native_handle->pos = native_handle->size - n;
             break;
     }
-    if (native_handle->pos >= native_handle->size)
-        native_handle->pos = native_handle->size - 1;
+    if (native_handle->pos > native_handle->size)
+        native_handle->pos = native_handle->size;
+    
+    return 0;
 }

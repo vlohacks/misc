@@ -1,4 +1,3 @@
-
 #include "effects_s3m.h"
 #include <stdio.h>
 #include <stdlib.h>

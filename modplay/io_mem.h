@@ -12,7 +12,7 @@
 #include "io.h"
 
 typedef struct {
-    void * ptr;
+    char * ptr;
     size_t size;
     size_t pos;
 } io_mem_native_handle_t;

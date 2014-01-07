@@ -2,10 +2,27 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ncurses.h>
+
+#include "io.h"
+#include "io_file.h"
+#include "io_mem.h"
 
 /* loads a scream tracker 3 module (s3m)
  */
 module_t * loader_s3m_loadfile(char * filename)
+{
+    io_handle_t * h = io_file_open(filename, "rb");
+    module_t * mod = 0;
+    if (h) {
+        mod = loader_s3m_load(h);
+        io_file_close(h);
+    }
+
+    return mod;
+}
+
+module_t * loader_s3m_load(io_handle_t * h)
 {
     char signature[4];
     int r, i, j, k;
@@ -20,41 +37,35 @@ module_t * loader_s3m_loadfile(char * filename)
     uint16_t * parapointer_sample;
     
     module_t * module = (module_t *)malloc(sizeof(module_t));
-    FILE * f = fopen(filename, "rb");
     
-    if (!module || !f) {
-        if (f)
-            fclose(f);
-        if (module)
-            free(module);
+    if (!module) 
         return 0;
-    }    
+    
     
     module->module_type = module_type_s3m;
 
     /* chech if we really deal with a S3M file. IF not, bail out */
-    fseek(f, 0x2c, SEEK_SET);
-    r = fread(signature, 1, 4, f);
+    h->seek(h, 0x2c, io_seek_set);
+    r = h->read(signature, 1, 4, h);
+    
     if (memcmp(signature, "SCRM", 4)) {
-        fclose(f);
         free(module);
         return 0;
     }
     
     /* read the song name */
-    fseek(f, 0, SEEK_SET);
-    r = fread(module->song_title, 1, 28, f);
-    printf("%s\n", module->song_title);
+    h->seek(h, 0, io_seek_set);
+    r = h->read(module->song_title, 1, 28, h);
 
-    fseek(f, 0x20, SEEK_SET);    
+    h->seek(h, 0x20, io_seek_set);    
     
     /* read num_orders, num_samples, num_patterns */
-    r = fread(&(module->num_orders), sizeof(uint16_t), 1, f);
-    r = fread(&(module->num_samples), sizeof(uint16_t), 1, f);
-    r = fread(&num_patterns_internal, sizeof(uint16_t), 1, f);
+    r = h->read(&(module->num_orders), sizeof(uint16_t), 1, h);
+    r = h->read(&(module->num_samples), sizeof(uint16_t), 1, h);
+    r = h->read(&num_patterns_internal, sizeof(uint16_t), 1, h);
     
     /* read flags */
-    r = fread(&tmp_u16, sizeof(uint16_t), 1, f);
+    r = h->read(&tmp_u16, sizeof(uint16_t), 1, h);
     module->module_info.flags_s3m.st2vibrato            = tmp_u16 & 1;
     module->module_info.flags_s3m.st2tempo              = tmp_u16 & 2;
     module->module_info.flags_s3m.amigaslides           = tmp_u16 & 4;
@@ -64,9 +75,8 @@ module_t * loader_s3m_loadfile(char * filename)
     module->module_info.flags_s3m.st30volumeslides      = tmp_u16 & 64;
     
     /* read version */
-    r = fread(&tmp_u16, sizeof(uint16_t), 1, f);
+    r = h->read(&tmp_u16, sizeof(uint16_t), 1, h);
     module->module_info.flags_s3m.st3_version           = tmp_u16;
-    printf("Version: %04x\n", module->module_info.flags_s3m.st3_version);
     
     /* st3 3.0 suffers from bug where volume slides start also on tick 0.
      * Enable crippled volume slides to be compatible with files created with
@@ -78,14 +88,12 @@ module_t * loader_s3m_loadfile(char * filename)
     /* TODO: currently ignoring sample format, as it is always unsigned */
     
     /* read initial speed, tempo, master volume */
-    fseek(f, 0x31, SEEK_SET);    
-    r = fread(&(module->initial_speed), sizeof(uint8_t), 1, f);
-    r = fread(&(module->initial_bpm), sizeof(uint8_t), 1, f);
-    r = fread(&(module->initial_master_volume), sizeof(uint8_t), 1, f);
-    fseek(f, 0x35, SEEK_SET); // skip ultraclick stuff... gus is dead.
-    r = fread(&(module->module_info.flags_s3m.default_panning), sizeof(uint8_t), 1, f);
-    
-    printf("init speed: %i, init_bpm: %i, init_master_vol: %i\n", module->initial_speed, module->initial_bpm, module->initial_master_volume);
+    h->seek(h, 0x31, io_seek_set);    
+    r = h->read(&(module->initial_speed), sizeof(uint8_t), 1, h);
+    r = h->read(&(module->initial_bpm), sizeof(uint8_t), 1, h);
+    r = h->read(&(module->initial_master_volume), sizeof(uint8_t), 1, h);
+    h->seek(h, 0x35, io_seek_set); // skip ultraclick stuff... gus is dead.
+    r = h->read(&(module->module_info.flags_s3m.default_panning), sizeof(uint8_t), 1, h);
     
     /* TODO: we currently ignore GLOBAL_VOLUME .. maybe it will turn out that
      it is a good idea to deal with it... */
@@ -95,11 +103,11 @@ module_t * loader_s3m_loadfile(char * filename)
         channel_map[i] = 255;
     
     /* read channel infos */
-    fseek(f, 0x40, SEEK_SET);
+    h->seek(h, 0x40, io_seek_set);
     module->num_channels = 0;
     for (i = 0; i < 32; i++) {
         
-        r = fread(&tmp_u8, sizeof(uint8_t), 1, f);
+        r = h->read(&tmp_u8, sizeof(uint8_t), 1, h);
         // channel enabled?
         if (tmp_u8 < 16) {
             channel_map[i] = module->num_channels;
@@ -120,7 +128,7 @@ module_t * loader_s3m_loadfile(char * filename)
     j = 0;
     module->num_patterns = 0;
     for (i = 0; i < module->num_orders; i++) {
-        r = fread(&tmp_u8, sizeof(uint8_t), 1, f);
+        r = h->read(&tmp_u8, sizeof(uint8_t), 1, h);
         if (tmp_u8 < 254) {
             module->orders[j++] = tmp_u8;
             if (tmp_u8 > module->num_patterns) 
@@ -140,8 +148,8 @@ module_t * loader_s3m_loadfile(char * filename)
     parapointer_sample = (uint16_t *)malloc(sizeof(uint16_t) * module->num_samples);
     parapointer_pattern = (uint16_t *)malloc(sizeof(uint16_t) * num_patterns_internal);
         
-    fread(parapointer_sample, sizeof(uint16_t), module->num_samples, f);
-    fread(parapointer_pattern, sizeof(uint16_t), num_patterns_internal, f);
+    h->read(parapointer_sample, sizeof(uint16_t), module->num_samples, h);
+    h->read(parapointer_pattern, sizeof(uint16_t), num_patterns_internal, h);
     
     
     /* read default pan positions 
@@ -182,58 +190,58 @@ module_t * loader_s3m_loadfile(char * filename)
         /* we use c2spd - initialize finetune with 0 */
         module->samples[i].header.finetune = 0;
         
-        fseek(f, parapointer_sample[i] << 4, SEEK_SET);
+        h->seek(h, parapointer_sample[i] << 4, io_seek_set);
         
         /* read sample type */
-        fread(&sample_type, sizeof(uint8_t), 1, f);
+        h->read(&sample_type, sizeof(uint8_t), 1, h);
         
         /* skip the "dos filename" 
          * FS3MDOC.TXT is wrong here, it states this are 13 chars,
          * actually it's 12 chars according to ST3 TECH.DOC
          */
-        fseek(f, 12, SEEK_CUR);
+        h->seek(h, 12, io_seek_cur);
         
         /* read sample "memseg" - which is stored in 3 bytes */
-        fread(&tmp_u8, sizeof(uint8_t), 1, f);
-        fread(&tmp_u16, sizeof(uint16_t), 1, f);
+        h->read(&tmp_u8, sizeof(uint8_t), 1, h);
+        h->read(&tmp_u16, sizeof(uint16_t), 1, h);
         sample_memseg = ((uint32_t)tmp_u8 << 16) + tmp_u16;
         
         /* sample length */
-        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        h->read(&tmp_u32, sizeof(uint32_t), 1, h);
         module->samples[i].header.length = tmp_u32 & 0xffff;
         
         /* loop start */
-        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        h->read(&tmp_u32, sizeof(uint32_t), 1, h);
         module->samples[i].header.loop_start = tmp_u32 & 0xffff;
 
         /* loop end */
-        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        h->read(&tmp_u32, sizeof(uint32_t), 1, h);
         module->samples[i].header.loop_end = tmp_u32 & 0xffff;
         module->samples[i].header.loop_length = module->samples[i].header.loop_end - module->samples[i].header.loop_start;
         
         /* volume */
-        fread(&(module->samples[i].header.volume), sizeof(uint8_t), 1, f);
+        h->read(&(module->samples[i].header.volume), sizeof(uint8_t), 1, h);
         
         /* Skip unused byte and packing scheme */
-        fseek(f, 2, SEEK_CUR);
+        h->seek(h, 2, io_seek_cur);
         
         /* flags 
          * (1)          = loop
          * (1<<1)       = stereo sample (never used, ignored for now)
          * (1<<2)       = 16 bit sample (never used, ignored for now)
          */
-        fread(&tmp_u8, sizeof(uint8_t), 1, f);
+        h->read(&tmp_u8, sizeof(uint8_t), 1, h);
         module->samples[i].header.loop_enabled = tmp_u8 & 1;    // loop flag
         
         /* c2spd */
-        fread(&tmp_u32, sizeof(uint32_t), 1, f);
+        h->read(&tmp_u32, sizeof(uint32_t), 1, h);
         module->samples[i].header.c2spd = tmp_u32 & 0xffff;
 
         /* Skip unused bytes */
-        fseek(f, 12, SEEK_CUR);
+        h->seek(h, 12, io_seek_cur);
 
         /* sample name */
-        fread(module->samples[i].header.name, 1, 28, f);
+        h->read(module->samples[i].header.name, 1, 28, h);
         
         /* if we deal with a adlib instrument or a empty sample slot, continue
          * without loading data
@@ -247,8 +255,8 @@ module_t * loader_s3m_loadfile(char * filename)
         
         /* fetch sample data */
         module->samples[i].data = malloc(module->samples[i].header.length);
-        fseek(f, sample_memseg << 4, SEEK_SET);
-        fread(module->samples[i].data, 1, module->samples[i].header.length, f);
+        h->seek(h, sample_memseg << 4, io_seek_set);
+        h->read(module->samples[i].data, 1, module->samples[i].header.length, h);
         
          /* we use unsigned samples interally */
         for (j=0; j<module->samples[i].header.length; j++)
@@ -280,9 +288,9 @@ module_t * loader_s3m_loadfile(char * filename)
     module_pattern_data_t tmp_data;
     
     for (i = 0; i < num_patterns_internal; i++) {
-        fseek(f, parapointer_pattern[i] << 4, SEEK_SET);
+        h->seek(h, parapointer_pattern[i] << 4, io_seek_set);
         
-        fread(&packed_size, sizeof(uint16_t), 1, f);
+        h->read(&packed_size, sizeof(uint16_t), 1, h);
         
         /* s3m always has 64 rows per pattern */
         module->patterns[pattern_nr].rows = (module_pattern_row_t *)malloc(sizeof(module_pattern_row_t) * 64);
@@ -305,14 +313,14 @@ module_t * loader_s3m_loadfile(char * filename)
                 tmp_data.period_index = -1;
                 tmp_data.volume = -1;
                 
-                fread(&packed_flags, sizeof(uint8_t), 1, f);
+                h->read(&packed_flags, sizeof(uint8_t), 1, h);
                 
                 if (packed_flags > 0) {
                 
                     channel_num = packed_flags & 31;
 
                     if (packed_flags & 32) {
-                        fread(&(tmp_u8), 1, 1, f);
+                        h->read(&(tmp_u8), 1, 1, h);
                         if (tmp_u8 == 255)
                             tmp_data.period_index = -1;
                         else if (tmp_u8 == 254)
@@ -320,15 +328,15 @@ module_t * loader_s3m_loadfile(char * filename)
                         else
                             tmp_data.period_index = (int)(((tmp_u8 >> 4) * 12) + (tmp_u8 & 0x0f));
 
-                        fread(&(tmp_data.sample_num), 1, 1, f);
+                        h->read(&(tmp_data.sample_num), 1, 1, h);
                     }
 
                     if (packed_flags & 64)
-                        fread(&tmp_data.volume, 1, 1, f);
+                        h->read(&tmp_data.volume, 1, 1, h);
 
                     if (packed_flags & 128) {
-                        fread(&tmp_data.effect_num, 1, 1, f);
-                        fread(&tmp_data.effect_value, 1, 1, f);
+                        h->read(&tmp_data.effect_num, 1, 1, h);
+                        h->read(&tmp_data.effect_value, 1, 1, h);
                     }
                     
                     if (channel_map[channel_num] < 255) {
