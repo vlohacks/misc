@@ -1,6 +1,6 @@
 CC	= gcc
 CXX	= g++
-OBJ	= loader_mod.o loader_s3m.o loader.o module.o player.o effects_mod.o effects_s3m.o ui.o ui_terminal.o ui_ncurses.o main.o cmdline.o output_alsa.o output_portaudio.o player_command.o
+OBJ	= loader_mod.o loader_s3m.o loader.o module.o player.o effects_mod.o effects_s3m.o ui.o ui_terminal.o ui_ncurses.o main.o cmdline.o output_alsa.o output_portaudio.o player_command.o io_file.o io_mem.o
 BIN	= modplay
 CCFLAGS = -Wall -g
 #CCFLAGS	= -Wall -O3

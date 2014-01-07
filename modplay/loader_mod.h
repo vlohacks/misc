@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include "module.h"
+#include "io.h"
 
 /* MOD specific tables / structures
  */
@@ -41,11 +42,12 @@ static const struct modtype loader_mod_modtypes[] = {
 /* Prototypes
  */
 module_t * loader_mod_loadfile(char * filename);
+module_t * loader_mod_load(io_handle_t * h);
 
-
-int loader_mod_read_sample_header(module_sample_header_t * hdr, FILE * f);
-int loader_mod_read_pattern_data(module_pattern_data_t * data, FILE * f);
-void loader_mod_read_sample_data(module_sample_t * sample, FILE * f);
+int loader_mod_read_sample_header(module_sample_header_t * hdr, io_handle_t * h);
+int loader_mod_read_pattern_data(module_pattern_data_t * data, io_handle_t * h);
+void loader_mod_read_sample_data(module_sample_t * sample, io_handle_t * h);
 int loader_mod_lookup_period_index(const uint16_t period);
+
 #endif	/* LOADER_MOD_H */
 

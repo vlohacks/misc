@@ -4,7 +4,7 @@
 #include "io_file.h"
 
 
-io_handle_t io_file_open(char * filename, char * mode)
+io_handle_t * io_file_open(char * filename, char * mode)
 {
     FILE * f;
     io_handle_t * handle;

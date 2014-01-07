@@ -8,7 +8,9 @@
 #ifndef IO_FILE_H
 #define	IO_FILE_H
 
-io_handle_t io_file_open(char * filename, char * mode);
+#include "io.h"
+
+io_handle_t * io_file_open(char * filename, char * mode);
 int io_file_close(io_handle_t * handle);
 size_t io_file_read(void * ptr, size_t size, size_t n, io_handle_t * handle);
 size_t io_file_write(const void * ptr, size_t size, size_t n, io_handle_t * handle);
