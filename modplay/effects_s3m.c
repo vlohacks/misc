@@ -112,11 +112,11 @@ uint16_t effects_s3m_get_tuned_period(player_t * player, uint16_t base_period, i
 
 void effects_s3m_A_setspeed(player_t * player, int channel)
 {
-    if (player->channels[channel].current_effect_value == 0)
+    if (player->channels[channel].effect_value == 0)
         return;
             
     if (player->current_tick == 0) 
-        player->speed = player->channels[channel].current_effect_value;
+        player->speed = player->channels[channel].effect_value;
     
 }
 
@@ -124,13 +124,13 @@ void effects_s3m_B_positionjump(player_t * player, int channel)
 {
     
     // prevent egoist-mods from looping back if no single-mod-loop is enabled
-    if (player->channels[channel].current_effect_value < player->current_order) {
+    if (player->channels[channel].effect_value < player->current_order) {
         if (!player->loop_module)
             return;
     }
         
     if (player->current_tick == 0) {
-        player->next_order = player->channels[channel].current_effect_value;
+        player->next_order = player->channels[channel].effect_value;
         player->next_row = 0;
         player->do_break = 1;
     }
@@ -139,7 +139,7 @@ void effects_s3m_B_positionjump(player_t * player, int channel)
 void effects_s3m_C_patternbreak(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
-        player->next_row = ((player->channels[channel].current_effect_value >> 4) * 10 + (player->channels[channel].current_effect_value & 0x0f));
+        player->next_row = ((player->channels[channel].effect_value >> 4) * 10 + (player->channels[channel].effect_value & 0x0f));
         player->do_break = 1;
     }
 }
@@ -150,8 +150,8 @@ void effects_s3m_D_volumeslide(player_t * player, int channel)
     
     if (player->current_tick == 0) {
         /* remember last volume slide command parameter */
-        if (player->channels[channel].current_effect_value)
-            player->channels[channel].effect_last_value[4] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].effect_value)
+            player->channels[channel].effect_last_value[4] = player->channels[channel].effect_value;
         
         /* process fine volume slides only on first tick */
         if ((player->channels[channel].effect_last_value[4] & 0x0f) == 0x0f) {
@@ -191,8 +191,8 @@ void effects_s3m_E_slidedown(player_t * player, int channel)
     
     if (player->current_tick == 0) {
         /* remember last slide down command parameter */
-        if (player->channels[channel].current_effect_value) {
-            player->channels[channel].effect_last_value[5] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].effect_value) {
+            player->channels[channel].effect_last_value[5] = player->channels[channel].effect_value;
             player->channels[channel].effect_last_value[6] = player->channels[channel].effect_last_value[5];
         }
         
@@ -227,8 +227,8 @@ void effects_s3m_F_slideup(player_t * player, int channel)
     
     if (player->current_tick == 0) {
         /* remember last slide down command parameter */
-        if (player->channels[channel].current_effect_value) {
-            player->channels[channel].effect_last_value[6] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].effect_value) {
+            player->channels[channel].effect_last_value[6] = player->channels[channel].effect_value;
             player->channels[channel].effect_last_value[5] = player->channels[channel].effect_last_value[6];
         }
         
@@ -260,8 +260,8 @@ void effects_s3m_F_slideup(player_t * player, int channel)
 void effects_s3m_G_slidetonote(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
-        if (player->channels[channel].current_effect_value) 
-            player->channels[channel].effect_last_value[7] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].effect_value) 
+            player->channels[channel].effect_last_value[7] = player->channels[channel].effect_value;
         return;        
     }
     
@@ -289,22 +289,44 @@ void effects_s3m_H_vibrato(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        player->channels[channel].vibrato_state = 0;
+        if (player->channels[channel].vibrato_waveform < 4)
+            player->channels[channel].vibrato_state = 0;
         
-        if ((player->channels[channel].current_effect_value >> 4) != 0x00) 
-            player->channels[channel].effect_last_value[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value >> 4);
+        if ((player->channels[channel].effect_value >> 4) != 0x00) 
+            player->channels[channel].effect_last_value[player->channels[channel].effect_num] = (player->channels[channel].effect_value >> 4);
 
-        if ((player->channels[channel].current_effect_value & 0xf) != 0x00) 
-            player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value & 0xf);
+        if ((player->channels[channel].effect_value & 0xf) != 0x00) 
+            player->channels[channel].effect_last_value_y[player->channels[channel].effect_num] = (player->channels[channel].effect_value & 0xf);
         
         return;    
     }
     
-
     temp = player->channels[channel].vibrato_state & 0x1f;
-    delta = defs_mod_sine_table[temp];
     
-    delta *= (player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num]);
+    switch (player->channels[channel].vibrato_waveform & 3) {
+        case 0: 
+            delta = defs_mod_sine_table[temp]; 
+            break;
+            
+        case 1:
+            temp <<= 3;
+            if (player->channels[channel].vibrato_state < 0)
+                temp = 255 - temp;
+            delta = temp;
+            break;
+            
+        case 2:
+            delta = 255;
+            break;
+            
+        case 3:
+            delta = defs_mod_sine_table[temp];
+            break;
+    }
+            
+    
+    
+    delta *= (player->channels[channel].effect_last_value_y[player->channels[channel].effect_num]);
     delta /= 32; // (128 / 4 = 32) - due to 4 times bigger periods in s3m compared to protracker
     
     if (player->channels[channel].vibrato_state >= 0)
@@ -312,7 +334,7 @@ void effects_s3m_H_vibrato(player_t * player, int channel)
     else
         player_channel_set_frequency(player, player->channels[channel].period - delta, channel);
     
-    player->channels[channel].vibrato_state += player->channels[channel].effect_last_value[player->channels[channel].current_effect_num];
+    player->channels[channel].vibrato_state += player->channels[channel].effect_last_value[player->channels[channel].effect_num];
     if (player->channels[channel].vibrato_state > 31)
         player->channels[channel].vibrato_state -= 64;
 }
@@ -321,12 +343,12 @@ void effects_s3m_H_vibrato(player_t * player, int channel)
 void effects_s3m_I_tremor(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
-        if (player->channels[channel].current_effect_value) {
+        if (player->channels[channel].effect_value) {
             /*
             if (player->channels[channel].effect_last_value[9] != player->channels[channel].current_effect_value)
                 player->channels[channel].tremor_state = 0;
              */
-            player->channels[channel].effect_last_value[9] = player->channels[channel].current_effect_value;
+            player->channels[channel].effect_last_value[9] = player->channels[channel].effect_value;
         }
     }
     
@@ -351,7 +373,7 @@ void effects_s3m_J_arpeggio(player_t * player, int channel_num)
     player_channel_t * channel = &(player->channels[channel_num]);
     
     // 000 means no effect - therefore also no arpeggio
-    if (channel->current_effect_value == 0)     
+    if (channel->effect_value == 0)     
         return;
     
     uint8_t temp = player->current_tick % 3;
@@ -368,11 +390,11 @@ void effects_s3m_J_arpeggio(player_t * player, int channel_num)
         break;
     case 1:
         //temp2 = protracker_periods[temp2 + (channel->current_effect_value >> 4)];
-        temp2 *= pow(2.0f, (float)(channel->current_effect_value >> 4) / -12.0f);
+        temp2 *= pow(2.0f, (float)(channel->effect_value >> 4) / -12.0f);
         break;
     case 2:
         //temp2 = protracker_periods[temp2 + (channel->current_effect_value & 0x0f)];
-        temp2 *= pow(2.0f, (float)(channel->current_effect_value & 0xf) / -12.0f);
+        temp2 *= pow(2.0f, (float)(channel->effect_value & 0xf) / -12.0f);
         break;
     }
     player_channel_set_frequency(player, (uint16_t)temp2, channel_num);
@@ -387,8 +409,10 @@ void effects_s3m_K_vibrato_volumeslide(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        if (player->channels[channel].current_effect_value)
-            player->channels[channel].effect_last_value[11] = player->channels[channel].current_effect_value;
+        player->channels[channel].vibrato_state = 0;
+        
+        if (player->channels[channel].effect_value)
+            player->channels[channel].effect_last_value[11] = player->channels[channel].effect_value;
 
         return;    
     }
@@ -431,8 +455,8 @@ void effects_s3m_L_slidetonote_volumeslide(player_t * player, int channel)
     int tmp;
     
     if (player->current_tick == 0) {
-        if (player->channels[channel].current_effect_value)
-            player->channels[channel].effect_last_value[12] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].effect_value)
+            player->channels[channel].effect_last_value[12] = player->channels[channel].effect_value;
 
         return;    
     }
@@ -470,8 +494,8 @@ void effects_s3m_L_slidetonote_volumeslide(player_t * player, int channel)
 void effects_s3m_O_sampleoffset(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
-        if (player->channels[channel].current_effect_value)
-            player->channels[channel].effect_last_value[15] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].effect_value)
+            player->channels[channel].effect_last_value[15] = player->channels[channel].effect_value;
         
         player->channels[channel].sample_pos = player->channels[channel].effect_last_value[15] << 8;
         if (player->channels[channel].sample_pos > player->module->samples[player->channels[channel].sample_num - 1].header.length - 1) 
@@ -485,8 +509,8 @@ void effects_s3m_Q_retrigger_volumeslide(player_t * player, int channel)
     int tmp;
     
     if (player->current_tick == 0) {
-        if (player->channels[channel].current_effect_value)
-            player->channels[channel].effect_last_value[17] = player->channels[channel].current_effect_value;
+        if (player->channels[channel].effect_value)
+            player->channels[channel].effect_last_value[17] = player->channels[channel].effect_value;
         return;
     }
     
@@ -524,7 +548,7 @@ void effects_s3m_Q_retrigger_volumeslide(player_t * player, int channel)
     /* do retrigger */
     if ((player->channels[channel].effect_last_value[17] & 0xf) > 0) {
         if ((player->current_tick % (player->channels[channel].effect_last_value[17] & 0xf)) == 0)
-            player->channels[channel].sample_pos = 0;
+            player->channels[channel].sample_pos = 0;  
     }
     
     
@@ -537,20 +561,43 @@ void effects_s3m_R_tremolo(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        player->channels[channel].tremolo_state = 0;
-        if ((player->channels[channel].current_effect_value >> 4) != 0x00) 
-            player->channels[channel].effect_last_value[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value >> 4);
+        if (player->channels[channel].tremolo_waveform < 4)
+            player->channels[channel].tremolo_state = 0;
+        
+        if ((player->channels[channel].effect_value >> 4) != 0x00) 
+            player->channels[channel].effect_last_value[player->channels[channel].effect_num] = (player->channels[channel].effect_value >> 4);
 
-        if ((player->channels[channel].current_effect_value & 0xf) != 0x00) 
-            player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num] = (player->channels[channel].current_effect_value & 0xf);
+        if ((player->channels[channel].effect_value & 0xf) != 0x00) 
+            player->channels[channel].effect_last_value_y[player->channels[channel].effect_num] = (player->channels[channel].effect_value & 0xf);
         
         return;    
     }
 
     temp = player->channels[channel].tremolo_state & 0x1f;
-    delta = defs_mod_sine_table[temp];
     
-    delta *= player->channels[channel].effect_last_value_y[player->channels[channel].current_effect_num];
+    switch (player->channels[channel].tremolo_waveform & 3) {
+        case 0: 
+            delta = defs_mod_sine_table[temp]; 
+            break;
+            
+        case 1:
+            temp <<= 3;
+            if (player->channels[channel].tremolo_state < 0)
+                temp = 255 - temp;
+            delta = temp;
+            break;
+            
+        case 2:
+            delta = 255;
+            break;
+            
+        case 3:
+            delta = defs_mod_sine_table[temp];
+            break;
+    }
+         
+    
+    delta *= player->channels[channel].effect_last_value_y[player->channels[channel].effect_num];
     delta /= 64;
     
     if (player->channels[channel].tremolo_state >= 0) {
@@ -566,7 +613,7 @@ void effects_s3m_R_tremolo(player_t * player, int channel)
         player->channels[channel].volume_master = (uint8_t)temp2;
     }
     
-    player->channels[channel].tremolo_state += player->channels[channel].effect_last_value[player->channels[channel].current_effect_num];
+    player->channels[channel].tremolo_state += player->channels[channel].effect_last_value[player->channels[channel].effect_num];
     if (player->channels[channel].tremolo_state > 31)
         player->channels[channel].tremolo_state -= 64;
 }
@@ -575,7 +622,9 @@ void effects_s3m_R_tremolo(player_t * player, int channel)
 
 void effects_s3m_S_special(player_t * player, int channel)
 {
-    switch (player->channels[channel].current_effect_value >> 4) {
+    switch (player->channels[channel].effect_value >> 4) {
+        case 0x3: effects_s3m_S3_setvibratowaveform(player, channel); break;
+        case 0x4: effects_s3m_S4_settremolowaveform(player, channel); break;
         case 0x8: effects_s3m_S8_panning(player, channel); break;
         case 0xA: effects_s3m_SA_stereocontrol(player, channel); break;
         case 0xD: effects_s3m_SD_delaysample(player, channel); break;
@@ -583,11 +632,24 @@ void effects_s3m_S_special(player_t * player, int channel)
     }
 }
 
+void effects_s3m_S3_setvibratowaveform(player_t * player, int channel)
+{
+    if (player->current_tick == 0) 
+        player->channels[channel].vibrato_waveform = player->channels[channel].effect_value & 0x0f;
+    
+}
+
+void effects_s3m_S4_settremolowaveform(player_t * player, int channel)
+{
+    if (player->current_tick == 0) 
+        player->channels[channel].tremolo_waveform = player->channels[channel].effect_value & 0x0f;
+    
+}
 
 void effects_s3m_S8_panning(player_t * player, int channel) 
 {
     if (player->current_tick == 0) {
-        uint8_t i = player->channels[channel].current_effect_value & 0x0f;
+        uint8_t i = player->channels[channel].effect_value & 0x0f;
         player->channels[channel].panning = (i << 4) | i;//  (i << 4) | ((i << 1) + (i>6?1:0));
     }
 }
@@ -595,7 +657,7 @@ void effects_s3m_S8_panning(player_t * player, int channel)
 void effects_s3m_SA_stereocontrol(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
-        uint8_t i = player->channels[channel].current_effect_value & 0x0f;
+        uint8_t i = player->channels[channel].effect_value & 0x0f;
         
         if (i > 7)
             i -= 8;
@@ -612,7 +674,7 @@ void effects_s3m_SD_delaysample(player_t * player, int channel)
     if (player->current_tick == 0)
         player->channels[channel].sample_delay = 0;
     
-    if (player->channels[channel].sample_delay == (player->channels[channel].current_effect_value & 0xf)) {
+    if (player->channels[channel].sample_delay == (player->channels[channel].effect_value & 0xf)) {
         if (player->channels[channel].dest_sample_num > 0) {
             player->channels[channel].sample_num = player->channels[channel].dest_sample_num;
             player->channels[channel].volume = player->module->samples[player->channels[channel].sample_num - 1].header.volume;
@@ -634,8 +696,8 @@ void effects_s3m_SD_delaysample(player_t * player, int channel)
 void effects_s3m_T_setbpm(player_t * player, int channel)
 {
     if (player->current_tick == 0) {
-         if (player->channels[channel].current_effect_value >= 0x20) {
-            player->bpm = player->channels[channel].current_effect_value;
+         if (player->channels[channel].effect_value >= 0x20) {
+            player->bpm = player->channels[channel].effect_value;
             player->tick_duration = player_calc_tick_duration(player->bpm, player->sample_rate);
          }
     }
@@ -645,7 +707,7 @@ void effects_s3m_T_setbpm(player_t * player, int channel)
 void effects_s3m_X_panning(player_t * player, int channel) 
 {
     if (player->current_tick == 0) {
-        int tmp = player->channels[channel].current_effect_value;
+        int tmp = player->channels[channel].effect_value;
         tmp = (tmp * 256) / 80;
         //printf("%i\n", tmp);
         player->channels[channel].panning = tmp;

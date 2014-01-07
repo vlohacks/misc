@@ -58,6 +58,9 @@ void ui_ncurses_layout_init()
     initscr();
     curs_set(0);
     noecho();
+    nodelay(stdscr, TRUE);
+    
+    
     ui_ncurses_layout.ncurses_inited = 1;
     ui_ncurses_layout.use_colors = has_colors();
     
@@ -237,22 +240,23 @@ void ui_ncurses_row_handler(player_t * player, int current_order, int current_pa
 player_command_action_t ui_ncurses_handle_input() 
 {
     int c;
-    int i = 0;
-    
+    int i;
+        
     char buf[5];
     
-    while(c = getch()) {
+    i = 0;
+    while((c = getch()) != ERR) {
         cbreak();
-        buf[i++] = c;
-        if (i == 3)
+        buf[i++] = (char)c;
+        if (i >= 3)
             break;
     }
-    
+   
     buf[i++] = 0;
     
-    mvwprintw(ui_ncurses_layout.song_view, 0, 0, "%x%x%x%x%x", buf[0], buf[1], buf[2], buf[3], buf[4] );
-    wrefresh(ui_ncurses_layout.song_view);
-    
+    //mvwprintw(ui_ncurses_layout.song_view, 0, 0, "%x", 'a' );
+    //wrefresh(ui_ncurses_layout.song_view);
+      
     switch (buf[0]) {
         case 0x3b:
             switch (buf[1]) {

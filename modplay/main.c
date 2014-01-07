@@ -69,6 +69,7 @@ int main (int argc, char ** argv)
 
             app.player->playing = 1;
             while (app.player->playing) {
+                
                 action = ui_ncurses_handle_input();
                 //fprintf(stderr, "%i\n", action);
                 switch(action) {
@@ -96,12 +97,13 @@ int main (int argc, char ** argv)
                 //output_alsa_write(l, r);
             }
 
+            output_portaudio_stop();
+            module_free(mod);
+            
             i++;
             if (i == app.playlist_count)
                 break;
             
-            output_portaudio_stop();
-            module_free(mod);
         }
         
         if (!app.loop_playlist)

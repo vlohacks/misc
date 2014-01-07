@@ -4,6 +4,9 @@
     <df root="." name="0">
       <df name="docs">
       </df>
+      <df name="testmods">
+        <in>source.mod</in>
+      </df>
       <in>application.h</in>
       <in>arch.h</in>
       <in>cmdline.c</in>
@@ -14,6 +17,11 @@
       <in>effects_mod.h</in>
       <in>effects_s3m.c</in>
       <in>effects_s3m.h</in>
+      <in>io.h</in>
+      <in>io_file.c</in>
+      <in>io_file.h</in>
+      <in>io_mem.c</in>
+      <in>io_mem.h</in>
       <in>loader.c</in>
       <in>loader.h</in>
       <in>loader_mod.c</in>
@@ -35,13 +43,10 @@
       <in>player.h</in>
       <in>player_command.c</in>
       <in>player_command.h</in>
-      <in>source.mod</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>
       <in>ui_ncurses.h</in>
-      <in>ui_ncurses_patternview.c</in>
-      <in>ui_ncurses_patternview.h</in>
       <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>

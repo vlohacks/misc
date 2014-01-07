@@ -34,7 +34,9 @@ void effects_mod_d_patternbreak(player_t *, int);
 void effects_mod_e_special(player_t *, int);
 void effects_mod_e1_fineslideup(player_t *, int);
 void effects_mod_e2_fineslidedown(player_t *, int);
+void effects_mod_e4_setvibratowaveform(player_t * player, int channel);
 void effects_mod_e6_patternloop(player_t *, int);
+void effects_mod_e7_settremolowaveform(player_t * player, int channel);
 void effects_mod_e8_panning(player_t * player, int channel);                    // non-protracker standard
 void effects_mod_e9_retriggersample(player_t *, int);
 void effects_mod_ea_finevolumeup(player_t *, int);

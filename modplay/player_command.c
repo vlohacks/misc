@@ -6,6 +6,7 @@ void player_command_action_dispatch(player_t * player, player_command_action_t a
     switch(action) {
         case player_command_action_next_order: player_command_next_order(player); break;
         case player_command_action_prev_order: player_command_prev_order(player); break;
+        default: break;
     }
 }
 

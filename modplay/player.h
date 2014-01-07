@@ -22,24 +22,34 @@ typedef enum {
 typedef struct {
     uint8_t sample_num;
     float sample_pos;
-    uint8_t sample_delay;
-    uint16_t period;
-    uint16_t dest_period;
+        
     int period_index;
-    uint8_t dest_sample_num;
+    uint16_t period;
+    float frequency;
+
+    uint8_t sample_delay;
+    uint16_t dest_period;                       // these are used for tone portamento and not delay
+    uint8_t dest_sample_num;                    
     int8_t dest_volume;
     uint8_t panning;                            
-    float frequency;
-    float peak_sample[2];
-    int8_t volume;
-    uint8_t current_effect_num;
-    uint8_t current_effect_value;
-    uint8_t effect_last_value[26];
+
+    float peak_sample[2];                       // for scopes
+
+    int8_t volume;                              
+    int8_t volume_master;                       // used for effects like tremolo    
+    
+    uint8_t effect_num;                         // currently played effect on track
+    uint8_t effect_value;                       // currently player effect parameters on track
+    uint8_t effect_last_value[26];              // for effects remembering their parameters 
     uint8_t effect_last_value_y[26];
-    int vibrato_state;
+    
+    int vibrato_state;                          // status of effects
     int tremolo_state;
     int tremor_state;
-    uint8_t volume_master;
+    
+    uint8_t vibrato_waveform;
+    uint8_t tremolo_waveform;
+
     uint8_t pattern_loop_position;
     uint8_t pattern_loop_count;
 } player_channel_t;

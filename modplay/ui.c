@@ -73,7 +73,9 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
                     switch (effect_val >> 4) {
                         case 0x1: strcpy(buf, "fine porta up"); break;
                         case 0x2: strcpy(buf, "fine porta down"); break;
+                        case 0x4: strcpy(buf, "set vibrato waveform"); break;
                         case 0x6: strcpy(buf, "pattern loop"); break;
+                        case 0x7: strcpy(buf, "set tremolo waveform"); break;
                         case 0x8: strcpy(buf, "panning"); break;
                         case 0x9: strcpy(buf, "retrigger sample"); break;
                         case 0xa: strcpy(buf, "fine volume up"); break;
@@ -135,6 +137,8 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
                 case 18: strcpy(buf, "tremolo"); break;
                 case 19: 
                     switch (effect_val >> 4) {
+                        case 0x3: strcpy(buf, "set vibrato waveform"); break;
+                        case 0x4: strcpy(buf, "set tremolo waveform"); break;
                         case 0x8: strcpy(buf, "panning"); break;
                         case 0xA: strcpy(buf, "stereo control"); break;
                         case 0xD: strcpy(buf, "note delay"); break;

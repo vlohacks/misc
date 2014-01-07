@@ -129,13 +129,18 @@ void player_init_channels(player_t * player)
         player->channels[i].sample_pos = 0;
         player->channels[i].volume = 64;
         player->channels[i].volume_master = 64;
-        for (j = 0; j < 32; j++)
+        for (j = 0; j < 32; j++) {
                 player->channels[i].effect_last_value[j] = 0;
-        player->channels[i].current_effect_num = 0;
-        player->channels[i].current_effect_value = 0;
+                player->channels[i].effect_last_value_y[j] = 0;
+        }
+        player->channels[i].effect_num = 0;
+        player->channels[i].effect_value = 0;
+        
         player->channels[i].vibrato_state = 0;
         player->channels[i].tremolo_state = 0;
         player->channels[i].tremor_state = 0;
+        player->channels[i].vibrato_waveform = 0;
+        player->channels[i].tremolo_waveform = 0;
         player->channels[i].pattern_loop_position = 0;
         player->channels[i].pattern_loop_count = 0;     
         player->channels[i].sample_delay = 0;
@@ -192,8 +197,9 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
                 }
                 
                 // end of song reached...
-                if (player->current_order >= player->module->num_orders) 
+                if (player->current_order >= player->module->num_orders)
                     return 0;
+                
                 
 
                 // lookup pattern to play in order list
@@ -217,8 +223,8 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
                 
                 player->newrow_action(player, current_data, k);
                 
-                player->channels[k].current_effect_num = current_data->effect_num;
-                player->channels[k].current_effect_value = current_data->effect_value;
+                player->channels[k].effect_num = current_data->effect_num;
+                player->channels[k].effect_value = current_data->effect_value;
             }
 
         }
@@ -226,11 +232,11 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
         // maintain effects
         for (k=0; k < player->module->num_channels; k++) {
             if (player->current_tick == 0) {
-                if (player->channels[k].current_effect_value)
-                    player->channels[k].effect_last_value[player->channels[k].current_effect_num] = player->channels[k].current_effect_value;
+                if (player->channels[k].effect_value)
+                    player->channels[k].effect_last_value[player->channels[k].effect_num] = player->channels[k].effect_value;
             }
-            if ((player->effect_map)[player->channels[k].current_effect_num])
-                (player->effect_map)[player->channels[k].current_effect_num](player, k);
+            if ((player->effect_map)[player->channels[k].effect_num])
+                (player->effect_map)[player->channels[k].effect_num](player, k);
         }
         
         // go for next tick
