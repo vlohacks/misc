@@ -13,8 +13,6 @@
 #include "defs_mod.h"
 #include "arch.h"
 #include "io.h"
-#include "io_file.h"
-
 
 /* checks if given data is a mod, returns 1 if data is valid */
 int loader_mod_check(io_handle_t * h)

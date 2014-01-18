@@ -1,7 +1,7 @@
 #include "loader.h"
 #include "io_file.h"
 
-#define LOADER_NUM_FORMATS 2
+#define LOADER_FORMATS_COUNT 2
 
 static const loader_generic_t loader_formats[] = {
     { loader_mod_check, loader_mod_load, "mod", "Protracker/Fasttracker MOD" },
@@ -16,7 +16,7 @@ module_t * loader_loadfile_by_header(char * filename)
     
     if (h) {
         
-        for (i = 0; i < LOADER_NUM_FORMATS; i++) {
+        for (i = 0; i < LOADER_FORMATS_COUNT; i++) {
             //printf ("Checking if file is %s ... ", loader_formats[i].description);
             if (loader_formats[i].check(h)) {
                 //printf("YES, loading\n");
@@ -52,7 +52,7 @@ module_t * loader_loadfile_by_extension(char * filename)
                 tmp[i] += 32;
         }
 
-        for (i = 0; i < LOADER_NUM_FORMATS; i++) {
+        for (i = 0; i < LOADER_FORMATS_COUNT; i++) {
             if (!strcmp(tmp, loader_formats[i].extension)) {
                 module = loader_formats[i].load(h);
                 break;

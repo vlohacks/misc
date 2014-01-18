@@ -31,8 +31,6 @@ player_t * player_init(const float sample_rate, const player_resampling_t resamp
     player->order_callback = 0;
     player->channel_sample_callback = 0;
     
-    
-    
     player_set_protracker_strict_mode(player, 0);
 
     return player;
@@ -151,8 +149,6 @@ void player_init_channels(player_t * player)
         
         // default pannings
         player->channels[i].panning = player->module->initial_panning[i];
-        
-        
     }
     
 }
