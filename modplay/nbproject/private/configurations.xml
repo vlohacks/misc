@@ -43,6 +43,7 @@
       <in>player.h</in>
       <in>player_command.c</in>
       <in>player_command.h</in>
+      <in>test_io.c</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>

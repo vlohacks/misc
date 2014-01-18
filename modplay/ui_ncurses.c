@@ -2,8 +2,18 @@
 #include "ui.h"
 #include "player_command.h"
 #include "string.h"
-#include <signal.h>
-#include <ncurses.h>
+//#include <signal.h>
+
+
+#define UI_NCURSES_KEYBINDINGS_COUNT 5
+
+static const ui_ncurses_keybinding_t ui_ncurses_keybindings[] = {
+    { "\x1b\x5b\x31\x3b\x35\x43", "STRG + ->", "Skip to next order", player_command_action_next_order },
+    { "\x1b\x5b\x31\x3b\x35\x44", "STRG + ->", "Skip to previous order", player_command_action_prev_order },
+    { "\x1b\x5b\x31\x3b\x33\x43", "ALT + ->", "Skip to next song", player_command_action_next_song },
+    { "\x1b\x5b\x31\x3b\x33\x44", "ALT + ->", "Skip to previous song", player_command_action_prev_song },
+    { "\x1b", "ESC", "Quit player", player_command_action_quit }
+};
 
 
 volatile int term_resized;
@@ -19,7 +29,7 @@ void ui_ncurses_init()
     ui_ncurses_layout_init();
     term_resized = 0;
     
-    signal(SIGWINCH, ui_ncurses_term_resized);
+    //signal(SIGWINCH, ui_ncurses_term_resized);
 }
 
 void ui_ncurses_cleanup()
@@ -60,7 +70,6 @@ void ui_ncurses_layout_init()
     noecho();
     nodelay(stdscr, TRUE);
     
-    
     ui_ncurses_layout.ncurses_inited = 1;
     ui_ncurses_layout.use_colors = has_colors();
     
@@ -96,6 +105,7 @@ void ui_ncurses_layout_init()
         
 
     ui_ncurses_layout.init = 0;
+
 }
 
 void ui_ncurses_order_handler(player_t * player, int current_order, int current_pattern)
@@ -208,13 +218,13 @@ void ui_ncurses_row_handler(player_t * player, int current_order, int current_pa
                 module_pattern_data_t * data = &(player->module->patterns[current_pattern].rows[i].data[k]);
                 ui_periodindex2note(data->period_index, note);
                 
-            if (data->volume >= 0)
-                sprintf(volume, "%02i", data->volume);
-            else
-                strcpy(volume, "..");
+                if (data->volume >= 0)
+                    sprintf(volume, "%02i", data->volume);
+                else
+                    strcpy(volume, "..");
 
-            ui_map_effect_num(effect, player->module->module_type, data->effect_num);
-                
+                ui_map_effect_num(effect, player->module->module_type, data->effect_num);
+            
                 sprintf(tmp, "%s%02i%s%s%02X|", note, data->sample_num, volume, effect, data->effect_value);
                 strcat (tmp2, tmp);
             }
@@ -242,43 +252,32 @@ player_command_action_t ui_ncurses_handle_input()
     int c;
     int i;
         
-    char buf[5];
+    char buf[12];
     
     i = 0;
     while((c = getch()) != ERR) {
         cbreak();
         buf[i++] = (char)c;
-        if (i >= 3)
+        if (i >= 10)
             break;
     }
    
     buf[i++] = 0;
+
+/*
+    if (i > 1) {
+        FILE * xx = fopen("xxx.txt", "a");
+        fprintf(xx, "%x %x %x %x %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+        fclose (xx);
+    }
+*/          
     
-    //mvwprintw(ui_ncurses_layout.song_view, 0, 0, "%x", 'a' );
-    //wrefresh(ui_ncurses_layout.song_view);
-      
-    switch (buf[0]) {
-        case 0x3b:
-            switch (buf[1]) {
-                case 0x35:              // ctrl
-                    switch(buf[2]) {
-                        case 0x43: return player_command_action_next_order;
-                        case 0x44: return player_command_action_prev_order;
-                    }
-                    break;
-                    
-                case 0x33:              // alt
-                    switch(buf[2]) {
-                        case 0x43: return player_command_action_next_song;
-                        case 0x44: return player_command_action_prev_song;
-                    }
-                    break;
-                    
-            }
-            break;
-        default: return player_command_action_none;
+    for (i = 0; i < UI_NCURSES_KEYBINDINGS_COUNT; i++) {
+        if (!strcmp(ui_ncurses_keybindings[i].keyseq, buf)) 
+            return ui_ncurses_keybindings[i].action;
+        
     }
     
-    
+    return player_command_action_none;
 }
 

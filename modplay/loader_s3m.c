@@ -2,26 +2,35 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ncurses.h>
 
 #include "io.h"
 #include "io_file.h"
 #include "io_mem.h"
 
-/* loads a scream tracker 3 module (s3m)
- */
-module_t * loader_s3m_loadfile(char * filename)
-{
-    io_handle_t * h = io_file_open(filename, "rb");
-    module_t * mod = 0;
-    if (h) {
-        mod = loader_s3m_load(h);
-        io_file_close(h);
-    }
 
-    return mod;
+
+/* checks if given data is a s3m, returns 1 if data is valid 
+ */
+int loader_s3m_check(io_handle_t * h)
+{
+    char signature[4];
+    size_t saved_pos;
+    
+    memset(signature, 0, 4);
+    
+    saved_pos = h->tell(h);
+    h->seek(h, 0x2c, io_seek_set);
+    h->read(signature, 1, 4, h);
+    h->seek(h, saved_pos, io_seek_set);
+        
+    if (memcmp(signature, "SCRM", 4))
+        return 0;
+
+    return 1;
 }
 
+/* loads a scream tracker 3 module (s3m)
+ */
 module_t * loader_s3m_load(io_handle_t * h)
 {
     char signature[4];
@@ -47,6 +56,11 @@ module_t * loader_s3m_load(io_handle_t * h)
     /* chech if we really deal with a S3M file. IF not, bail out */
     h->seek(h, 0x2c, io_seek_set);
     r = h->read(signature, 1, 4, h);
+    
+    if (r != 4) {
+        free(module);
+        return 0;
+    }
     
     if (memcmp(signature, "SCRM", 4)) {
         free(module);
@@ -216,7 +230,7 @@ module_t * loader_s3m_load(io_handle_t * h)
 
         /* loop end */
         h->read(&tmp_u32, sizeof(uint32_t), 1, h);
-        module->samples[i].header.loop_end = tmp_u32 & 0xffff;
+        module->samples[i].header.loop_end = (tmp_u32 & 0xffff) - 1;
         module->samples[i].header.loop_length = module->samples[i].header.loop_end - module->samples[i].header.loop_start;
         
         /* volume */

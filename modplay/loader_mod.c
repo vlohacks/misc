@@ -15,21 +15,45 @@
 #include "io.h"
 #include "io_file.h"
 
-/* Loads a protracker/startrekker/soundtracker module file (*.mod, *.stk)
- */
-module_t * loader_mod_loadfile(char * filename)
-{
-    io_handle_t * h = io_file_open(filename, "rb");
-    module_t * mod = 0;
-    if (h) {
-        mod = loader_mod_load(h);
-        io_file_close(h);
-    }
 
-    return mod;
+/* checks if given data is a mod, returns 1 if data is valid */
+int loader_mod_check(io_handle_t * h)
+{
+    int r, i;
+    uint32_t signature = 0;
+    size_t saved_pos;
+    char tmp[5];
+    
+    saved_pos = h->tell(h);
+    h->seek(h, 0x438, SEEK_SET);
+    r = h->read(&signature, 1, 4, h);
+    h->seek(h, saved_pos, io_seek_set);
+    
+    if (r != 4) 
+        return 0;
+
+    // Probe for standard MOD types
+    for (i = 0; i < loader_mod_num_modtypes; i++) {
+        if (signature == loader_mod_modtypes[i].signature) 
+            return 1;
+    }
+    
+    // Probe for FT2 xxCH 10 channel+ signature
+    for (i = 10; i <= 32; i += 2) {
+        sprintf(tmp, "%02iCH", i);
+        if (memcmp (&signature, tmp, 4) == 0) 
+            return 1;
+    }
+    
+    /* TODO: Check if the file MIGHT BE a STK (get sample sizes, compare to file
+     * size since there is no magic/header
+     */
+        
+    return 0;
 }
 
-
+/* Loads a protracker/startrekker/soundtracker module file (*.mod, *.stk)
+ */
 module_t * loader_mod_load(io_handle_t * h)
 {
     int i, j, k, r;
@@ -223,7 +247,8 @@ int loader_mod_read_sample_header(module_sample_header_t * hdr, io_handle_t * h)
     r = h->read (&word, 2, 1, h);
     if (r != 1)
         return 1;
-    hdr->loop_length = swap_endian_u16(word) << 1;
+    
+    hdr->loop_length = (swap_endian_u16(word) << 1) - 1;
     hdr->loop_end = hdr->loop_length + hdr->loop_start;
     
     hdr->loop_enabled = 0;
@@ -251,7 +276,7 @@ int loader_mod_read_pattern_data(module_pattern_data_t * data, io_handle_t * h)
     data->period_index = loader_mod_lookup_period_index(tmp);
     
     if (tmp && data->period_index == -1) {
-        fprintf(stderr, "Loader: WARNING: Non-standard period: %i @ %x\n", tmp, h->tell(h));
+        fprintf(stderr, "Loader: WARNING: Non-standard period: %i @ %x\n", tmp, (unsigned int)h->tell(h));
     }                    
     
     data->effect_num = (uint8_t)((dw & 0x0f00) >> 8);

@@ -205,7 +205,6 @@ void effects_s3m_E_slidedown(player_t * player, int channel)
             tmp = (int)player->channels[channel].period + (player->channels[channel].effect_last_value[5] & 0x0f);
             player->channels[channel].period = tmp;
             player_channel_set_frequency(player, player->channels[channel].period, channel);
-            printf("extrafine %i\n", player->channels[channel].period);
         }
         
         return;

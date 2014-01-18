@@ -6,6 +6,7 @@ CCFLAGS = -Wall -g
 #CCFLAGS	= -Wall -O3
 #CXXFLAGS = -Wall -O3
 #linux portaudio
+#LDFLAGS = libportaudio.a libpdcurses.a -lm -lpthread -lasound -lXaw -lXmu -lXt -lX11 -lSM -lICE -lXext -lXpm 
 LDFLAGS = libportaudio.a -lm -lpthread -lasound -lncurses
 #linux alsa
 #LDFLAGS = -lm -lpthread -lasound -lncurses

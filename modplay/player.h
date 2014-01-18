@@ -129,6 +129,7 @@ int player_read(player_t * player, float * mix_l, float * mix_r);
 void player_register_tick_callback(player_t * player, tick_callback_t func);
 void player_register_row_callback(player_t * player, row_callback_t func);
 void player_register_order_callback(player_t * player, order_callback_t func);
+void player_register_channel_sample_callback(player_t * player, channel_sample_callback_t func, uint32_t callback_mask);
 
 void player_init_channels(player_t * player);
 void player_init_defaults(player_t * player);

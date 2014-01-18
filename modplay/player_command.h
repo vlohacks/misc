@@ -15,9 +15,11 @@ typedef enum {
     player_command_action_next_order,
     player_command_action_prev_order,
     player_command_action_next_song,
-    player_command_action_prev_song
+    player_command_action_prev_song,
+    player_command_action_quit
 } player_command_action_t;
 
+void player_command_action_dispatch(player_t * player, player_command_action_t action);
 void player_command_next_order(player_t * player);
 void player_command_prev_order(player_t * player);
 

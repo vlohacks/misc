@@ -17,11 +17,12 @@
 
 int main (int argc, char ** argv)
 {
-
+    module_t * mod;
     modplay_application_t app;  
     int i;
     float l, r;
     player_command_action_t action;
+
     
     app.player = player_init(44100.0f, player_resampling_linear);
     app.output_opts = malloc(sizeof(output_opts_t));
@@ -32,12 +33,11 @@ int main (int argc, char ** argv)
         return 1;
     }
 
-    ui_ncurses_init();
-    
+   
     output_portaudio_init(app.output_opts);
     //output_alsa_init(0, 0);
     
-    
+    ui_ncurses_init();    
     /*
     ui_terminal_init();
     player_register_order_callback(app.player, ui_terminal_print_order_info);
@@ -58,7 +58,8 @@ int main (int argc, char ** argv)
         i = 0;
         for (;;) {
             
-            module_t * mod = loader_loadfile_by_extension(app.playlist[i]);
+            if ((mod = loader_loadfile_by_extension(app.playlist[i])) == 0)
+                mod = loader_loadfile_by_header(app.playlist[i]);
             
             player_set_module(app.player, mod);
             
@@ -84,6 +85,11 @@ int main (int argc, char ** argv)
                             i-=2;
                             app.player->playing = 0;
                         }
+                        break;
+                        
+                    case (player_command_action_quit):
+                        app.player->playing = 0;
+                        app.running = 0;
                         break;
                                     
                     default: 

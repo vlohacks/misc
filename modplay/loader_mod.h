@@ -41,7 +41,7 @@ static const struct modtype loader_mod_modtypes[] = {
 
 /* Prototypes
  */
-module_t * loader_mod_loadfile(char * filename);
+int loader_mod_check(io_handle_t * h);
 module_t * loader_mod_load(io_handle_t * h);
 
 int loader_mod_read_sample_header(module_sample_header_t * hdr, io_handle_t * h);

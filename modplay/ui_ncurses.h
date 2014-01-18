@@ -9,8 +9,10 @@
 #define	UI_NCURSES_H
 
 #include <ncurses.h>
+//#include "curses.h"
 #include "module.h"
 #include "player.h"
+#include "player_command.h"
 
 #define UI_NCURSES_COLORPAIR_WINDOW 1
 
@@ -26,7 +28,12 @@ typedef struct  {
     int num_channels;
 } ui_ncurses_layout_t;
 
-
+typedef struct {
+    char * keyseq;
+    char * keyname;
+    char * description;
+    player_command_action_t action;
+} ui_ncurses_keybinding_t;
 
 void ui_ncurses_init();
 void ui_ncurses_cleanup();
@@ -37,6 +44,7 @@ void ui_ncurses_order_handler(player_t * player, int current_order, int current_
 void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row);
 void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float peak_r, int channel);
+player_command_action_t ui_ncurses_handle_input() ;
 
 #endif	/* UI_NCURSES_H */
 

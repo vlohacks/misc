@@ -13,7 +13,7 @@
 #include "module.h"
 #include "io.h"
 
-module_t * loader_s3m_loadfile(char * filename);
+int loader_s3m_check(io_handle_t * h);
 module_t * loader_s3m_load(io_handle_t * h);
 
 #endif	/* LOADER_S3M_H */
