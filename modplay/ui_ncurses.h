@@ -23,6 +23,7 @@ typedef struct  {
     WINDOW * song_view;
     WINDOW * channel_view;
     WINDOW * pattern_view;
+    WINDOW * aux;
     int current_w;
     int current_h;
     int num_channels;
@@ -33,6 +34,7 @@ typedef struct {
     char * keyname;
     char * description;
     player_command_action_t action;
+    void (*hook)();
 } ui_ncurses_keybinding_t;
 
 void ui_ncurses_init();
@@ -44,7 +46,9 @@ void ui_ncurses_order_handler(player_t * player, int current_order, int current_
 void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row);
 void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float peak_r, int channel);
-player_command_action_t ui_ncurses_handle_input() ;
+player_command_action_t ui_ncurses_handle_input();
+void ui_ncurses_show_log();
+void ui_ncurses_show_help();
 
 #endif	/* UI_NCURSES_H */
 

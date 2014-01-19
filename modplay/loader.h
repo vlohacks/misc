@@ -13,6 +13,7 @@
 #include "io.h"
 #include "loader_mod.h"
 #include "loader_s3m.h"
+#include "loader_mtm.h"
 
 module_t * loader_loadfile_by_header(char * filename);
 module_t * loader_loadfile_by_extension(char * filename);

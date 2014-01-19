@@ -28,10 +28,12 @@ int module_free(module_t * module)
     module->samples = 0;
     
     for (i = 0; i < module->num_patterns; i++) {
-        for (j = 0; j < module->patterns[i].num_rows; j++) 
-            free(module->patterns[i].rows[j].data);
-
-        free(module->patterns[i].rows);
+        if (module->patterns[i].rows) {
+            for (j = 0; j < module->patterns[i].num_rows; j++) 
+                free(module->patterns[i].rows[j].data);
+        
+            free(module->patterns[i].rows);
+        }
     }
     free(module->patterns);
     module->patterns = 0;

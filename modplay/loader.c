@@ -1,11 +1,12 @@
 #include "loader.h"
 #include "io_file.h"
 
-#define LOADER_FORMATS_COUNT 2
+#define LOADER_FORMATS_COUNT 3
 
 static const loader_generic_t loader_formats[] = {
     { loader_mod_check, loader_mod_load, "mod", "Protracker/Fasttracker MOD" },
-    { loader_s3m_check, loader_s3m_load, "s3m", "Scream Tracker 3" }
+    { loader_s3m_check, loader_s3m_load, "s3m", "Scream Tracker 3" },
+    { loader_mtm_check, loader_mtm_load, "mtm", "Multi Tracker" }
 };
 
 module_t * loader_loadfile_by_header(char * filename)

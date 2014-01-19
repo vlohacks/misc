@@ -97,6 +97,7 @@ void player_set_module(player_t * player, module_t * module)
     
     // map effects dependent on module type
     switch (module->module_type) {
+        case module_type_mtm:
         case module_type_mod: 
             player->effect_map = effects_mod_init(); 
             player->newrow_action = (newrowaction_callback_t)effects_mod_newrowaction;
@@ -356,6 +357,7 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
     
     switch (player->module->module_type) {
         case module_type_mod:
+        case module_type_mtm:
             // unusual: finetune is a signed nibble
             finetune = (sample->header.finetune >= 8 
                     ? -(16 - sample->header.finetune) 
@@ -389,7 +391,6 @@ float player_channel_fetch_sample(player_t * player,  const int channel_num)
     // trying to play a empty sample slot... play silence instead of segfault :)
     if (player->module->samples[sample_index].data == 0)
         return 0.0f;
-    
     
     // maintain looping
     if (player->module->samples[sample_index].header.loop_enabled) {

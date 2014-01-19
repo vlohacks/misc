@@ -50,6 +50,7 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
     uint8_t effect_val = effect_values[effect_num];
     
     switch (module_type) {
+        case module_type_mtm:
         case module_type_mod:
             switch (effect_num) {
                 case 0: 
@@ -173,6 +174,7 @@ void ui_map_effect_num(char * target, const module_type_t type, const uint8_t ef
             sprintf(target, "%c", ".ABCDEFGHIJKLMNOPQRSTUVWXYZ"[effect_num]);
             break;
 
+        case module_type_mtm:
         case module_type_mod:
         default:
             sprintf(target, "%X", effect_num);
@@ -188,6 +190,7 @@ int ui_lookup_period_index(const module_type_t type, const uint16_t period)
     uint16_t * period_table;
     
     switch (type) {
+        case module_type_mtm:
         case module_type_mod: 
             num_periods = defs_mod_num_periods; 
             period_table  = defs_mod_periods;

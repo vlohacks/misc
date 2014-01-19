@@ -205,7 +205,7 @@ module_t * loader_mod_load(io_handle_t * h)
         else
             module->initial_panning[i] = 0xff;
     }
-    
+    module->song_message = 0;
     return module;
 }
 
@@ -275,7 +275,7 @@ int loader_mod_read_pattern_data(module_pattern_data_t * data, io_handle_t * h)
     
     if (tmp && data->period_index == -1) {
         fprintf(stderr, "Loader: WARNING: Non-standard period: %i @ %x\n", tmp, (unsigned int)h->tell(h));
-    }                    
+    }
     
     data->effect_num = (uint8_t)((dw & 0x0f00) >> 8);
     data->effect_value = (uint8_t)(dw & 0xff);

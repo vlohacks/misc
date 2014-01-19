@@ -14,7 +14,8 @@
 
 typedef enum {
     module_type_mod,
-    module_type_s3m
+    module_type_s3m,
+    module_type_mtm
 } module_type_t;
 
 typedef struct {
@@ -88,7 +89,7 @@ typedef struct {
     uint8_t initial_bpm;
     uint8_t initial_master_volume;
     uint8_t initial_panning[32];
-    
+    char * song_message;
 } module_t;
 
 

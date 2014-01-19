@@ -49,6 +49,7 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
     // special behaviour for sample / note delay
     if ((data->effect_num == 0xe) && ((data->effect_value >> 4) == 0xd)) {
         player->channels[channel_num].dest_period = player->period_table[data->period_index];
+        player->channels[channel_num].period_index = data->period_index;
         player->channels[channel_num].dest_sample_num = data->sample_num;
         return;
     }
@@ -64,14 +65,16 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
         // special hack for note portamento... TODO remove here
         if (data->effect_num == 0x3) {
             player->channels[channel_num].dest_period = player->period_table[data->period_index];
+            player->channels[channel_num].period_index = data->period_index;
         } else {
             if (!(player->pattern_delay_active)) {
                 player->channels[channel_num].period = player->period_table[data->period_index];
+                player->channels[channel_num].period_index = data->period_index;
                 player->channels[channel_num].sample_pos = 0;
                 //player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
             }
         }
-    }
+    } 
     
     player->channels[channel_num].volume_master = 64;
     

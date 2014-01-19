@@ -227,7 +227,7 @@ module_t * loader_s3m_load(io_handle_t * h)
         /* loop end */
         h->read(&tmp_u32, sizeof(uint32_t), 1, h);
         module->samples[i].header.loop_end = (tmp_u32 & 0xffff) - 1;
-        module->samples[i].header.loop_length = module->samples[i].header.loop_end - module->samples[i].header.loop_start;
+        module->samples[i].header.loop_length = (tmp_u32 & 0xffff) - module->samples[i].header.loop_start;
         
         /* volume */
         h->read(&(module->samples[i].header.volume), sizeof(uint8_t), 1, h);
@@ -277,19 +277,22 @@ module_t * loader_s3m_load(io_handle_t * h)
     /*
     for (i=0; i< module->num_samples; i++) {
         module_sample_header_t * h = &(module->samples[i].header);
-        printf ("l: %02i ls:%02i le:%02i v:%02i c2:%02i name:%s\n",
+        printf ("l: %02i ls:%02i le:%02i ll:%02i v:%02i c2:%02i name:%s\n",
                 h->length,
                 h->loop_start,
                 h->loop_end,
+                h->loop_length,
                 h->volume,
                 h->c2spd,
                 h->name);
     }
     */
-        
+    
     /* allocate patterns */
-    module->patterns = (module_pattern_t *)malloc(sizeof(module_pattern_t) * num_patterns_internal);
-   
+    module->patterns = (module_pattern_t *)malloc(sizeof(module_pattern_t) * module->num_patterns /*num_patterns_internal*/);
+    for (i = 0; i < module->num_patterns /*num_patterns_internal*/; i++) 
+        module->patterns[i].rows = 0;
+    
     /* read pattern data */
     int pattern_nr = 0;
     uint8_t packed_flags;
@@ -297,7 +300,7 @@ module_t * loader_s3m_load(io_handle_t * h)
     uint16_t packed_size;
     module_pattern_data_t tmp_data;
     
-    for (i = 0; i < num_patterns_internal; i++) {
+    for (i = 0; i < module->num_patterns /*num_patterns_internal*/; i++) {
         h->seek(h, parapointer_pattern[i] << 4, io_seek_set);
         
         h->read(&packed_size, sizeof(uint16_t), 1, h);
@@ -366,7 +369,7 @@ module_t * loader_s3m_load(io_handle_t * h)
     free (parapointer_pattern);
     
     //module_dump(module, stdout);
-    
+    module->song_message = 0;
     return module;
 }
 

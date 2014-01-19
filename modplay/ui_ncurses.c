@@ -5,14 +5,15 @@
 //#include <signal.h>
 
 
-#define UI_NCURSES_KEYBINDINGS_COUNT 5
+#define UI_NCURSES_KEYBINDINGS_COUNT 6
 
-static const ui_ncurses_keybinding_t ui_ncurses_keybindings[] = {
-    { "\x1b\x5b\x31\x3b\x35\x43", "STRG + ->", "Skip to next order", player_command_action_next_order },
-    { "\x1b\x5b\x31\x3b\x35\x44", "STRG + ->", "Skip to previous order", player_command_action_prev_order },
-    { "\x1b\x5b\x31\x3b\x33\x43", "ALT + ->", "Skip to next song", player_command_action_next_song },
-    { "\x1b\x5b\x31\x3b\x33\x44", "ALT + ->", "Skip to previous song", player_command_action_prev_song },
-    { "\x1b", "ESC", "Quit player", player_command_action_quit }
+static ui_ncurses_keybinding_t ui_ncurses_keybindings[] = {
+    { "\x1b", "ESC", "Quit player", player_command_action_quit, 0 },
+    { "\x1b\x5b\x31\x3b\x35\x43", "STRG + ->", "Skip to next order", player_command_action_next_order, 0 },
+    { "\x1b\x5b\x31\x3b\x35\x44", "STRG + ->", "Skip to previous order", player_command_action_prev_order, 0 },
+    { "\x1b\x5b\x31\x3b\x33\x43", "ALT + ->", "Skip to next song", player_command_action_next_song, 0 },
+    { "\x1b\x5b\x31\x3b\x33\x44", "ALT + ->", "Skip to previous song", player_command_action_prev_song, 0 },
+    { "\x1b\x5b\x32\x34\x7e", "F12", "Show log", 0, ui_ncurses_show_help }
 };
 
 
@@ -62,6 +63,9 @@ void ui_ncurses_layout_init()
     if (ui_ncurses_layout.song_view)
         delwin(ui_ncurses_layout.song_view);
     
+    if (ui_ncurses_layout.aux)
+        delwin(ui_ncurses_layout.aux);
+    
     if (ui_ncurses_layout.ncurses_inited)
         endwin();
     
@@ -86,6 +90,8 @@ void ui_ncurses_layout_init()
     ui_ncurses_layout.song_view = newwin(1, w, 0, 0);
     ui_ncurses_layout.channel_view = newwin(ui_ncurses_layout.num_channels + 2, w, 1, 0);
     ui_ncurses_layout.pattern_view = newwin((h - (ui_ncurses_layout.num_channels + 3)), w, ui_ncurses_layout.num_channels + 3, 0);
+    ui_ncurses_layout.aux = 0;
+    
     if (ui_ncurses_layout.use_colors) {
        wattron(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
        wattron(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
@@ -93,9 +99,10 @@ void ui_ncurses_layout_init()
 
 
     
-    box(ui_ncurses_layout.channel_view, 0, 0);
-    box(ui_ncurses_layout.pattern_view, 0, 0);
 
+    
+    
+    
     
     
     if (ui_ncurses_layout.use_colors) {
@@ -142,6 +149,9 @@ void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float pea
     tmp[SCOPE_SIZE * 2 + 1] = 0;
     
     mvwprintw(ui_ncurses_layout.channel_view, channel+1, 80, tmp);
+    if (ui_ncurses_layout.aux)
+        overwrite(ui_ncurses_layout.aux, ui_ncurses_layout.channel_view);
+
     wrefresh(ui_ncurses_layout.channel_view);
     
 }
@@ -154,7 +164,9 @@ void ui_ncurses_tick_handler(player_t * player, int current_order, int current_p
     char note[4];
     
     int i, j, k;
-       
+
+    
+    
     for (i = 0; i < ui_ncurses_layout.num_channels; i++) {
         module_pattern_data_t * data = &(player->module->patterns[current_pattern].rows[current_row].data[i]);
         
@@ -188,6 +200,18 @@ void ui_ncurses_tick_handler(player_t * player, int current_order, int current_p
         mvwprintw(ui_ncurses_layout.channel_view, i+1, 1, tmp);
         wattroff(ui_ncurses_layout.channel_view, A_BOLD);
     }
+
+    if (ui_ncurses_layout.use_colors)
+        wattron(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+    
+    box(ui_ncurses_layout.channel_view, 0, 0);
+    
+    if (ui_ncurses_layout.use_colors)
+        wattroff(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+
+    if (ui_ncurses_layout.aux)
+        overwrite(ui_ncurses_layout.aux, ui_ncurses_layout.channel_view);
+    
     wrefresh(ui_ncurses_layout.channel_view);    
 }
 
@@ -243,6 +267,19 @@ void ui_ncurses_row_handler(player_t * player, int current_order, int current_pa
         wattroff(ui_ncurses_layout.pattern_view, A_REVERSE);
         wattroff(ui_ncurses_layout.pattern_view, A_BOLD);
     }
+    
+    if (ui_ncurses_layout.use_colors)
+        wattron(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+     
+    box(ui_ncurses_layout.pattern_view, 0, 0);
+
+    if (ui_ncurses_layout.use_colors)
+        wattroff(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+
+    if (ui_ncurses_layout.aux)
+        overwrite(ui_ncurses_layout.aux, ui_ncurses_layout.pattern_view);
+ 
+    
     wrefresh(ui_ncurses_layout.pattern_view);
     
 }
@@ -264,20 +301,70 @@ player_command_action_t ui_ncurses_handle_input()
    
     buf[i++] = 0;
 
-/*
+
     if (i > 1) {
         FILE * xx = fopen("xxx.txt", "a");
-        fprintf(xx, "%x %x %x %x %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+        fprintf(xx, "\\x%x\\x%x\\x%x\\x%x\\x%x\\x%x\\x%x\\x%x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
         fclose (xx);
     }
-*/          
+          
     
     for (i = 0; i < UI_NCURSES_KEYBINDINGS_COUNT; i++) {
-        if (!strcmp(ui_ncurses_keybindings[i].keyseq, buf)) 
-            return ui_ncurses_keybindings[i].action;
+        if (!strcmp(ui_ncurses_keybindings[i].keyseq, buf)) {
+            if (ui_ncurses_keybindings[i].hook) {
+                (ui_ncurses_keybindings[i].hook)();
+            } else {
+                return ui_ncurses_keybindings[i].action;
+            }
+        }
         
     }
     
     return player_command_action_none;
 }
 
+
+
+void ui_ncurses_show_log() {
+    
+}
+
+void ui_ncurses_destroy_aux() {
+    if (ui_ncurses_layout.aux) {
+        delwin(ui_ncurses_layout.aux);
+        ui_ncurses_layout.aux = 0;
+    }
+    
+    touchwin(ui_ncurses_layout.channel_view);
+    touchwin(ui_ncurses_layout.pattern_view);
+    
+    ui_ncurses_keybindings[0].hook = 0;
+}
+
+
+void ui_ncurses_show_help() {
+    int i;
+
+
+    if (ui_ncurses_layout.aux) 
+        return;
+       
+    
+    ui_ncurses_layout.aux = newwin(ui_ncurses_layout.current_h - 8, ui_ncurses_layout.current_w - 8, 4, 4);       
+    
+    if (ui_ncurses_layout.use_colors)
+        wattron(ui_ncurses_layout.aux, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+    
+    box(ui_ncurses_layout.aux, 0, 0);
+    
+    if (ui_ncurses_layout.use_colors)
+        wattroff(ui_ncurses_layout.aux, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));    
+    
+    for (i = 0; i < UI_NCURSES_KEYBINDINGS_COUNT; i++) {
+        mvwprintw(ui_ncurses_layout.aux, i+1, 1, "%-12s %s", ui_ncurses_keybindings[i].keyname, ui_ncurses_keybindings[i].description);
+    }
+    
+    ui_ncurses_keybindings[0].hook = ui_ncurses_destroy_aux;
+    
+    
+}

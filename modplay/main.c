@@ -32,6 +32,10 @@ int main (int argc, char ** argv)
     if (cmdline_parse(argc, argv, &app)) {
         return 1;
     }
+    
+    
+    //mod = loader_loadfile_by_header(app.playlist[0]);
+    //exit(0);
 
    
     output_portaudio_init(app.output_opts);
@@ -43,9 +47,7 @@ int main (int argc, char ** argv)
     player_register_order_callback(app.player, ui_terminal_print_order_info);
     player_register_row_callback(app.player, ui_terminal_print_row_info);
     */
-    
-    
-    
+        
     
     player_register_order_callback(app.player, ui_ncurses_order_handler);
     player_register_row_callback(app.player, ui_ncurses_row_handler);
