@@ -10,13 +10,45 @@ Fixes:
   reset with NEW NOTE.
 - Dynamic mapping of effect color in terminal output depending on module type
   (s3m, mod...)
+- Annotation of channel numbers in pattern view and column names in channel view
+- Better color scheme (grey out stuff which has no information) 
+- Check vibrato effects again vs ST3 (still "feels" weird in some S3Ms)
+	* Shadow of Illusion/alone.s3m
+- do not segfault if there's not enough room to draw specific window :-)
+
 
 Features:
+- Overhaul window handling in ncurses, implement small tiling/overlay window manager
+- different narrow vs. nice pattern view styles
+- implement platform transparent handling of terminal resizing signalling
+- in-player playlist management and file browser
+- platform transparent (ncurses/unix <=> pdcurses/windows) key mappings
+- Sample view!!
+- scrolling (channel view: horizontally, channel and sample view vertically)
 
-- s3m Effects
-- Graphical (QT?) UI
+
+Window Layout (posibility to turn on/off any window):
+
+vmp - songname / filename.s3m 
+Pat: xxx/xxx | Ord  xxx/xxx | Spd:  xx/ xx | BPM: xxx/xxx
++--------------------------------------------------------t-------------------------------+
+| Sample		note vol  pan  effect		 volume meter    	         |
+| bla bla     	 	|C-4| 64 | ff | vibrato	     	 | ---=====|---------        	 |
+|       	 	|...| 64 | ff |  	     	 | ---=====|---------     	 |
+| yea i am teh best 	|A#2| 64 | ff | 	     	 | ---=====|---------    	 |
+|       	 	|...| 64 | ff | 	     	 | ---=====|---------    	 |
++---------------------------------------------------------+------------------------------+
+| row | ----01---- | ----02---- | ----03---- | ----04---- | . ST-XX Undetaker Kickdrum   |
+|  00 | C-40264422 | ...00..... | A#20464... | ...00..... | o bla bla                    |
+| .... 				  			  | . a mod my whoever           |
+| 							  | o yeah I am the best         |
+|
+
+
+
 
 Done:
+- DONE 201401?? s3m Effects
 - DONE 20131226 loader: S3M Loader
 - DONE 20131220 module: get rid of periods in module, only use indices
 - DONE 20130706 player: Fix pattern loop when occuring in 2 colums (darkwond.mod getting into endless loop)
