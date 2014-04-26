@@ -6,6 +6,7 @@
       </df>
       <df name="testmods">
         <in>news.mod</in>
+        <in>overture.mod</in>
         <in>source.mod</in>
       </df>
       <in>application.h</in>
