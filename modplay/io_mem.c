@@ -36,24 +36,34 @@ int io_mem_close(io_handle_t * handle) {
 
 size_t io_mem_read(void * ptr, size_t size, size_t n, io_handle_t * handle)
 {
-    size_t prod = size * n;
+    int i;
     io_mem_native_handle_t * native_handle = (io_mem_native_handle_t *)handle->native_handle;
-    if (prod > (native_handle->size - native_handle->pos))
-        prod = (native_handle->size - native_handle->pos);
-    memcpy(ptr, (void *)(native_handle->ptr + native_handle->pos), prod);
-    native_handle->pos += prod;
-    return prod;
+    for (i = 0; i < n; i++) {
+        if (native_handle->pos + size < native_handle->size) {
+            memcpy(ptr, (void *)(native_handle->ptr + native_handle->pos), size);
+            native_handle->pos += size;
+            ptr += size;
+        } else {
+            break;
+        }
+    }
+    return i;
 }
 
 size_t io_mem_write(const void * ptr, size_t size, size_t n, io_handle_t * handle)
 {
-    size_t prod = size * n;
+    int i;
     io_mem_native_handle_t * native_handle = (io_mem_native_handle_t *)handle->native_handle;
-    if (prod > (native_handle->size - native_handle->pos))
-        prod = (native_handle->size - native_handle->pos);
-    memcpy((void *)(native_handle->ptr + native_handle->pos), ptr, prod);
-    native_handle->pos += prod;
-    return prod;
+    for (i = 0; i < n; i++) {
+        if (native_handle->pos + size < native_handle->size) {
+            memcpy((void *)(native_handle->ptr + native_handle->pos), ptr, size);
+            native_handle->pos += size;
+            ptr += size;
+        } else {
+            break;
+        }
+    }
+    return i;
 }
 
 size_t io_mem_tell(io_handle_t * handle)

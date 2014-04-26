@@ -70,7 +70,7 @@ void ui_ncurses_layout_init()
         endwin();
     
     initscr();
-    curs_set(0);
+    //curs_set(0);
     noecho();
     nodelay(stdscr, TRUE);
     

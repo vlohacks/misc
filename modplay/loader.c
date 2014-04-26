@@ -1,5 +1,6 @@
 #include "loader.h"
 #include "io_file.h"
+#include "io_mem.h"
 
 #define LOADER_FORMATS_COUNT 3
 
@@ -8,6 +9,28 @@ static const loader_generic_t loader_formats[] = {
     { loader_s3m_check, loader_s3m_load, "s3m", "Scream Tracker 3" },
     { loader_mtm_check, loader_mtm_load, "mtm", "Multi Tracker" }
 };
+
+module_t * loader_loadmem_by_header(void * ptr, size_t size)
+{
+    int i;
+    io_handle_t * h = io_mem_open(ptr, size);// io_file_open(filename, "rb");
+    module_t * module = 0;
+    
+    if (h) {
+        
+        for (i = 0; i < LOADER_FORMATS_COUNT; i++) {
+            if (loader_formats[i].check(h)) {
+                module = loader_formats[i].load(h);
+                break;
+            }
+        } 
+        
+        io_mem_close(h);
+    }
+    
+    return module;
+}
+
 
 module_t * loader_loadfile_by_header(char * filename)
 {
@@ -18,13 +41,9 @@ module_t * loader_loadfile_by_header(char * filename)
     if (h) {
         
         for (i = 0; i < LOADER_FORMATS_COUNT; i++) {
-            //printf ("Checking if file is %s ... ", loader_formats[i].description);
             if (loader_formats[i].check(h)) {
-                //printf("YES, loading\n");
                 module = loader_formats[i].load(h);
                 break;
-            } else {
-                //printf("NO\n");
             }
         } 
         
@@ -32,7 +51,6 @@ module_t * loader_loadfile_by_header(char * filename)
     }
     
     return module;
-    
 }
 
 module_t * loader_loadfile_by_extension(char * filename)
