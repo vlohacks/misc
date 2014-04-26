@@ -2,12 +2,13 @@
 #include "io_file.h"
 #include "io_mem.h"
 
-#define LOADER_FORMATS_COUNT 3
+#define LOADER_FORMATS_COUNT 4
 
 static const loader_generic_t loader_formats[] = {
     { loader_mod_check, loader_mod_load, "mod", "Protracker/Fasttracker MOD" },
     { loader_s3m_check, loader_s3m_load, "s3m", "Scream Tracker 3" },
-    { loader_mtm_check, loader_mtm_load, "mtm", "Multi Tracker" }
+    { loader_mtm_check, loader_mtm_load, "mtm", "Multi Tracker" },
+    { loader_stm_check, loader_stm_load, "stm", "Scream Tracker" }
 };
 
 module_t * loader_loadmem_by_header(void * ptr, size_t size)

@@ -268,7 +268,7 @@ module_t * loader_s3m_load(io_handle_t * h)
         h->seek(h, sample_memseg << 4, io_seek_set);
         h->read(module->samples[i].data, 1, module->samples[i].header.length, h);
         
-         /* we use unsigned samples interally */
+         /* we use signed samples interally */
         for (j=0; j<module->samples[i].header.length; j++)
             module->samples[i].data[j] ^= 128;
             
@@ -338,7 +338,7 @@ module_t * loader_s3m_load(io_handle_t * h)
                             tmp_data.period_index = -1;
                         else if (tmp_u8 == 254)
                             tmp_data.period_index = 254;
-                        else
+                        else //low nibble = note, high nibble = octave
                             tmp_data.period_index = (int)(((tmp_u8 >> 4) * 12) + (tmp_u8 & 0x0f));
 
                         h->read(&(tmp_data.sample_num), 1, 1, h);

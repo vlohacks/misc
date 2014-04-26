@@ -9,13 +9,14 @@
 #define	UI_TERMINAL_H
 
 #include "module.h"
+#include "player.h"
 
 /* Prototypes
  */
 void ui_terminal_init();
 void ui_terminal_print_moduleinfo(module_t * module);
-void ui_terminal_print_order_info(module_t * module, int current_order, int current_pattern);
-void ui_terminal_print_row_info(module_t * module, int current_order, int current_pattern, int current_row);
+void ui_terminal_print_order_info(player_t * player, int current_order, int current_pattern);
+void ui_terminal_print_row_info(player_t * player, int current_order, int current_pattern, int current_row);
 
 #endif	/* UI_TERMINAL_H */
 

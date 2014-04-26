@@ -11,8 +11,11 @@
 #include <stdio.h>
 #include "player.h"
 #include "defs_mod.h"
+#include "defs_s3m.h"
+#include "defs_stm.h"
 #include "effects_mod.h"
 #include "effects_s3m.h"
+#include "effects_stm.h"
 #include "math.h"
 
 player_t * player_init(const float sample_rate, const player_resampling_t resampling) 
@@ -110,6 +113,14 @@ void player_set_module(player_t * player, module_t * module)
             player->period_table = defs_s3m_periods;
             player->period_top = defs_s3m_periods[0];
             player->period_bottom = defs_s3m_periods[defs_s3m_num_periods - 1];
+            break;
+            
+        case module_type_stm:
+            player->effect_map = effects_stm_init();
+            player->newrow_action = (newrowaction_callback_t)effects_stm_newrowaction;
+            player->period_table = defs_stm_periods;
+            player->period_top = defs_stm_periods[0];
+            player->period_bottom = defs_stm_periods[defs_stm_num_periods - 1];
             break;
     }
 }
@@ -370,6 +381,7 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
 
             break;
         
+        case module_type_stm:
         case module_type_s3m:
             channel->frequency = 14317056L / period;
             break;

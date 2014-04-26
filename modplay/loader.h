@@ -14,6 +14,7 @@
 #include "loader_mod.h"
 #include "loader_s3m.h"
 #include "loader_mtm.h"
+#include "loader_stm.h"
 
 module_t * loader_loadmem_by_header(void * ptr, size_t size);
 module_t * loader_loadfile_by_header(char * filename);

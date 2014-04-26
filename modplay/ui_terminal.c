@@ -82,16 +82,16 @@ void ui_terminal_print_moduleinfo(module_t * module)
     fprintf(ui_terminal_fd, "\n--== Samples ==--\n");
     for (i = 0; i < module->num_samples; i++) {
         module_sample_header_t * sh = &(module->samples[i].header);
-        fprintf(ui_terminal_fd, "%22s | v=%2i l=%6i ls=%6i ll=%6i ft=%1i\n", sh->name, sh->volume, sh->length, sh->loop_start, sh->loop_length, (sh->finetune >=8 ? -(16-sh->finetune) : sh->finetune) );
+        fprintf(ui_terminal_fd, "%22s | v=%2i l=%6i ls=%6i ll=%6i le=%6i ft=%1i c2spd=%u\n", sh->name, sh->volume, sh->length, sh->loop_start, sh->loop_length, sh->loop_end, (sh->finetune >=8 ? -(16-sh->finetune) : sh->finetune), sh->c2spd );
     }
 }
 
-void ui_terminal_print_order_info(module_t * module, int current_order, int current_pattern) 
+void ui_terminal_print_order_info(player_t * player, int current_order, int current_pattern) 
 {
-    fprintf(ui_terminal_fd, "\n--== order: %i/%i, pattern: %i/%i ==--\n", current_order, module->num_orders, current_pattern, module->num_patterns);
+    fprintf(ui_terminal_fd, "\n--== order: %i/%i, pattern: %i/%i spd: %i, tempo: %i ==--\n", current_order, player->module->num_orders, current_pattern, player->module->num_patterns, player->speed, player->bpm);
 }
 
-void ui_terminal_print_row_info(module_t * module, int current_order, int current_pattern, int current_row)
+void ui_terminal_print_row_info(player_t * player, int current_order, int current_pattern, int current_row)
 {
     int i;
     char note[4];
@@ -100,10 +100,10 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
     
     char * the_std_color = current_row % 4 ? color_otherrow : color_4throw;
     
-    module_pattern_row_t * row = &(module->patterns[current_pattern].rows[current_row]);
+    module_pattern_row_t * row = &(player->module->patterns[current_pattern].rows[current_row]);
     
     fprintf(ui_terminal_fd, "%s%02d|", the_std_color, current_row );
-    for (i = 0; i < module->num_channels; i++) {
+    for (i = 0; i < player->module->num_channels; i++) {
         ui_periodindex2note(row->data[i].period_index, note);
         
         if (row->data[i].volume >= 0)
@@ -111,7 +111,7 @@ void ui_terminal_print_row_info(module_t * module, int current_order, int curren
         else
             strcpy(volume, "..");
         
-        ui_map_effect_num(effect,module->module_type,row->data[i].effect_num);
+        ui_map_effect_num(effect, player->module->module_type,row->data[i].effect_num);
         
         fprintf(ui_terminal_fd, "%s%02d%s%s%02X%s|", 
                 note, row->data[i].sample_num, volume, effect, row->data[i].effect_value, the_std_color);

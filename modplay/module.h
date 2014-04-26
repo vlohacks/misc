@@ -15,7 +15,8 @@
 typedef enum {
     module_type_mod,
     module_type_s3m,
-    module_type_mtm
+    module_type_mtm,
+    module_type_stm
 } module_type_t;
 
 typedef struct {
@@ -35,6 +36,10 @@ typedef struct {
             uint8_t default_panning;
             uint8_t mono;                  // mono flag
         } flags_s3m;
+        struct {
+            uint8_t version_major;
+            uint8_t version_minor;
+        } flags_stm;
     };
         
 } module_info_t;

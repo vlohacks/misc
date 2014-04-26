@@ -1,43 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="include"
+                   displayName="include"
+                   projectFiles="true"
+                   root="../../../portaudio/portaudio/include">
+      <itemPath>../../../portaudio/portaudio/include/pa_linux_alsa.h</itemPath>
+      <itemPath>../../../portaudio/portaudio/include/portaudio.h</itemPath>
+    </logicalFolder>
     <df root="." name="0">
-      <in>application.h</in>
-      <in>arch.h</in>
       <in>cmdline.c</in>
-      <in>cmdline.h</in>
       <in>effects_mod.c</in>
-      <in>effects_mod.h</in>
       <in>effects_s3m.c</in>
-      <in>effects_s3m.h</in>
-      <in>io.h</in>
       <in>io_file.c</in>
-      <in>io_file.h</in>
       <in>io_mem.c</in>
-      <in>io_mem.h</in>
+      <in>loader.c</in>
       <in>loader_mod.c</in>
-      <in>loader_mod.h</in>
       <in>loader_mtm.c</in>
-      <in>loader_mtm.h</in>
       <in>loader_s3m.c</in>
-      <in>loader_s3m.h</in>
+      <in>loader_stm.c</in>
       <in>main.c</in>
-      <in>main.h</in>
       <in>module.c</in>
-      <in>module.h</in>
-      <in>output.h</in>
-      <in>output_portaudio.h</in>
+      <in>output_alsa.c</in>
+      <in>output_portaudio.c</in>
       <in>player.c</in>
-      <in>player.h</in>
       <in>player_command.c</in>
-      <in>player_command.h</in>
       <in>ui.c</in>
-      <in>ui.h</in>
       <in>ui_ncurses.c</in>
-      <in>ui_ncurses.h</in>
-      <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
-      <in>ui_terminal.h</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -68,89 +58,98 @@
           <executablePath>modplay</executablePath>
         </makeTool>
       </makefileType>
-      <item path="application.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../portaudio/portaudio/include/pa_linux_alsa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
-      <item path="arch.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../portaudio/portaudio/include/portaudio.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
-      <item path="cmdline.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="cmdline.h" ex="false" tool="3" flavor2="0">
+      <item path="cmdline.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
       <item path="effects_mod.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
       </item>
-      <item path="effects_mod.h" ex="false" tool="3" flavor2="0">
+      <item path="effects_s3m.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
-      <item path="effects_s3m.c" ex="false" tool="0" flavor2="0">
+      <folder path="0">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
+      </folder>
+      <item path="io_file.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
-      <item path="effects_s3m.h" ex="false" tool="3" flavor2="0">
+      <item path="io_mem.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
-      <item path="io.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="io_file.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="io_file.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="io_mem.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="io_mem.h" ex="false" tool="3" flavor2="0">
+      <item path="loader.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
       <item path="loader_mod.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
       </item>
-      <item path="loader_mod.h" ex="false" tool="3" flavor2="0">
+      <item path="loader_mtm.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
-      <item path="loader_mtm.c" ex="false" tool="0" flavor2="0">
+      <item path="loader_s3m.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
-      <item path="loader_mtm.h" ex="false" tool="3" flavor2="0">
+      <item path="loader_stm.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
-      <item path="loader_s3m.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="loader_s3m.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="main.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="main.h" ex="false" tool="3" flavor2="0">
+      <item path="main.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
       <item path="module.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
       </item>
-      <item path="module.h" ex="false" tool="3" flavor2="0">
+      <item path="output_alsa.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
-      <item path="output.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="output_portaudio.h" ex="false" tool="3" flavor2="0">
+      <item path="output_portaudio.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
       <item path="player.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
       </item>
-      <item path="player.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="player_command.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="player_command.h" ex="false" tool="3" flavor2="0">
+      <item path="player_command.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
       <item path="ui.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
       </item>
-      <item path="ui.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="ui_ncurses.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="ui_ncurses.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="ui_qt.cpp" ex="false" tool="1" flavor2="0">
+      <item path="ui_ncurses.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+        </cTool>
       </item>
       <item path="ui_terminal.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
-      </item>
-      <item path="ui_terminal.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
