@@ -13,8 +13,6 @@ int loader_stm_check(io_handle_t * h)
     char id;
     size_t saved_pos;
     
-    memset(signature, 0, 8);
-    
     saved_pos = h->tell(h);
     h->seek(h, 0x14, io_seek_set);
     h->read(signature, 1, 8, h);
@@ -146,6 +144,14 @@ module_t * loader_stm_load(io_handle_t * h)
     for (i = 0; i < 128; i++) {
         h->read(&tmp_u8, sizeof(uint8_t), 1, h);
         module->orders[i] = tmp_u8;
+    }
+    
+    /* determine num orders */
+    for (i = 0; i < 128; i++) {
+        if (module->orders[i] >= 0x63) {
+            module->num_orders = i;
+            break;
+        }
     }
     
     /* read pattren data */

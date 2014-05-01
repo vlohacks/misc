@@ -91,6 +91,7 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
             }
             break;
             
+        case module_type_stm:
         case module_type_s3m:
             switch (effect_num) {
                 case 0: break;

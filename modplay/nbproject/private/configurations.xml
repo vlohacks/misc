@@ -16,10 +16,13 @@
       <in>curses.h</in>
       <in>defs_mod.h</in>
       <in>defs_s3m.h</in>
+      <in>defs_stm.h</in>
       <in>effects_mod.c</in>
       <in>effects_mod.h</in>
       <in>effects_s3m.c</in>
       <in>effects_s3m.h</in>
+      <in>effects_stm.c</in>
+      <in>effects_stm.h</in>
       <in>io.h</in>
       <in>io_file.c</in>
       <in>io_file.h</in>
@@ -55,7 +58,6 @@
       <in>ui.h</in>
       <in>ui_ncurses.c</in>
       <in>ui_ncurses.h</in>
-      <in>ui_qt.cpp</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>
     </df>

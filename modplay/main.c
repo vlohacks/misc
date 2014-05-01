@@ -27,8 +27,8 @@ int main (int argc, char ** argv)
     app.output_opts = malloc(sizeof(output_opts_t));
     app.loop_playlist = 0;
     app.running = 1;
-    app.ui_flavour = ui_flavour_terminal;
-    //app.ui_flavour = ui_flavour_curses;
+    //app.ui_flavour = ui_flavour_terminal;
+    app.ui_flavour = ui_flavour_curses;
     
     if (cmdline_parse(argc, argv, &app)) {
         return 1;

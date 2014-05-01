@@ -366,6 +366,10 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
     int8_t finetune;
     //uint16_t tuned_period;
     
+    /* no period? bail out */
+    if (!period)
+        return;
+    
     switch (player->module->module_type) {
         case module_type_mod:
         case module_type_mtm:
@@ -376,6 +380,7 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
 
             channel->frequency = defs_mod_paulafreq[player->paula_freq_index] / ((float)period * 2.0f);
 
+            // TODO: will there be a day when we can get rid of libm here?
             if (finetune)
                 channel->frequency *= pow(x, finetune);
 

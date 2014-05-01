@@ -127,7 +127,7 @@ void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float pea
 {
     char tmp[(SCOPE_SIZE * 2) + 2];
     int i;
-    
+
     for (i = 0; i < SCOPE_SIZE; i++) {
         if ((int)(peak_l*SCOPE_SIZE) >= (SCOPE_SIZE - i)) 
             tmp[i] = '=';
@@ -165,8 +165,8 @@ void ui_ncurses_tick_handler(player_t * player, int current_order, int current_p
     
     int i, j, k;
 
-    
-    
+
+
     for (i = 0; i < ui_ncurses_layout.num_channels; i++) {
         module_pattern_data_t * data = &(player->module->patterns[current_pattern].rows[current_row].data[i]);
         
