@@ -34,12 +34,15 @@
       <in>loader_mod.h</in>
       <in>loader_mtm.c</in>
       <in>loader_mtm.h</in>
+      <in>loader_psm_masi.c</in>
+      <in>loader_psm_masi.h</in>
       <in>loader_s3m.c</in>
       <in>loader_s3m.h</in>
       <in>loader_stm.c</in>
       <in>loader_stm.h</in>
       <in>main.c</in>
       <in>main.h</in>
+      <in>mixing.h</in>
       <in>module.c</in>
       <in>module.h</in>
       <in>output.h</in>

@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "player_command.h"
 #include "string.h"
+#include "mixing.h"
 //#include <signal.h>
 
 
@@ -123,13 +124,13 @@ void ui_ncurses_order_handler(player_t * player, int current_order, int current_
 
 #define SCOPE_SIZE 15
 
-void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float peak_r, int channel)
+void ui_ncurses_channel_sample_handler(sample_t l , sample_t r, sample_t peak_l, sample_t peak_r, int channel)
 {
     char tmp[(SCOPE_SIZE * 2) + 2];
     int i;
 
     for (i = 0; i < SCOPE_SIZE; i++) {
-        if ((int)(peak_l*SCOPE_SIZE) >= (SCOPE_SIZE - i)) 
+        if ( (int)(peak_l * SCOPE_SIZE) / SAMPLE_T_MAX >= (SCOPE_SIZE - i) ) 
             tmp[i] = '=';
         else 
             tmp[i] = '-';
@@ -137,7 +138,7 @@ void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float pea
     
     
     for (i = SCOPE_SIZE; i < SCOPE_SIZE * 2 + 1; i++) {
-        if ((int)(peak_r * SCOPE_SIZE) >= (i - SCOPE_SIZE))
+        if ( (int)(peak_r * SCOPE_SIZE) / SAMPLE_T_MAX >= (i - SCOPE_SIZE) )
             tmp[i] = '=';
         else
             tmp[i] = '-';

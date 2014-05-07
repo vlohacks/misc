@@ -13,6 +13,7 @@
 #include "module.h"
 #include "player.h"
 #include "player_command.h"
+#include "mixing.h"
 
 #define UI_NCURSES_COLORPAIR_WINDOW 1
 
@@ -45,7 +46,7 @@ void ui_ncurses_new_song_handler(module_t * mod);
 void ui_ncurses_order_handler(player_t * player, int current_order, int current_pattern);
 void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row);
-void ui_ncurses_channel_sample_handler(float l, float r, float peak_l, float peak_r, int channel);
+void ui_ncurses_channel_sample_handler(sample_t l, sample_t r, sample_t peak_l, sample_t peak_r, int channel);
 player_command_action_t ui_ncurses_handle_input();
 void ui_ncurses_show_log();
 void ui_ncurses_show_help();

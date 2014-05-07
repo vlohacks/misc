@@ -1,6 +1,7 @@
 #include "output_portaudio.h"
 #include "player.h"
 #include "output.h"
+#include "mixing.h"
 #include <portaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,16 +20,26 @@ int output_portaudio_init(output_opts_t * output_opts)
         fprintf(stderr, "Error initializing PortAudio: %s", Pa_GetErrorText(err));
         exit(1);
     }
-        
+
     err = Pa_OpenDefaultStream( 
         &output_portaudio_stream,
         0, /* no input channels */
         2, /* stereo output */
+#ifdef MIXING_FLOAT                    
         paFloat32, /* 32 bit floating point output */
+            
+#endif
+#ifdef MIXING_S16
+        paInt16,
+#endif            
+#ifdef MIXING_S8
+        paInt8,
+#endif            
         output_opts->sample_rate,
         output_opts->buffer_size,
         output_portaudio_callback, /* this is your callback function */
         0 );
+
 
     if( err != paNoError ) {
         fprintf(stderr, "Error initializing PortAudio Stream: %s", Pa_GetErrorText(err));
@@ -85,8 +96,8 @@ int output_portaudio_callback(
 {
     unsigned long i;
     int ret;
-    float * out = outputBuffer;
-    float mix_l, mix_r;
+    sample_t * out = outputBuffer;
+    sample_t mix_l, mix_r;
     
     for (i=0; i < framesPerBuffer; i++) {
         ret = player_read(output_portaudio_player, &mix_l, &mix_r);

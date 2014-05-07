@@ -83,8 +83,13 @@ int cmdline_parse(int argc, char ** argv, modplay_application_t * app) {
                 app->player->solo_channel = atoi(optarg);
                 break;
                 
+            case 'o':
+                app->output_config = optarg;
+                break;
+                
             case '?':
                 switch (optopt) {
+                    case 'o':
                     case 'r':
                     case 'i':
                     case 'f':
@@ -138,8 +143,12 @@ void cmdline_usage (char * prog)
             "   -b <buffer size>        Set audio output buffer size. Default is 1024\n"
             "   -l                      Loop the modules list\n"
             "   -L                      Loop single module\n"
+            "   -o                      Output configuration, possible values:\n"
+            "                                   portaudio               use portaudio\n"
+            "                                   raw:<filename.ext>      raw output to <filename.ext>\n"
             "   -h                      This text\n"
-            "   -s <channel>            solo <channel>"
-            "   -p <pattern>            loop <pattern>", prog);
+            "   -s <channel>            solo <channel>\n"
+            "   -p <pattern>            loop <pattern>\n", prog);
+    
 
 }

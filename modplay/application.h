@@ -20,6 +20,7 @@ typedef enum {
 typedef struct {
     player_t * player;
     output_opts_t * output_opts;
+    char * output_config;
     char ** playlist;
     int playlist_count;
     int loop_playlist;

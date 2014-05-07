@@ -13,6 +13,7 @@
 #include "module.h"
 #include "defs_mod.h"
 #include "defs_s3m.h"
+#include "mixing.h"
 
 typedef enum {
     player_resampling_none = 0,
@@ -25,7 +26,7 @@ typedef struct {
         
     int period_index;
     uint16_t period;
-    float frequency;
+    uint32_t frequency;
 
     uint8_t sample_delay;
     uint16_t dest_period;                       // these are used for tone portamento and not delay
@@ -33,7 +34,7 @@ typedef struct {
     int8_t dest_volume;
     uint8_t panning;                            
 
-    float peak_sample[2];                       // for scopes
+    sample_t peak_sample[2];                       // for scopes
 
     int8_t volume;                              
     int8_t volume_master;                       // used for effects like tremolo    
@@ -62,7 +63,7 @@ struct player_t;
 typedef void (*order_callback_t)(struct player_t *, int current_order, int current_pattern);
 typedef void (*row_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row);
 typedef void (*tick_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
-typedef void (*channel_sample_callback_t)(float l, float r, float peak_l, float peak_r, int channel);
+typedef void (*channel_sample_callback_t)(sample_t l, sample_t r, sample_t peak_l, sample_t peak_r, int channel);
 
 typedef void (*effect_callback_t)(struct player_t *, int);
 typedef void (*newrowaction_callback_t)(struct player_t *, module_pattern_data_t *, int);
@@ -121,11 +122,11 @@ typedef struct player_t player_t;
 
 /* Protoypes
  */
-player_t * player_init(const float samplerate, const player_resampling_t resampling);
+player_t * player_init(const uint32_t samplerate, const player_resampling_t resampling);
 void player_free(player_t * player);
 void player_set_protracker_strict_mode(player_t * player, int enabled);
 void player_set_module(player_t * player, module_t * module);
-int player_read(player_t * player, float * mix_l, float * mix_r);
+int player_read(player_t * player, sample_t * out_l, sample_t * out_r);
 void player_register_tick_callback(player_t * player, tick_callback_t func);
 void player_register_row_callback(player_t * player, row_callback_t func);
 void player_register_order_callback(player_t * player, order_callback_t func);
@@ -133,9 +134,9 @@ void player_register_channel_sample_callback(player_t * player, channel_sample_c
 
 void player_init_channels(player_t * player);
 void player_init_defaults(player_t * player);
-float player_calc_tick_duration(const uint16_t bpm, const float sample_rate);
+float player_calc_tick_duration(const uint16_t bpm, const uint32_t sample_rate);
 void player_channel_set_frequency(player_t * player, const uint16_t period, const int channel_num);
-float player_channel_fetch_sample(player_t * player,  const int channel_num) ;
+sample_t player_channel_fetch_sample(player_t * player,  const int channel_num) ;
 
 #endif	/* PLAYER_H */
 

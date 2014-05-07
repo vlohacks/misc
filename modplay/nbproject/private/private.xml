@@ -12,13 +12,16 @@
         <group>
             <file>file:/home/vlo/code/github/misc/modplay/ui_terminal.c</file>
             <file>file:/home/vlo/code/github/misc/modplay/effects_s3m.h</file>
-            <file>file:/home/vlo/code/github/misc/modplay/loader_stm.c</file>
             <file>file:/home/vlo/code/github/misc/modplay/Makefile</file>
+            <file>file:/home/vlo/code/github/misc/modplay/cmdline.c</file>
             <file>file:/home/vlo/code/github/misc/modplay/main.h</file>
             <file>file:/home/vlo/code/github/misc/modplay/defs_s3m.h</file>
-            <file>file:/home/vlo/code/github/misc/modplay/loader_stm.h</file>
+            <file>file:/home/vlo/code/github/misc/modplay/mixing.h</file>
+            <file>file:/home/vlo/code/github/misc/modplay/application.h</file>
             <file>file:/home/vlo/code/github/misc/modplay/defs_mod.h</file>
+            <file>file:/home/vlo/code/github/misc/modplay/mixing.c</file>
             <file>file:/home/vlo/code/github/misc/modplay/loader_s3m.c</file>
+            <file>file:/home/vlo/code/github/misc/modplay/output_portaudio.c</file>
             <file>file:/home/vlo/code/github/misc/modplay/effects_stm.c</file>
             <file>file:/home/vlo/code/github/misc/modplay/player.c</file>
             <file>file:/home/vlo/code/github/misc/modplay/player.h</file>

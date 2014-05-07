@@ -17,8 +17,10 @@
 #include "effects_s3m.h"
 #include "effects_stm.h"
 #include "math.h"
+#include "mixing.h"
 
-player_t * player_init(const float sample_rate, const player_resampling_t resampling) 
+
+player_t * player_init(const uint32_t sample_rate, const player_resampling_t resampling) 
 {
     player_t * player = (player_t *)malloc(sizeof(player_t));
     
@@ -167,10 +169,11 @@ void player_init_channels(player_t * player)
 
 /* render next samples to mix_l and mix_r, update the player state
  */
-int player_read(player_t * player, float * mix_l, float * mix_r)
+int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
 {
     int k;
     static uint32_t samplectr;
+    sample_mac_t mix_l, mix_r;
     
     // reaching new tick
     if (player->tick_pos <= 0) {
@@ -265,20 +268,24 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
     }
 
     // mixing
-    *mix_l = *mix_r = 0;
+    mix_l = mix_r = 0;
     
     for (k = 0; k < player->module->num_channels; k++) {
         if ((player->solo_channel >= 0) && (k != player->solo_channel))
             continue;
         
-        float panning = ((float)player->channels[k].panning) / 255.0f;
-        float s = player_channel_fetch_sample(player, k) * ((float)player->channels[k].volume_master / 64.0f);
-        float cl = (s * panning);
-        float cr = (s * (1.0f - panning));
-        float tmp;
+        sample_t panning = player->channels[k].panning;//  ((float)) / 255.0f;
+        sample_mac_t s = player_channel_fetch_sample(player, k) * (sample_mac_t)player->channels[k].volume_master;
+        s /= 64;
+        sample_mac_t cl = s * panning;
+        sample_mac_t cr = s * (256 - panning);
+        sample_t tmp;
         
-        *mix_l += cl;
-        *mix_r += cr;
+        cl /= 256;
+        cr /= 256;
+        
+        mix_l += cl;
+        mix_r += cr;
         
         if (player->channel_sample_callback) {
             tmp = cl < 0 ? cl * -1 : cl;
@@ -300,8 +307,10 @@ int player_read(player_t * player, float * mix_l, float * mix_r)
     
     samplectr++;
     
-    *mix_l /= ((float)player->module->num_channels / 2.0f);
-    *mix_r /= ((float)player->module->num_channels / 2.0f);
+    mix_l /= ((sample_mac_t)player->module->num_channels);
+    mix_r /= ((sample_mac_t)player->module->num_channels);
+    *out_l = (sample_t)mix_l;
+    *out_r = (sample_t)mix_r;
 
 #if 0    
     if (player->protracker_strict_mode) {
@@ -349,9 +358,9 @@ void player_init_defaults(player_t * player)
     player->speed = player->module->initial_speed;
 }
 
-float player_calc_tick_duration(const uint16_t bpm, const float sample_rate) 
+float player_calc_tick_duration(const uint16_t bpm, const uint32_t sample_rate) 
 {
-    return (((sample_rate / ((float)bpm / 60.0f)) / 4.0f) / 6.0f);
+    return ((((float)sample_rate / ((float)bpm / 60.0f)) / 4.0f) / 6.0f);
 }
 
 
@@ -394,20 +403,20 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
     
 }
 
-float player_channel_fetch_sample(player_t * player,  const int channel_num) 
+sample_t player_channel_fetch_sample(player_t * player,  const int channel_num) 
 {
-    float s, s2;
+    sample_mac_t s, s2;
     
     player_channel_t * channel = &(player->channels[channel_num]);
     int sample_index = channel->sample_num - 1;
 
     // no sample, no sound... 
     if (channel->sample_num == 0)
-        return 0.0f;
+        return SAMPLE_T_ZERO;
 
     // trying to play a empty sample slot... play silence instead of segfault :)
     if (player->module->samples[sample_index].data == 0)
-        return 0.0f;
+        return SAMPLE_T_ZERO;
     
     // maintain looping
     if (player->module->samples[sample_index].header.loop_enabled) {
@@ -416,23 +425,23 @@ float player_channel_fetch_sample(player_t * player,  const int channel_num)
         }
     } else {
         if (channel->sample_pos >= (float)player->module->samples[sample_index].header.length)
-            return 0.0f;
+            return SAMPLE_T_ZERO;
     }
     
-    // fetch sample and convert to float
-    s = (float)player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos)] / 128.0f;
+    // fetch sample
+    s = sample_from_s8(player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos)]);
 
     if (player->resampling == player_resampling_linear) {
         // do linear interpolation
         if (player->module->samples[sample_index].header.loop_length > 2) {
             // looping sample will interpolate to loop start
             if (channel->sample_pos >= (float)(player->module->samples[sample_index].header.loop_length + player->module->samples[sample_index].header.loop_start)) 
-                s2 = (float)player->module->samples[sample_index].data[player->module->samples[sample_index].header.loop_start] / 128.0f;
+                s2 = sample_from_s8(player->module->samples[sample_index].data[player->module->samples[sample_index].header.loop_start]);
             else 
-                s2 = (float)player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos) + 1] / 128.0f;
+                s2 = sample_from_s8(player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos) + 1]);
         } else {
             if (channel->sample_pos < (player->module->samples[sample_index].header.length - 1)) 
-                s2 = (float)player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos) + 1] / 128.0f;
+                s2 = sample_from_s8(player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos) + 1]);
             else
                 s2 = s;
         }
@@ -440,10 +449,11 @@ float player_channel_fetch_sample(player_t * player,  const int channel_num)
     }
 
     // maintain channel volume
-    s *= ((float)channel->volume / 64.0f);
+    s *= (sample_mac_t)channel->volume;
+    s /= 64;
     
     // advance sample position
     channel->sample_pos += (channel->frequency / player->sample_rate);
 
-    return s;
+    return (sample_t)s;
 }

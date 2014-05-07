@@ -20,6 +20,7 @@
       <in>loader_s3m.c</in>
       <in>loader_stm.c</in>
       <in>main.c</in>
+      <in>mixing.h</in>
       <in>module.c</in>
       <in>output_alsa.c</in>
       <in>output_portaudio.c</in>
@@ -118,6 +119,8 @@
       <item path="main.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
+      </item>
+      <item path="mixing.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="module.c" ex="false" tool="0" flavor2="2">
         <cTool>
