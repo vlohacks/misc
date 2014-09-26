@@ -14,6 +14,7 @@ typedef enum {
 } output_drivers_t;
 
 typedef struct {
+    output_drivers_t driver;
     int buffer_size;
     int sample_rate;
     char * output_device;

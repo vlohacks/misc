@@ -1,5 +1,4 @@
 #include "ui_ncurses.h"
-#include "ui.h"
 #include "player_command.h"
 #include "string.h"
 #include "mixing.h"
@@ -23,9 +22,9 @@ ui_ncurses_layout_t ui_ncurses_layout;
 
 void ui_ncurses_init()
 {
-    ui_ncurses_layout.song_view = 0;
-    ui_ncurses_layout.channel_view = 0;
-    ui_ncurses_layout.pattern_view = 0;
+    ui_ncurses_layout.song_panel.w = 0;
+    ui_ncurses_layout.channel_panel.w = 0;
+    ui_ncurses_layout.pattern_panel.w = 0;
     ui_ncurses_layout.ncurses_inited = 0;
     ui_ncurses_layout.num_channels = 4;
     ui_ncurses_layout_init();
@@ -55,17 +54,17 @@ void ui_ncurses_layout_init()
     int h, w;
     ui_ncurses_layout.init = 1;
     
-    if (ui_ncurses_layout.channel_view)
-        delwin(ui_ncurses_layout.channel_view);
+    if (ui_ncurses_layout.channel_panel.w)
+        delwin(ui_ncurses_layout.channel_panel.w);
     
-    if (ui_ncurses_layout.pattern_view)
-        delwin(ui_ncurses_layout.pattern_view);
+    if (ui_ncurses_layout.pattern_panel.w)
+        delwin(ui_ncurses_layout.pattern_panel.w);
 
-    if (ui_ncurses_layout.song_view)
-        delwin(ui_ncurses_layout.song_view);
+    if (ui_ncurses_layout.song_panel.w)
+        delwin(ui_ncurses_layout.song_panel.w);
     
-    if (ui_ncurses_layout.aux)
-        delwin(ui_ncurses_layout.aux);
+    if (ui_ncurses_layout.aux_panel.w)
+        delwin(ui_ncurses_layout.aux_panel.w);
     
     if (ui_ncurses_layout.ncurses_inited)
         endwin();
@@ -88,27 +87,21 @@ void ui_ncurses_layout_init()
     ui_ncurses_layout.current_h = h;
     ui_ncurses_layout.current_w = w;
                 
-    ui_ncurses_layout.song_view = newwin(1, w, 0, 0);
-    ui_ncurses_layout.channel_view = newwin(ui_ncurses_layout.num_channels + 2, w, 1, 0);
-    ui_ncurses_layout.pattern_view = newwin((h - (ui_ncurses_layout.num_channels + 3)), w, ui_ncurses_layout.num_channels + 3, 0);
-    ui_ncurses_layout.aux = 0;
+    ui_ncurses_layout.song_panel.w = newwin(1, w, 0, 0);
+    ui_ncurses_layout.channel_panel.w = newwin(ui_ncurses_layout.num_channels + 2, w, 1, 0);
+    ui_ncurses_layout.pattern_panel.w = newwin((h - (ui_ncurses_layout.num_channels + 3)), w, ui_ncurses_layout.num_channels + 3, 0);
+    ui_ncurses_layout.aux_panel.w = 0;
     
     if (ui_ncurses_layout.use_colors) {
-       wattron(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
-       wattron(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+       wattron(ui_ncurses_layout.channel_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+       wattron(ui_ncurses_layout.pattern_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
     }
 
 
     
-
-    
-    
-    
-    
-    
     if (ui_ncurses_layout.use_colors) {
-        wattroff(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
-        wattroff(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattroff(ui_ncurses_layout.channel_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattroff(ui_ncurses_layout.pattern_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
     }
         
 
@@ -116,10 +109,11 @@ void ui_ncurses_layout_init()
 
 }
 
-void ui_ncurses_order_handler(player_t * player, int current_order, int current_pattern)
+//void ui_ncurses_order_handler(player_t * player, int current_order, int current_pattern)
+void ui_ncurses_order_handler(player_t * player)
 {
-    mvwprintw(ui_ncurses_layout.song_view, 0, 0, "VloSoft MOD Player | song: %s | ord: %03i/%03i | pat: %03i/%03i", player->module->song_title, current_order, player->module->num_orders, current_pattern, player->module->num_patterns);
-    wrefresh(ui_ncurses_layout.song_view);
+    mvwprintw(ui_ncurses_layout.song_panel.w, 0, 0, "VloSoft MOD Player | song: %s | ord: %03i/%03i | pat: %03i/%03i", player->module->song_title, player->current_order, player->module->num_orders, player->current_pattern, player->module->num_patterns);
+    wrefresh(ui_ncurses_layout.song_panel.w);
 }
 
 #define SCOPE_SIZE 15
@@ -149,15 +143,16 @@ void ui_ncurses_channel_sample_handler(sample_t l , sample_t r, sample_t peak_l,
     tmp[SCOPE_SIZE] = '|';
     tmp[SCOPE_SIZE * 2 + 1] = 0;
     
-    mvwprintw(ui_ncurses_layout.channel_view, channel+1, 80, tmp);
-    if (ui_ncurses_layout.aux)
-        overwrite(ui_ncurses_layout.aux, ui_ncurses_layout.channel_view);
+    mvwprintw(ui_ncurses_layout.channel_panel.w, channel+1, 80, tmp);
+    if (ui_ncurses_layout.aux_panel.w)
+        overwrite(ui_ncurses_layout.aux_panel.w, ui_ncurses_layout.channel_panel.w);
 
-    wrefresh(ui_ncurses_layout.channel_view);
+    wrefresh(ui_ncurses_layout.channel_panel.w);
     
 }
 
-void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels)
+//void ui_ncurses_tick_handler(player_t * player, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels)
+void ui_ncurses_tick_handler(player_t * player)
 {
     char tmp[100];
     char tmp2[40];
@@ -166,13 +161,15 @@ void ui_ncurses_tick_handler(player_t * player, int current_order, int current_p
     
     int i, j, k;
 
-
+    int current_pattern = player->current_pattern;
+    int current_row = player->current_row;
+    player_channel_t * channels = player->channels;
 
     for (i = 0; i < ui_ncurses_layout.num_channels; i++) {
         module_pattern_data_t * data = &(player->module->patterns[current_pattern].rows[current_row].data[i]);
         
         if (data->period_index >= 0)
-            wattron(ui_ncurses_layout.channel_view, A_BOLD);
+            wattron(ui_ncurses_layout.channel_panel.w, A_BOLD);
         
         sprintf(note, "...");
         if (channels[i].period_index < 254)
@@ -198,33 +195,37 @@ void ui_ncurses_tick_handler(player_t * player, int current_order, int current_p
             ui_effect_to_humanreadable(tmp2, data->effect_num, player->channels[i].effect_last_value, player->module->module_type);
         
         sprintf(tmp, "%-30s | %3s | %2i | %02x | %-27s | ", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
-        mvwprintw(ui_ncurses_layout.channel_view, i+1, 1, tmp);
-        wattroff(ui_ncurses_layout.channel_view, A_BOLD);
+        mvwprintw(ui_ncurses_layout.channel_panel.w, i+1, 1, tmp);
+        wattroff(ui_ncurses_layout.channel_panel.w, A_BOLD);
     }
 
     if (ui_ncurses_layout.use_colors)
-        wattron(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattron(ui_ncurses_layout.channel_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
     
-    box(ui_ncurses_layout.channel_view, 0, 0);
+    box(ui_ncurses_layout.channel_panel.w, 0, 0);
     
     if (ui_ncurses_layout.use_colors)
-        wattroff(ui_ncurses_layout.channel_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattroff(ui_ncurses_layout.channel_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
 
-    if (ui_ncurses_layout.aux)
-        overwrite(ui_ncurses_layout.aux, ui_ncurses_layout.channel_view);
+    if (ui_ncurses_layout.aux_panel.w)
+        overwrite(ui_ncurses_layout.aux_panel.w, ui_ncurses_layout.channel_panel.w);
     
-    wrefresh(ui_ncurses_layout.channel_view);    
+    wrefresh(ui_ncurses_layout.channel_panel.w);    
 }
 
-void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row) 
+//void ui_ncurses_row_handler(player_t * player, int current_order, int current_pattern, int current_row) 
+void ui_ncurses_row_handler(player_t * player) 
 {
     if (term_resized) {
         ui_ncurses_layout_init();
         term_resized --;
     }
+    
+    int current_row = player->current_row;
+    int current_pattern = player->current_pattern;
         
     
-    int current_pos_location = ui_ncurses_layout.pattern_view->_maxy / 2;
+    int current_pos_location = ui_ncurses_layout.pattern_panel.w->_maxy / 2;
     int i, j, k;
     char note[4];
     char tmp[20];
@@ -232,8 +233,8 @@ void ui_ncurses_row_handler(player_t * player, int current_order, int current_pa
     char effect[2];
     char volume[3];
     
-    j = ui_ncurses_layout.pattern_view->_begy + 1;
-    for (j = 0; j < ui_ncurses_layout.pattern_view->_maxy - 1; j++) {
+    j = ui_ncurses_layout.pattern_panel.w->_begy + 1;
+    for (j = 0; j < ui_ncurses_layout.pattern_panel.w->_maxy - 1; j++) {
         
         i = j + (current_row - current_pos_location);
         
@@ -250,38 +251,38 @@ void ui_ncurses_row_handler(player_t * player, int current_order, int current_pa
 
                 ui_map_effect_num(effect, player->module->module_type, data->effect_num);
             
-                sprintf(tmp, "%s%02i%s%s%02X|", note, data->sample_num, volume, effect, data->effect_value);
+                sprintf(tmp, "%s %02i %s %s%02X|", note, data->sample_num, volume, effect, data->effect_value);
                 strcat (tmp2, tmp);
             }
         } else {
-            for(k = 0; k < ui_ncurses_layout.pattern_view->_maxx - 2; k++)
+            for(k = 0; k < ui_ncurses_layout.pattern_panel.w->_maxx - 1; k++)
                 tmp2[k] = ' ';
             tmp2[k] = 0;
         }
         if (j == current_pos_location)
-            wattron(ui_ncurses_layout.pattern_view, A_REVERSE);
+            wattron(ui_ncurses_layout.pattern_panel.w, A_REVERSE);
         
         if ((i % 4) == 0)
-            wattron(ui_ncurses_layout.pattern_view, A_BOLD);
+            wattron(ui_ncurses_layout.pattern_panel.w, A_BOLD);
         
-        mvwprintw(ui_ncurses_layout.pattern_view, j+1, 1, tmp2);
-        wattroff(ui_ncurses_layout.pattern_view, A_REVERSE);
-        wattroff(ui_ncurses_layout.pattern_view, A_BOLD);
+        mvwprintw(ui_ncurses_layout.pattern_panel.w, j+1, 1, tmp2);
+        wattroff(ui_ncurses_layout.pattern_panel.w, A_REVERSE);
+        wattroff(ui_ncurses_layout.pattern_panel.w, A_BOLD);
     }
     
     if (ui_ncurses_layout.use_colors)
-        wattron(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattron(ui_ncurses_layout.pattern_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
      
-    box(ui_ncurses_layout.pattern_view, 0, 0);
+    box(ui_ncurses_layout.pattern_panel.w, 0, 0);
 
     if (ui_ncurses_layout.use_colors)
-        wattroff(ui_ncurses_layout.pattern_view, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattroff(ui_ncurses_layout.pattern_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
 
-    if (ui_ncurses_layout.aux)
-        overwrite(ui_ncurses_layout.aux, ui_ncurses_layout.pattern_view);
+    if (ui_ncurses_layout.aux_panel.w)
+        overwrite(ui_ncurses_layout.aux_panel.w, ui_ncurses_layout.pattern_panel.w);
  
     
-    wrefresh(ui_ncurses_layout.pattern_view);
+    wrefresh(ui_ncurses_layout.pattern_panel.w);
     
 }
 
@@ -331,13 +332,13 @@ void ui_ncurses_show_log() {
 }
 
 void ui_ncurses_destroy_aux() {
-    if (ui_ncurses_layout.aux) {
-        delwin(ui_ncurses_layout.aux);
-        ui_ncurses_layout.aux = 0;
+    if (ui_ncurses_layout.aux_panel.w) {
+        delwin(ui_ncurses_layout.aux_panel.w);
+        ui_ncurses_layout.aux_panel.w = 0;
     }
     
-    touchwin(ui_ncurses_layout.channel_view);
-    touchwin(ui_ncurses_layout.pattern_view);
+    touchwin(ui_ncurses_layout.channel_panel.w);
+    touchwin(ui_ncurses_layout.pattern_panel.w);
     
     ui_ncurses_keybindings[0].hook = 0;
 }
@@ -347,25 +348,43 @@ void ui_ncurses_show_help() {
     int i;
 
 
-    if (ui_ncurses_layout.aux) 
+    if (ui_ncurses_layout.aux_panel.w) 
         return;
        
     
-    ui_ncurses_layout.aux = newwin(ui_ncurses_layout.current_h - 8, ui_ncurses_layout.current_w - 8, 4, 4);       
+    ui_ncurses_layout.aux_panel.w = newwin(ui_ncurses_layout.current_h - 8, ui_ncurses_layout.current_w - 8, 4, 4);       
     
     if (ui_ncurses_layout.use_colors)
-        wattron(ui_ncurses_layout.aux, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
+        wattron(ui_ncurses_layout.aux_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));
     
-    box(ui_ncurses_layout.aux, 0, 0);
+    box(ui_ncurses_layout.aux_panel.w, 0, 0);
     
     if (ui_ncurses_layout.use_colors)
-        wattroff(ui_ncurses_layout.aux, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));    
+        wattroff(ui_ncurses_layout.aux_panel.w, COLOR_PAIR(UI_NCURSES_COLORPAIR_WINDOW));    
     
     for (i = 0; i < UI_NCURSES_KEYBINDINGS_COUNT; i++) {
-        mvwprintw(ui_ncurses_layout.aux, i+1, 1, "%-12s %s", ui_ncurses_keybindings[i].keyname, ui_ncurses_keybindings[i].description);
+        mvwprintw(ui_ncurses_layout.aux_panel.w, i+1, 1, "%-12s %s", ui_ncurses_keybindings[i].keyname, ui_ncurses_keybindings[i].description);
     }
     
     ui_ncurses_keybindings[0].hook = ui_ncurses_destroy_aux;
     
     
+}
+
+void ui_ncurses_refresh(player_t * player, ui_dirty_t * ui_dirty) 
+{
+    if (ui_dirty->tick) {
+        ui_dirty->tick = 0;
+        ui_ncurses_tick_handler(player);
+    }
+    
+    if (ui_dirty->row) {
+        ui_dirty->row = 0;
+        ui_ncurses_row_handler(player);
+    }
+    
+    if (ui_dirty->order) {
+        ui_dirty->order = 0;
+        ui_ncurses_order_handler(player);
+    }
 }

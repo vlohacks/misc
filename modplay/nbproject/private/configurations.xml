@@ -50,6 +50,8 @@
       <in>output_alsa.h</in>
       <in>output_portaudio.c</in>
       <in>output_portaudio.h</in>
+      <in>output_raw.c</in>
+      <in>output_raw.h</in>
       <in>output_winmm.c</in>
       <in>output_winmm.h</in>
       <in>player.c</in>

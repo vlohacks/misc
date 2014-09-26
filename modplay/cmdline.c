@@ -20,6 +20,33 @@ void cmdline_set_default_config_output(output_opts_t * output_opts)
     output_opts->sample_rate = 44100;
 }
 
+int cmdline_parse_output_opts(char * cmdline, modplay_application_t * app)
+{
+    char * p;
+    
+    app->output_opts->driver = output_driver_portaudio; // default 
+    
+    if (!strncmp(cmdline, "raw:", 4)) {
+        p = strstr(cmdline, ":");
+        if (p != 0) {
+            p++;
+            // colon present but no text after it...
+            if ((*p) == 0) {
+                p = 0;
+            } else {
+                app->output_opts->output_device = p;
+            }
+        }
+        if (p == 0) {
+            fprintf(stderr, "You have to specify a file name for raw output!\n");
+            return 1;
+        }
+        app->output_opts->driver = output_driver_raw;
+    }
+    
+    return 0;    
+}
+
 int cmdline_parse(int argc, char ** argv, modplay_application_t * app) {
     int c;
     
@@ -31,7 +58,7 @@ int cmdline_parse(int argc, char ** argv, modplay_application_t * app) {
         return 1;
     }
 
-    while ((c = getopt(argc, argv, "i:r:f:b:hPlLp:s:")) != -1) {
+    while ((c = getopt(argc, argv, "i:r:f:b:hPlLp:s:o:")) != -1) {
         switch (c) {
             case 'i':           // interpolation
                 if (!strcmp(optarg, "linear")) {
@@ -84,7 +111,9 @@ int cmdline_parse(int argc, char ** argv, modplay_application_t * app) {
                 break;
                 
             case 'o':
-                app->output_config = optarg;
+                if (cmdline_parse_output_opts(optarg, app))
+                    return 1;
+                //app->output_config = optarg;
                 break;
                 
             case '?':

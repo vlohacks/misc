@@ -169,18 +169,19 @@ module_t * loader_s3m_load(io_handle_t * h)
      * so we leave it out for now. Further investigation needed here
      */
     
-    /*
+    
     if (module->module_info.flags_s3m.default_panning == 0xfc) {
         //fread (module->initial_panning, sizeof(uint8_t), 32, f);
         
         for (i = 0; i < 32; i++)  {
-            fread(&tmp_u8, sizeof(uint8_t), 1, f);
-            module->initial_panning[i] = tmp_u8;//(module->initial_panning[i] << 4) | ((module->initial_panning[i] << 1) + (module->initial_panning[i]>6?1:0));
-            printf("===>>>%i<<<===\n", tmp_u8);
+            h->read(&tmp_u8, sizeof(uint8_t), 1, h);
+            tmp_u8 &= 0x0f;
+            module->initial_panning[i] = (tmp_u8 << 4) | ((tmp_u8 << 1) + (tmp_u8>6?1:0));
+            //printf("===>>>%i<<< ===\n", tmp_u8);
         }
         
     }
-    */
+    
     
     if ((module->initial_master_volume & 128) == 0) {
         /* make the song mono */

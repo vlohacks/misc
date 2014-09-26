@@ -15,6 +15,9 @@
 #include "output.h"
 #include "cmdline.h"
 
+
+
+
 int main (int argc, char ** argv)
 {
     module_t * mod;
@@ -38,24 +41,33 @@ int main (int argc, char ** argv)
     //mod = loader_loadfile_by_header(app.playlist[0]);
     //exit(0);
 
-   
-    output_portaudio_init(app.output_opts);
+    switch (app.output_opts->driver) {
+        case output_driver_portaudio:
+            output_portaudio_init(app.output_opts);
+            break;
+        case output_driver_raw:
+            output_raw_init(app.output_opts);
+            break;
+        default:
+            return 1;
+    }
+    
     //output_alsa_init(0, 0);
 
+    player_register_callback_user_ptr(app.player, &(app.ui_dirty));
+
+    player_register_order_callback(app.player, ui_generic_order_handler);
+    player_register_row_callback(app.player, ui_generic_row_handler);
+    player_register_tick_callback(app.player, ui_generic_tick_handler);
+    
     switch(app.ui_flavour) {
         
         case ui_flavour_curses:
             ui_ncurses_init();    
-            player_register_order_callback(app.player, ui_ncurses_order_handler);
-            player_register_row_callback(app.player, ui_ncurses_row_handler);
-            player_register_tick_callback(app.player, ui_ncurses_tick_handler);
-            player_register_channel_sample_callback(app.player, ui_ncurses_channel_sample_handler, 0b11111111111);
             break;
             
         case ui_flavour_terminal:
             ui_terminal_init();
-            player_register_order_callback(app.player, ui_terminal_print_order_info);
-            player_register_row_callback(app.player, ui_terminal_print_row_info);
             break;
             
         default: 
@@ -84,8 +96,17 @@ int main (int argc, char ** argv)
                     break;
                     
             }
+
+            switch (app.output_opts->driver) {
+                case output_driver_portaudio:
+                    output_portaudio_start(app.player);
+                    break;
+                case output_driver_raw:
+                    output_raw_start(app.player);
+                    break;
+            }
             
-            output_portaudio_start(app.player);
+
 
             app.player->playing = 1;
             while (app.player->playing) {
@@ -122,12 +143,23 @@ int main (int argc, char ** argv)
                     
                 }
                 // TODO here: UI input stuff etc.
+                switch (app.ui_flavour) {
+                    case ui_flavour_curses: ui_ncurses_refresh(app.player, &(app.ui_dirty)); break;
+                }
                 output_portaudio_wait();
                 //player_read(app.player, &l, &r);
                 //output_alsa_write(l, r);
             }
-
-            output_portaudio_stop();
+            
+            switch (app.output_opts->driver) {
+                case output_driver_portaudio:
+                    output_portaudio_stop();
+                    break;
+                case output_driver_raw:
+                    output_raw_stop();
+                    break;
+            }
+            
             module_free(mod);
             
             i++;
@@ -140,11 +172,17 @@ int main (int argc, char ** argv)
             app.running = 0;
     }
     
-    
-    
     player_free(app.player);
+    
+    switch (app.output_opts->driver) {
+        case output_driver_portaudio:
+            output_portaudio_cleanup();
+            break;
+        case output_driver_raw:
+            break;
+    }
+    
     free(app.output_opts);
-    output_portaudio_cleanup();
     
     switch (app.ui_flavour) {
         case ui_flavour_curses:
@@ -154,7 +192,6 @@ int main (int argc, char ** argv)
         default:
             break;
     }
-    
             
     return 0;
     

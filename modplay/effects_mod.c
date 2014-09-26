@@ -82,6 +82,13 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
         if (data->period_index >= 0)
             player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
     }
+    
+    // reset vibrato if necessary
+    if (player->channels[channel_num].vibrato_waveform < 4) {
+        player->channels[channel_num].vibrato_state = 0;
+        if (data->period_index >= 0)
+            player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
+    }
 }
 
 void effects_mod_0_arpeggio(player_t * player, int channel_num)
@@ -262,7 +269,27 @@ void effects_mod_6_vibrato_volumeslide(player_t * player, int channel)
     
     // maintain vibrato using last vibrato effect params
     temp = player->channels[channel].vibrato_state & 0x1f;
-    delta = defs_mod_sine_table[temp];
+    
+    switch (player->channels[channel].vibrato_waveform & 3) {
+        case 0: 
+            delta = defs_mod_sine_table[temp]; 
+            break;
+            
+        case 1:
+            temp <<= 3;
+            if (player->channels[channel].vibrato_state < 0)
+                temp = 255 - temp;
+            delta = temp;
+            break;
+            
+        case 2:
+            delta = 255;
+            break;
+            
+        case 3:
+            delta = defs_mod_sine_table[temp];
+            break;
+    }
     
     delta *= player->channels[channel].effect_last_value_y[0x4];
     delta /= 128;

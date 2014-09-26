@@ -59,11 +59,14 @@ typedef struct {
 
 
 struct player_t;
-
+/*
 typedef void (*order_callback_t)(struct player_t *, int current_order, int current_pattern);
 typedef void (*row_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row);
 typedef void (*tick_callback_t)(struct player_t *, int current_order, int current_pattern, int current_row, int current_tick, player_channel_t * channels);
 typedef void (*channel_sample_callback_t)(sample_t l, sample_t r, sample_t peak_l, sample_t peak_r, int channel);
+ */
+typedef void (*player_callback_t)(struct player_t *, void * user_ptr);
+
 
 typedef void (*effect_callback_t)(struct player_t *, int);
 typedef void (*newrowaction_callback_t)(struct player_t *, module_pattern_data_t *, int);
@@ -75,10 +78,17 @@ struct player_t {
     effect_callback_t * effect_map;                     // effects map (module format specific)
     newrowaction_callback_t newrow_action;              // function which does all stuff when a new row is called (module format specific)
 
+    void * callback_user_ptr;                           // holds ptr to user data sent back in callbacks
+    /*
     order_callback_t order_callback;                    // callback pointer which gets called every order change
     row_callback_t row_callback;                        // callback pointer which gets called every row (patter view..)
     tick_callback_t tick_callback;                      // callback pointer which gets called every tick (effects, volumebars)
     channel_sample_callback_t channel_sample_callback;  // callback pointer which gets called every sample & sample_callback_mask
+    */
+    player_callback_t order_callback;                   // callback pointer which gets called every order change
+    player_callback_t row_callback;                     // callback pointer which gets called every row (patter view..)
+    player_callback_t tick_callback;                    // callback pointer which gets called every tick (effects, volumebars)
+    player_callback_t channel_sample_callback;          // callback pointer which gets called every sample & sample_callback_mask
     
     uint32_t channel_sample_callback_mask;
 
@@ -97,7 +107,7 @@ struct player_t {
 
     float tick_pos;                                     // current position in tick (internal)
     float tick_duration;                                // duration of one tick (gets calculated when set speed effect occurs)
-    float sample_rate;                                  // samplerate, normally matches output device"s rate
+    uint32_t sample_rate;                               // samplerate, normally matches output device"s rate
 
     int current_tick;
     int current_pattern;
@@ -127,10 +137,12 @@ void player_free(player_t * player);
 void player_set_protracker_strict_mode(player_t * player, int enabled);
 void player_set_module(player_t * player, module_t * module);
 int player_read(player_t * player, sample_t * out_l, sample_t * out_r);
-void player_register_tick_callback(player_t * player, tick_callback_t func);
-void player_register_row_callback(player_t * player, row_callback_t func);
-void player_register_order_callback(player_t * player, order_callback_t func);
-void player_register_channel_sample_callback(player_t * player, channel_sample_callback_t func, uint32_t callback_mask);
+
+void player_register_tick_callback(player_t * player, player_callback_t func);
+void player_register_row_callback(player_t * player, player_callback_t func);
+void player_register_order_callback(player_t * player, player_callback_t func);
+void player_register_channel_sample_callback(player_t * player, player_callback_t func, uint32_t callback_mask);
+void player_register_callback_user_ptr(player_t * player, void * ptr);
 
 void player_init_channels(player_t * player);
 void player_init_defaults(player_t * player);

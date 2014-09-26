@@ -407,7 +407,8 @@ void effects_s3m_K_vibrato_volumeslide(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        player->channels[channel].vibrato_state = 0;
+        if (player->channels[channel].vibrato_waveform < 4)        
+                player->channels[channel].vibrato_state = 0;
         
         if (player->channels[channel].effect_value)
             player->channels[channel].effect_last_value[11] = player->channels[channel].effect_value;

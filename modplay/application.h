@@ -10,6 +10,7 @@
 
 #include "player.h"
 #include "output.h"
+#include "ui.h"
 
 typedef enum {
     ui_flavour_quiet,
@@ -26,6 +27,7 @@ typedef struct {
     int loop_playlist;
     int running;
     ui_flavour_t ui_flavour;
+    ui_dirty_t ui_dirty;
 } modplay_application_t;
 
 #endif	/* APPLICATION_H */

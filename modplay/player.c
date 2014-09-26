@@ -137,6 +137,7 @@ void player_init_channels(player_t * player)
     player->channels = (player_channel_t *)malloc(sizeof(player_channel_t) * player->module->num_channels);
     
     for (i = 0; i < player->module->num_channels; i++) {
+        
         player->channels[i].period = 0;
         player->channels[i].period_index = -1;
         player->channels[i].sample_num = 0;
@@ -226,22 +227,24 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
                     player->current_pattern = player->module->orders[player->current_order];
 
                 if (player->order_callback)
-                    (player->order_callback)(player, player->current_order, player->current_pattern);
+                    //(player->order_callback)(player, player->current_order, player->current_pattern);
+                    (player->order_callback)(player, player->callback_user_ptr);
 
             }
 
             // maintain row callback
             if (player->row_callback)
-                (player->row_callback)(player, player->current_order, player->current_pattern, player->current_row);
+                //(player->row_callback)(player, player->current_order, player->current_pattern, player->current_row);
+                (player->row_callback)(player, player->callback_user_ptr);
 
             // fetch new pattern data from module
             for (k = 0; k < player->module->num_channels; k++) {
                 module_pattern_data_t * current_data = &(player->module->patterns[player->current_pattern].rows[player->current_row].data[k]);
-                
-                player->newrow_action(player, current_data, k);
-                
+
                 player->channels[k].effect_num = current_data->effect_num;
                 player->channels[k].effect_value = current_data->effect_value;
+                
+                player->newrow_action(player, current_data, k);
             }
 
         }
@@ -262,7 +265,8 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
 
         // maintain tick callback
         if (player->tick_callback)
-            (player->tick_callback)(player, player->current_order, player->current_pattern, player->current_row, player->current_tick, player->channels);
+            //(player->tick_callback)(player, player->current_order, player->current_pattern, player->current_row, player->current_tick, player->channels);
+            (player->tick_callback)(player, player->callback_user_ptr);
         
 
     }
@@ -274,11 +278,10 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
         if ((player->solo_channel >= 0) && (k != player->solo_channel))
             continue;
         
-        sample_t panning = player->channels[k].panning;//  ((float)) / 255.0f;
         sample_mac_t s = player_channel_fetch_sample(player, k) * (sample_mac_t)player->channels[k].volume_master;
         s /= 64;
-        sample_mac_t cl = s * panning;
-        sample_mac_t cr = s * (256 - panning);
+        sample_mac_t cl = s * player->channels[k].panning;
+        sample_mac_t cr = s * (255 - player->channels[k].panning);
         sample_t tmp;
         
         cl /= 256;
@@ -297,7 +300,8 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
                 player->channels[k].peak_sample[1] = tmp;
             
             if ((samplectr & player->channel_sample_callback_mask) == 0) {
-                (player->channel_sample_callback)(cl, cr, player->channels[k].peak_sample[0], player->channels[k].peak_sample[1], k);
+                //(player->channel_sample_callback)(cl, cr, player->channels[k].peak_sample[0], player->channels[k].peak_sample[1], k);
+                (player->channel_sample_callback)(player, player->callback_user_ptr);
                 player->channels[k].peak_sample[0] = 0;
                 player->channels[k].peak_sample[1] = 0;
             }
@@ -331,25 +335,30 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
     return 2;
 }
 
-void player_register_tick_callback(player_t * player, tick_callback_t func)
+void player_register_tick_callback(player_t * player, player_callback_t func)
 {
     player->tick_callback = func;
 }
 
-void player_register_row_callback(player_t * player, row_callback_t func)
+void player_register_row_callback(player_t * player, player_callback_t func)
 {
     player->row_callback = func;
 }
 
-void player_register_order_callback(player_t * player, order_callback_t func)
+void player_register_order_callback(player_t * player, player_callback_t func)
 {
     player->order_callback = func;
 }
 
-void player_register_channel_sample_callback(player_t * player, channel_sample_callback_t func, uint32_t callback_mask)
+void player_register_channel_sample_callback(player_t * player, player_callback_t func, uint32_t callback_mask)
 {
     player->channel_sample_callback_mask = callback_mask;
     player->channel_sample_callback = func;
+}
+
+void player_register_callback_user_ptr(player_t * player, void * ptr) 
+{
+    player->callback_user_ptr = ptr;
 }
 
 void player_init_defaults(player_t * player) 
@@ -453,7 +462,7 @@ sample_t player_channel_fetch_sample(player_t * player,  const int channel_num)
     s /= 64;
     
     // advance sample position
-    channel->sample_pos += (channel->frequency / player->sample_rate);
+    channel->sample_pos += ((float)channel->frequency / (float)player->sample_rate);
 
     return (sample_t)s;
 }

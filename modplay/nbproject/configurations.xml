@@ -24,6 +24,8 @@
       <in>module.c</in>
       <in>output_alsa.c</in>
       <in>output_portaudio.c</in>
+      <in>output_raw.c</in>
+      <in>output_raw.h</in>
       <in>player.c</in>
       <in>player_command.c</in>
       <in>ui.c</in>
@@ -133,6 +135,10 @@
       <item path="output_portaudio.c" ex="false" tool="0" flavor2="2">
         <cTool>
         </cTool>
+      </item>
+      <item path="output_raw.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="output_raw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="player.c" ex="false" tool="0" flavor2="2">
         <cTool>
