@@ -1,5 +1,6 @@
 #include "loader_mtm.h"
-#include "stdint.h"
+#include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* checks if given data is a s3m, returns 1 if data is valid 
@@ -9,7 +10,7 @@ int loader_mtm_check(io_handle_t * h)
     char signature[3];
     size_t saved_pos;
     
-    memset(signature, 0, 4);
+    memset(signature, 0, 3);
     
     saved_pos = h->tell(h);
     h->seek(h, 0, io_seek_set);
@@ -212,6 +213,8 @@ module_t * loader_mtm_load(io_handle_t * h)
     //module_dump(module, stdout);
     
     free(track_data);
+    
+    printf("REEET!\n");
     
     return module;
 }

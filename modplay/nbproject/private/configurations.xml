@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
       <df name="docs">
@@ -45,15 +45,19 @@
       <in>mixing.h</in>
       <in>module.c</in>
       <in>module.h</in>
+      <in>output.c</in>
       <in>output.h</in>
       <in>output_alsa.c</in>
       <in>output_alsa.h</in>
+      <in>output_benchmark.c</in>
+      <in>output_benchmark.h</in>
       <in>output_portaudio.c</in>
       <in>output_portaudio.h</in>
       <in>output_raw.c</in>
       <in>output_raw.h</in>
       <in>output_winmm.c</in>
       <in>output_winmm.h</in>
+      <in>platform.h</in>
       <in>player.c</in>
       <in>player.h</in>
       <in>player_command.c</in>

@@ -44,6 +44,10 @@ int cmdline_parse_output_opts(char * cmdline, modplay_application_t * app)
         app->output_opts->driver = output_driver_raw;
     }
     
+    if (!strncmp(cmdline, "benchmark", 9)) {
+        app->output_opts->driver = output_driver_benchmark;
+    }
+    
     return 0;    
 }
 
@@ -175,6 +179,7 @@ void cmdline_usage (char * prog)
             "   -o                      Output configuration, possible values:\n"
             "                                   portaudio               use portaudio\n"
             "                                   raw:<filename.ext>      raw output to <filename.ext>\n"
+            "                                   benchmark               show samples/sec performance (not actually making noise)"
             "   -h                      This text\n"
             "   -s <channel>            solo <channel>\n"
             "   -p <pattern>            loop <pattern>\n", prog);

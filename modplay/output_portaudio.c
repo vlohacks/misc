@@ -8,9 +8,7 @@
 
 
 player_t * output_portaudio_player;
-
 PaStream * output_portaudio_stream;
-
 
 int output_portaudio_init(output_opts_t * output_opts)
 {

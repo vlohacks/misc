@@ -34,6 +34,7 @@ int output_raw_init(output_opts_t * output_opts)
 int output_raw_start(player_t * player) {
     output_raw_player = player;
     thread_running = 1;
+    player->playing = 1;
     output_raw_file = fopen(output_raw_filename, "wb");
     if (output_raw_file == 0) 
         return 1;
@@ -51,6 +52,10 @@ int output_raw_stop() {
     if (output_raw_file)
         fclose(output_raw_file);
     output_raw_file = 0;
+    return 0;
+}
+
+int output_raw_cleanup() {
     return 0;
 }
 

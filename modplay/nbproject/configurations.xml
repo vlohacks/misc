@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="include"
                    displayName="include"
@@ -22,10 +22,14 @@
       <in>main.c</in>
       <in>mixing.h</in>
       <in>module.c</in>
+      <in>output.c</in>
       <in>output_alsa.c</in>
+      <in>output_benchmark.c</in>
+      <in>output_benchmark.h</in>
       <in>output_portaudio.c</in>
       <in>output_raw.c</in>
       <in>output_raw.h</in>
+      <in>platform.h</in>
       <in>player.c</in>
       <in>player_command.c</in>
       <in>ui.c</in>
@@ -72,16 +76,10 @@
             flavor2="0">
       </item>
       <item path="cmdline.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="effects_mod.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="effects_s3m.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <folder path="0">
         <cTool>
@@ -91,74 +89,50 @@
         </cTool>
       </folder>
       <item path="io_file.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="io_mem.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="loader.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="loader_mod.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="loader_mtm.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="loader_s3m.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="loader_stm.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="mixing.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="module.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
+      </item>
+      <item path="output.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="output_alsa.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
+      </item>
+      <item path="output_benchmark.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="output_benchmark.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="output_portaudio.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="output_raw.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="output_raw.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="platform.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="player.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="player_command.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="ui.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="ui_ncurses.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
       <item path="ui_terminal.c" ex="false" tool="0" flavor2="2">
-        <cTool>
-        </cTool>
       </item>
     </conf>
   </confs>
