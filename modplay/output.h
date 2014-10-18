@@ -13,7 +13,8 @@
 typedef enum {
     output_driver_portaudio,
     output_driver_raw,
-    output_driver_benchmark
+    output_driver_benchmark,
+    output_driver_sb16
 } output_drivers_t;
 
 /* TODO? Idee, die output-spezifischen globales in einem union zu verwalten um speichen zu sparen..

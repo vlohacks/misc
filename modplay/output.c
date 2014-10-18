@@ -4,13 +4,21 @@
 #include "output_portaudio.h"
 #include "output_raw.h"
 #include "output_benchmark.h"
+#include "output_sb16.h"
 
+#ifdef PLATFORM_DOS
+#define OUTPUT_DRIVERS_COUNT 1
+static const output_generic_t output_drivers[] = {
+    { output_driver_sb16, output_sb16_init, output_sb16_cleanup, output_sb16_start, output_sb16_stop },
+};
+#else       // DOS
 #define OUTPUT_DRIVERS_COUNT 3
 static const output_generic_t output_drivers[] = {
     { output_driver_portaudio, output_portaudio_init, output_portaudio_cleanup, output_portaudio_start, output_portaudio_stop },
     { output_driver_raw, output_raw_init, output_raw_cleanup, output_raw_start, output_raw_stop },
     { output_driver_benchmark, output_benchmark_init, output_benchmark_cleanup, output_benchmark_start, output_benchmark_stop }
 };
+#endif      // DOS
 
 output_drivers_t output_selected_driver_index = -1;
 

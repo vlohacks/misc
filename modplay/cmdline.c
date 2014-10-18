@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
+#include <unistd.h>
 
 void cmdline_set_default_config_player(player_t * player)
 {
@@ -177,7 +177,9 @@ void cmdline_usage (char * prog)
             "   -l                      Loop the modules list\n"
             "   -L                      Loop single module\n"
             "   -o                      Output configuration, possible values:\n"
+#ifndef DOS            
             "                                   portaudio               use portaudio\n"
+#endif            
             "                                   raw:<filename.ext>      raw output to <filename.ext>\n"
             "                                   benchmark               show samples/sec performance (not actually making noise)"
             "   -h                      This text\n"
