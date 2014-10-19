@@ -26,11 +26,11 @@
       <in>output_alsa.c</in>
       <in>output_benchmark.c</in>
       <in>output_benchmark.h</in>
-      <in>output_dos_sb16.h</in>
       <in>output_portaudio.c</in>
       <in>output_raw.c</in>
       <in>output_raw.h</in>
       <in>output_sb16.c</in>
+      <in>output_sb16.h</in>
       <in>platform.h</in>
       <in>player.c</in>
       <in>player_command.c</in>
@@ -119,8 +119,6 @@
       </item>
       <item path="output_benchmark.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="output_dos_sb16.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="output_portaudio.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="output_raw.c" ex="false" tool="0" flavor2="0">
@@ -128,6 +126,8 @@
       <item path="output_raw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="output_sb16.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="output_sb16.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="platform.h" ex="false" tool="3" flavor2="0">
       </item>

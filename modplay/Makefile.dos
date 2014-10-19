@@ -1,0 +1,23 @@
+CC	= gcc
+CXX	= g++
+OBJ	= loader_mod.o loader_s3m.o loader_mtm.o loader_stm.o loader.o module.o player.o effects_mod.o effects_s3m.o effects_stm.o ui.o ui_terminal.o ui_ncurses.o main.o cmdline.o output_sb16.o output.o player_command.o io_file.o io_mem.o
+BIN	= MODPLAY.EXE
+#CCFLAGS = -Wall -g
+CCFLAGS	= -Wall -O3
+LDFLAGS = -lm -lpdcurses
+
+all: $(OBJ)
+	$(CC) $(CCFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS)
+
+.PHONY: clean
+clean: 
+	del $(BIN) 
+        del *.o
+
+%.o: %.c
+	$(CC) $(CCFLAGS) -c $<
+	
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+	
+

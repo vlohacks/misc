@@ -12,6 +12,7 @@
 
 #include "output.h"
 #include "cmdline.h"
+#include "platform.h"
 
 
 
@@ -120,7 +121,9 @@ int main (int argc, char ** argv)
                 switch (app.ui_flavour) {
                     case ui_flavour_curses: ui_ncurses_refresh(app.player, &(app.ui_dirty)); break;
                 }
+#ifndef PLATFORM_DOS                
                 output_portaudio_wait();
+#endif
                 //player_read(app.player, &l, &r);
                 //output_alsa_write(l, r);
             }

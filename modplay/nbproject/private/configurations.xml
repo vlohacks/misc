@@ -51,12 +51,12 @@
       <in>output_alsa.h</in>
       <in>output_benchmark.c</in>
       <in>output_benchmark.h</in>
-      <in>output_dos_sb16.h</in>
       <in>output_portaudio.c</in>
       <in>output_portaudio.h</in>
       <in>output_raw.c</in>
       <in>output_raw.h</in>
       <in>output_sb16.c</in>
+      <in>output_sb16.h</in>
       <in>output_winmm.c</in>
       <in>output_winmm.h</in>
       <in>platform.h</in>

@@ -8,7 +8,13 @@
 #ifndef UI_NCURSES_H
 #define	UI_NCURSES_H
 
+#include "platform.h"
+
+#ifdef PLATFORM_POSIX
 #include <ncurses.h>
+#else
+#include <curses.h>
+#endif
 #include <panel.h>
 //#include "curses.h"
 #include "ui.h"

@@ -1,4 +1,5 @@
 #include "cmdline.h"
+#include "platform.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,13 +19,16 @@ void cmdline_set_default_config_output(output_opts_t * output_opts)
 {
     output_opts->buffer_size = 1024;
     output_opts->sample_rate = 44100;
+#ifdef PLATFORM_DOS
+    output_opts->driver = output_sb16; // default 
+#else
+    output_opts->driver = output_driver_portaudio; // default 
+#endif
 }
 
 int cmdline_parse_output_opts(char * cmdline, modplay_application_t * app)
 {
     char * p;
-    
-    app->output_opts->driver = output_driver_portaudio; // default 
     
     if (!strncmp(cmdline, "raw:", 4)) {
         p = strstr(cmdline, ":");
@@ -177,11 +181,18 @@ void cmdline_usage (char * prog)
             "   -l                      Loop the modules list\n"
             "   -L                      Loop single module\n"
             "   -o                      Output configuration, possible values:\n"
-#ifndef DOS            
+#ifdef DOS            
+            "                                   sb16[:<port>:<int>:<ldma>:<hdma>]\n"
+            "                                                           Sound Blaster 16\n"
+            "                                                           if config data is not provided\n"
+            "                                                           i'll try to use the BLASTER env\n"
+            "                                                           var\n"
+#else
             "                                   portaudio               use portaudio\n"
-#endif            
             "                                   raw:<filename.ext>      raw output to <filename.ext>\n"
-            "                                   benchmark               show samples/sec performance (not actually making noise)"
+            "                                   benchmark               show samples/sec performance "
+            "                                                           (not actually making noise)"
+#endif                        
             "   -h                      This text\n"
             "   -s <channel>            solo <channel>\n"
             "   -p <pattern>            loop <pattern>\n", prog);

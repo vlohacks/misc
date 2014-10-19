@@ -45,6 +45,9 @@ static inline sample_t sample_from_float(float s) {    return (sample_t)s; }
 static inline sample_t sample_from_double(double s) {  return (sample_t)s; }
 static inline sample_t sample_from_s16(int16_t s) {    return (sample_t)s / 32768; }
 static inline sample_t sample_from_s8(int8_t s) {      return (sample_t)s / 128; }
+
+static inline int16_t sample_to_s16(sample_t s) {      return (uint16_t)(s * 32768); }
+static inline int8_t sample_to_s8(sample_t s) {        return (uint8_t)(s * 128); }
 #endif /* MIXING_FLOAT */
 
 
@@ -59,6 +62,10 @@ static inline sample_t sample_from_float(float s) {     return (sample_t)(s * 32
 static inline sample_t sample_from_double(double s) {   return (sample_t)(s * 32768); }
 static inline sample_t sample_from_s16(int16_t s) {     return (sample_t)s; }
 static inline sample_t sample_from_s8(int8_t s) {       return (sample_t)s << 8; }
+
+static inline int16_t sample_to_s16(sample_t s) {       return s; }
+static inline int8_t sample_to_s8(sample_t s) {         return (uint8_t)(s >> 8); }
+
 #endif /* MIXING_S16 */
 
 #ifdef MIXING_S8
@@ -72,6 +79,9 @@ static inline sample_t sample_from_float(float s) {     return (sample_t)(s * 12
 static inline sample_t sample_from_double(double s) {   return (sample_t)(s * 128); }
 static inline sample_t sample_from_s16(int16_t s) {     return (sample_t)s >> 8; }
 static inline sample_t sample_from_s8(int8_t s) {       return (sample_t)s; }
+
+static inline int16_t sample_to_s16(sample_t s) {       return ((uint16_t)s << 8); }
+static inline int8_t sample_to_s8(sample_t s) {         return (s); }
 #endif /* MIXING_S8 */
 
 #endif	/* MIXING_H */
