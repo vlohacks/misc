@@ -22,7 +22,6 @@ int main (int argc, char ** argv)
     module_t * mod;
     modplay_application_t app;  
     int i;
-    float l, r;
     player_command_action_t action;
     
     app.player = player_init(44100.0f, player_resampling_linear);
@@ -30,8 +29,8 @@ int main (int argc, char ** argv)
     app.loop_playlist = 0;
     app.running = 1;
     //app.ui_flavour = ui_flavour_terminal;
-    app.ui_flavour = ui_flavour_curses;
-    //app.ui_flavour = ui_flavour_quiet;
+    //app.ui_flavour = ui_flavour_curses;
+    app.ui_flavour = ui_flavour_quiet;
     
     if (cmdline_parse(argc, argv, &app)) {
         return 1;

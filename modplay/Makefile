@@ -3,7 +3,7 @@ CXX	= g++
 OBJ	= loader_mod.o loader_s3m.o loader_mtm.o loader_stm.o loader.o module.o player.o effects_mod.o effects_s3m.o effects_stm.o ui.o ui_terminal.o ui_ncurses.o main.o cmdline.o output_alsa.o output_portaudio.o output_raw.o output_benchmark.o output.o player_command.o io_file.o io_mem.o
 BIN	= modplay
 #CCFLAGS = -Wall -g
-CCFLAGS	= -Wall -O3
+CCFLAGS = -Wall -O3
 #CXXFLAGS = -Wall -O3
 #linux portaudio
 #LDFLAGS = libportaudio.a libpdcurses.a -lm -lpthread -lasound -lXaw -lXmu -lXt -lX11 -lSM -lICE -lXext -lXpm 

@@ -273,22 +273,28 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
 
     // mixing
     mix_l = mix_r = 0;
+    sample_mac_t cl, cr;
+    sample_t tmp;
     
     for (k = 0; k < player->module->num_channels; k++) {
         if ((player->solo_channel >= 0) && (k != player->solo_channel))
             continue;
         
-        sample_mac_t s = player_channel_fetch_sample(player, k) * (sample_mac_t)player->channels[k].volume_master;
-        s /= 64;
-        sample_mac_t cl = s * player->channels[k].panning;
-        sample_mac_t cr = s * (255 - player->channels[k].panning);
-        sample_t tmp;
+        sample_mac_t s = player_channel_fetch_sample(player, k);
         
-        cl /= 256;
-        cr /= 256;
+        // Performance Tuning: no need to do anything with 0-samples
+        if (s) {
+            s *= (sample_mac_t)player->channels[k].volume_master;
+            s *= (sample_mac_t)player->channels[k].volume;
+            s /= (64 * 64); 
+            tmp = (sample_t)player->channels[k].panning / 255.0f;
+            
+            cl = s * tmp;
+            cr = s * (1 - tmp);
         
-        mix_l += cl;
-        mix_r += cr;
+            mix_l += cl;
+            mix_r += cr;
+        }
         
         if (player->channel_sample_callback) {
             tmp = cl < 0 ? cl * -1 : cl;
@@ -410,6 +416,9 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
             break;
     }
     
+    // Performance tuning: do this calculation only once rather than every sample
+    channel->sample_step = ((float)channel->frequency / (float)player->sample_rate);
+    
 }
 
 sample_t player_channel_fetch_sample(player_t * player,  const int channel_num) 
@@ -457,12 +466,9 @@ sample_t player_channel_fetch_sample(player_t * player,  const int channel_num)
         s += (s2 - s) * (channel->sample_pos - (float)((int)channel->sample_pos));  
     }
 
-    // maintain channel volume
-    s *= (sample_mac_t)channel->volume;
-    s /= 64;
-    
     // advance sample position
-    channel->sample_pos += ((float)channel->frequency / (float)player->sample_rate);
+    channel->sample_pos += channel->sample_step;
+    //channel->sample_pos += ((float)channel->frequency / (float)player->sample_rate);
 
     return (sample_t)s;
 }

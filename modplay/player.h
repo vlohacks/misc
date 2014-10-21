@@ -23,10 +23,12 @@ typedef enum {
 typedef struct {
     uint8_t sample_num;
     float sample_pos;
-        
+    float sample_step;
+    
     int period_index;
     uint16_t period;
     uint32_t frequency;
+    
 
     uint8_t sample_delay;
     uint16_t dest_period;                       // these are used for tone portamento and not delay
