@@ -251,7 +251,7 @@ int output_sb16_start(player_t * player) {
     output_sb16_env.player = player;
     player->playing = 1;
     outportb (0x21, inportb (0x21) & !(1 << output_sb16_settings.irq));
-    output_sb16_dsp_start(&output_sb16_env, output_sb16_settings.port, 44100, 1, OUTPUT_SB16_CHANNELS_STEREO);
+    output_sb16_dsp_start(&output_sb16_env, output_sb16_settings.port, output_sb16_settings.sample_rate, OUTPUT_SB16_RESOLUTION_16BIT, OUTPUT_SB16_CHANNELS_STEREO);
     return 0;
 }
 
