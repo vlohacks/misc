@@ -34,6 +34,6 @@ struct pmm_mbs_info
 void pmm_init(struct pmm_mbs_info * mbs_info);
 void * pmm_alloc_page();
 void pmm_free_page(void * page);
-void pmm_show_bitmap(uint32_t limit);
+void pmm_show_bitmap(const uint32_t start, const uint32_t limit);
 
 #endif

@@ -5,6 +5,7 @@
 #include "testtasks.h"
 #include "sched.h"
 #include "term.h"
+#include "pmm.h"
 
 static struct idt_entry idt[IDT_NUM_ENTRIES];
 
@@ -146,6 +147,11 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 			
 			if ((x >= 130) && (x <= 135)) {
 				testtasks_toggle(x-130);
+			}
+			
+			if (x == 136) {
+				term_puts("\nphysmap:\n");
+				pmm_show_bitmap(32, 8);
 			}
 
 			/*

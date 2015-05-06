@@ -3,7 +3,7 @@
 #include "term.h"
 
 static uint32_t pmm_bitmap[PMM_BITMAP_SIZE];
-static uint32_t pmm_bottom_used;
+static volatile uint32_t pmm_bottom_used;
 
 extern const void kernel_start;
 extern const void kernel_end;
@@ -73,31 +73,30 @@ void * pmm_alloc_page()
 	uintptr_t i, j;
 	uintptr_t page;
 	
-	for (i=0; i<PMM_BITMAP_SIZE; i++) {
+	for (i=pmm_bottom_used; i<PMM_BITMAP_SIZE; i++) {
 		if (pmm_bitmap[i]) {
 			for (j=0; j<32; j++) {
 				if (pmm_bitmap[i] & (1<<j)) {
 					pmm_bitmap[i] &= ~(1<<j);
-					page = PMM_PAGE_SIZE * ((i >> 5) + j);
+					page = PMM_PAGE_SIZE * ((i << 5) + j);
+					pmm_bottom_used = i;
 					return (void *)page;
 				}
 			}
-		} else {
-			pmm_bottom_used = i;
 		}
 	}
 	return 0;
 }
 
-void pmm_show_bitmap(uint32_t limit) 
+void pmm_show_bitmap(const uint32_t start, const uint32_t limit) 
 {
 	char buf[9];
 	uint32_t i;
-
+/*
 	if (limit > PMM_BITMAP_SIZE)
 		limit = PMM_BITMAP_SIZE;
-
-	for (i = 0; i < limit; i++) {
+*/
+	for (i = start; i < (start+limit); i++) {
 		itoa(buf, pmm_bitmap[i], 16, 8);
 		term_puts(buf);
 		term_puts("\n");
