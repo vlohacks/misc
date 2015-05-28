@@ -25,12 +25,13 @@ uint32_t swap_endian_u32(uint32_t i) {
 int main(int argc, char ** argv) {
 	header_t	header;
 	filerecord_t 	*recs;
-	int		i;
+	int		i, j;
 	char 		tmp[512];
 	char 		*tmp2;
 
 	FILE 		*fi;
 	FILE		*fo;
+	unsigned char	k;
 	
 	fi = fopen(argv[1], "rb");
 
@@ -49,7 +50,12 @@ int main(int argc, char ** argv) {
 	}
 
 	for (i=0; i<header.num_files; i++) {
-		printf("%-12s : offset=%08x size=%08x\n", recs[i].filename, recs[i].offset, recs[i].size);
+
+		// Calculate XOR key
+		for(j=0,k=0; j<12; j++) 
+			k ^= recs[i].filename[j];
+
+		printf("%-12s : offset=%08x size=%08x k=%02x\n", recs[i].filename, recs[i].offset, recs[i].size, k);
 
 		strncpy(tmp, argv[2], 400);
 		strcat(tmp, "/");
@@ -66,10 +72,19 @@ int main(int argc, char ** argv) {
 		{	// stack frame
 			tmp2 = alloca(recs[i].size);
 			fread(tmp2, recs[i].size, 1, fi);
+
+			for (j=0; j<recs[i].size; j++) 
+				tmp2[j] ^= k;
+
 			fwrite(tmp2, recs[i].size, 1, fo);
 		}
+		fclose(fo);
 	}
 
+	free(recs);
+
 	fclose(fi);
+
+	
 
 }
