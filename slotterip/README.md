@@ -9,6 +9,9 @@ Content in general:
 - Game content is encrypted XOR with a single byte.
   For the MOD (which I was interested in the first place of coz ;-) )
   this was 0x77 but for other files this is another value.
+- There must be some algorithm how this byte is calculated.. maybe summing
+  up the ASCII values of the filename or something like that
+
 
   
 The MOD:
