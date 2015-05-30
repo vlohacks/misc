@@ -69,16 +69,15 @@ int main(int argc, char ** argv) {
 		
 		fseek(fi, recs[i].offset, SEEK_SET);
 
-		{	// stack frame
-			tmp2 = alloca(recs[i].size);
-			fread(tmp2, recs[i].size, 1, fi);
+		tmp2 = malloc(recs[i].size);
+		fread(tmp2, recs[i].size, 1, fi);
 
-			for (j=0; j<recs[i].size; j++) 
-				tmp2[j] ^= k;
+		for (j=0; j<recs[i].size; j++) 
+			tmp2[j] ^= k;
 
-			fwrite(tmp2, recs[i].size, 1, fo);
-		}
+		fwrite(tmp2, recs[i].size, 1, fo);
 		fclose(fo);
+		free(tmp2);
 	}
 
 	free(recs);
