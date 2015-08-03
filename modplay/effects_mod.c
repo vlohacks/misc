@@ -62,7 +62,15 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
 
     // set period (note)
     if (data->period_index >= 0) {
-        // special hack for note portamento... TODO remove here
+        // reset vibrato
+        if (player->channels[channel_num].vibrato_waveform < 4)
+            player->channels[channel_num].vibrato_state = 0;    
+        
+        // reset tremolo
+        if (player->channels[channel_num].tremolo_waveform < 4)
+            player->channels[channel_num].tremor_state = 0;
+        
+        // special hack for note portamento... 
         if (data->effect_num == 0x3) {
             player->channels[channel_num].dest_period = player->period_table[data->period_index];
             player->channels[channel_num].period_index = data->period_index;
@@ -84,11 +92,11 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
     }
     
     // reset vibrato if necessary
-    if (player->channels[channel_num].vibrato_waveform < 4) {
-        player->channels[channel_num].vibrato_state = 0;
-        if (data->period_index >= 0)
-            player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
-    }
+    //if (player->channels[channel_num].vibrato_waveform < 4) {
+        //player->channels[channel_num].vibrato_state = 0;
+    //    if (data->period_index >= 0)
+    //        player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
+    //}
 }
 
 void effects_mod_0_arpeggio(player_t * player, int channel_num)
@@ -178,8 +186,6 @@ void effects_mod_4_vibrato(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        if (player->channels[channel].vibrato_waveform < 4)
-            player->channels[channel].vibrato_state = 0;
     
         if ((player->channels[channel].effect_value >> 4) != 0x00) 
             player->channels[channel].effect_last_value[player->channels[channel].effect_num] = (player->channels[channel].effect_value >> 4);
