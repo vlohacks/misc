@@ -24,17 +24,16 @@ int main (int argc, char ** argv)
     int i;
     player_command_action_t action;
     
-    app.player = player_init(44100.0f, player_resampling_linear);
+    app.player = player_init(44100, player_resampling_linear);
     app.output_opts = malloc(sizeof(output_opts_t));
     app.loop_playlist = 0;
     app.running = 1;
     //app.ui_flavour = ui_flavour_terminal;
-    //app.ui_flavour = ui_flavour_curses;
-    app.ui_flavour = ui_flavour_quiet;
+    app.ui_flavour = ui_flavour_curses;
+    //app.ui_flavour = ui_flavour_quiet;
     
-    if (cmdline_parse(argc, argv, &app)) {
+    if (cmdline_parse(argc, argv, &app)) 
         return 1;
-    }
     
     output_init(app.output_opts);
     
