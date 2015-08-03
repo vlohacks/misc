@@ -13,6 +13,7 @@
 #include "defs_mod.h"
 #include "arch.h"
 #include "io.h"
+#include "mixing.h"
 
 /* checks if given data is a mod, returns 1 if data is valid */
 int loader_mod_check(io_handle_t * h)
@@ -200,10 +201,10 @@ module_t * loader_mod_load(io_handle_t * h)
 	
     // initial pannings 
     for (i = 0; i < module->num_channels; i++) {
-        if (((i % 4) == 1) || ((i % 4) == 2))           // RLLR RLLR ...
-            module->initial_panning[i] = 0x00;
-        else
+        if (((i % 4) == 1) || ((i % 4) == 2))           // LRRL LRRL ...
             module->initial_panning[i] = 0xff;
+        else
+            module->initial_panning[i] = 0x00;
     }
     module->song_message = 0;
     return module;
@@ -288,17 +289,18 @@ int loader_mod_read_pattern_data(module_pattern_data_t * data, io_handle_t * h)
 void loader_mod_read_sample_data(module_sample_t * sample, io_handle_t * h)
 {
     int i;
-    int8_t * p;
+    int8_t s;
 
     if (sample->header.length == 0) {
         sample->data = NULL;
         return;
     }
 
-    sample->data = (int8_t *)malloc(sizeof(int8_t) * sample->header.length); //sample->header.length);
-    p = sample->data;
-    for (i = 0; i < sample->header.length; i++)
-        h->read(p++, 1, 1, h);
+    sample->data = (sample_t *)malloc(sizeof(sample_t) * sample->header.length); //sample->header.length);
+    for (i = 0; i < sample->header.length; i++) {
+        h->read(&s, 1, 1, h);
+        sample->data[i] = sample_from_s8(s);
+    }
 }
 
 int loader_mod_lookup_period_index(const uint16_t period)

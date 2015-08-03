@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "io.h"
+#include "mixing.h"
 
 /* checks if given data is a s3m, returns 1 if data is valid 
  */
@@ -182,7 +183,8 @@ module_t * loader_s3m_load(io_handle_t * h)
         
     }
     
-    
+    /* flag in the master volume byte indicates 
+     * whether the song is stereo or mono */
     if ((module->initial_master_volume & 128) == 0) {
         /* make the song mono */
         for (i=0; i<32; i++) 
@@ -265,13 +267,15 @@ module_t * loader_s3m_load(io_handle_t * h)
         }
         
         /* fetch sample data */
-        module->samples[i].data = malloc(module->samples[i].header.length);
+        module->samples[i].data = malloc(module->samples[i].header.length * sizeof(sample_t));
         h->seek(h, sample_memseg << 4, io_seek_set);
-        h->read(module->samples[i].data, 1, module->samples[i].header.length, h);
-        
-         /* we use signed samples interally */
-        for (j=0; j<module->samples[i].header.length; j++)
-            module->samples[i].data[j] ^= 128;
+
+        for (j=0; j<module->samples[i].header.length; j++) {
+            h->read(&tmp_u8, 1, 1, h);
+            /* we use signed samples interally */
+            tmp_u8 ^= 128;
+            module->samples[i].data[j] = sample_from_s8((int8_t)tmp_u8);
+        }
             
     }
     

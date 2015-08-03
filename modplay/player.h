@@ -36,8 +36,6 @@ typedef struct {
     int8_t dest_volume;
     uint8_t panning;                            
 
-    sample_t peak_sample[2];                       // for scopes
-
     int8_t volume;                              
     int8_t volume_master;                       // used for effects like tremolo    
     

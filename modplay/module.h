@@ -11,6 +11,7 @@
 #define	MODULE_H
 
 #include <stdint.h>
+#include "mixing.h"
 
 typedef enum {
     module_type_mod,
@@ -58,7 +59,7 @@ typedef struct {
 
 typedef struct {
     module_sample_header_t header;
-    int8_t * data;
+    sample_t * data;
 } module_sample_t;
 
 typedef struct {

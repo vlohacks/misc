@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* checks if given data is a s3m, returns 1 if data is valid 
+#include "mixing.h"
+
+/* checks if given data is a MTM, returns 1 if data is valid 
  */
 int loader_mtm_check(io_handle_t * h)
 {
@@ -33,19 +35,9 @@ module_t * loader_mtm_load(io_handle_t * h)
     uint16_t num_tracks;
     uint16_t song_message_length;
     
-    /*
-    typedef struct {
-        uint8_t period_index : 6;                        
-        uint8_t sample_num : 6;
-        uint8_t effect_num : 4;
-        uint8_t effect_value; 
-    } __attribute__((packed)) track_data_item_t;
-    */
     typedef uint8_t track_data_item_t[3];
     typedef track_data_item_t track_data_t[64];
-    
-    
-    
+
     track_data_t * track_data;
     uint8_t num_channels;
     
@@ -118,20 +110,6 @@ module_t * loader_mtm_load(io_handle_t * h)
         
     }
     
-    /*
-    for (i=0; i< module->num_samples; i++) {
-        module_sample_header_t * h = &(module->samples[i].header);
-        printf ("l: %02i ls:%02i le:%02i ll:%02i v:%02i ft:%02i name:%s\n",
-                h->length,
-                h->loop_start,
-                h->loop_end,
-                h->loop_length,
-                h->volume,
-                h->finetune,
-                h->name);
-    }
-    */
-    
     /* read order data */
     for (i = 0; i < 128; i++) {
         h->read(&tmp_u8, sizeof(uint8_t), 1, h);
@@ -140,7 +118,6 @@ module_t * loader_mtm_load(io_handle_t * h)
     
     /* read track data, which is stored in MTM independent of pattern data 
      ŧhe track data is 1 based, track 0 is always blank */
-    printf("num tracks: %i\n", num_tracks);
     track_data = (track_data_t *)calloc(sizeof(track_data_t), num_tracks + 1);
     for (i = 1; i <= num_tracks; i++) 
         h->read(track_data[i], sizeof(track_data_t), 1, h);
@@ -198,24 +175,23 @@ module_t * loader_mtm_load(io_handle_t * h)
     for (i = 0; i < module->num_samples; i++) {
         module_sample_header_t * sh = &(module->samples[i].header);
         if (sh->length) {
-            module->samples[i].data = (int8_t *) malloc(sh->length);
-            h->read(module->samples[i].data, 1, sh->length, h);
+            module->samples[i].data = (sample_t *)malloc(sizeof(sample_t) * sh->length);
+            for (j = 0; j < sh->length; j++) {
+                h->read(&tmp_u8, 1, 1, h);
+                tmp_u8 ^= 128;
+                module->samples[i].data[j] = sample_from_s8((int8_t)tmp_u8);
+            }
         } else {
             module->samples[i].data = 0;
         }
         
-        /* convert to signed */
-        for (j = 0; j < sh->length; j++)
-            module->samples[i].data[j] ^= 128;
     }
     
     
     //module_dump(module, stdout);
     
     free(track_data);
-    
-    printf("REEET!\n");
-    
+   
     return module;
 }
 

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "io.h"
+#include "mixing.h"
 
 /* checks if given data is a s3m, returns 1 if data is valid 
  */
@@ -187,9 +188,12 @@ module_t * loader_stm_load(io_handle_t * h)
     for (i = 0; i < 31; i++) {
         
         if (module->samples[i].header.length) {
-            module->samples[i].data = (int8_t *)malloc(module->samples[i].header.length);
+            module->samples[i].data = (sample_t *)malloc(sizeof(sample_t) * module->samples[i].header.length);
             
-            h->read(module->samples[i].data, module->samples[i].header.length, 1, h);
+            for (j = 0; j < module->samples[i].header.length; j++) {
+                h->read(&tmp_u8, 1, 1, h);
+                module->samples[i].data[j] = sample_from_s8(tmp_u8);
+            }
             
             // in stm samples are aligned / padded to 16 byte bounds
             int align = (module->samples[i].header.length  + 15) & ~15;
@@ -204,15 +208,6 @@ module_t * loader_stm_load(io_handle_t * h)
     for (i = 0; i < 4; i++) {
         module->initial_panning[i] = (i & 1) ? 0x0 : 0xff;
     }
-    
-    size_t tmps = h->tell(h);
-    printf("pos: %u\n", tmps);
-    
-    h->seek(h, 0, io_seek_end);
-    tmps = h->tell(h);
-    printf("len: %u\n", tmps);
-    
-    
     
     //module_dump(module, stdout);
     module->song_message = 0;

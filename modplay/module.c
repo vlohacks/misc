@@ -36,6 +36,8 @@ int module_free(module_t * module)
     }
     free(module->patterns);
     module->patterns = 0;
+    
+    free(module->song_message);
 
     return 0;
 }

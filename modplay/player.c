@@ -159,8 +159,6 @@ void player_init_channels(player_t * player)
         player->channels[i].pattern_loop_position = 0;
         player->channels[i].pattern_loop_count = 0;     
         player->channels[i].sample_delay = 0;
-        player->channels[i].peak_sample[0] = 0;
-        player->channels[i].peak_sample[1] = 0;
         
         // default pannings
         player->channels[i].panning = player->module->initial_panning[i];
@@ -173,7 +171,6 @@ void player_init_channels(player_t * player)
 int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
 {
     int k;
-    static uint32_t samplectr;
     sample_mac_t mix_l, mix_r;
     
     // reaching new tick
@@ -217,8 +214,6 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
                 // end of song reached...
                 if (player->current_order >= player->module->num_orders)
                     return 0;
-                
-                
 
                 // lookup pattern to play in order list
                 if (player->loop_pattern >= 0)
@@ -281,60 +276,29 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
             continue;
         
         sample_mac_t s = player_channel_fetch_sample(player, k);
-        
+
         // Performance Tuning: no need to do anything with 0-samples
         if (s) {
-            s *= (sample_mac_t)player->channels[k].volume_master;
-            s *= (sample_mac_t)player->channels[k].volume;
+            s *= player->channels[k].volume_master;
+            s *= player->channels[k].volume;
             s /= (64 * 64); 
-            tmp = (sample_t)player->channels[k].panning / 255.0f;
             
-            cl = s * tmp;
-            cr = s * (1 - tmp);
+            cr = (s * player->channels[k].panning) / 256;
+            cl = (s * (255 - player->channels[k].panning)) / 256;
         
             mix_l += cl;
             mix_r += cr;
         }
         
-        if (player->channel_sample_callback) {
-            tmp = cl < 0 ? cl * -1 : cl;
-            if (tmp > player->channels[k].peak_sample[0])
-                player->channels[k].peak_sample[0] = tmp;
-            
-            tmp = cr < 0 ? cr * -1 : cr;
-            if (tmp > player->channels[k].peak_sample[1])
-                player->channels[k].peak_sample[1] = tmp;
-            
-            if ((samplectr & player->channel_sample_callback_mask) == 0) {
-                //(player->channel_sample_callback)(cl, cr, player->channels[k].peak_sample[0], player->channels[k].peak_sample[1], k);
-                (player->channel_sample_callback)(player, player->callback_user_ptr);
-                player->channels[k].peak_sample[0] = 0;
-                player->channels[k].peak_sample[1] = 0;
-            }
-        }
+        if (player->channel_sample_callback) 
+            (player->channel_sample_callback)(player, player->callback_user_ptr);
         
     }
-    
-    samplectr++;
     
     mix_l /= ((sample_mac_t)player->module->num_channels);
     mix_r /= ((sample_mac_t)player->module->num_channels);
     *out_l = (sample_t)mix_l;
     *out_r = (sample_t)mix_r;
-
-#if 0    
-    if (player->protracker_strict_mode) {
-        /* in pt strict mode without panning, channels are mapped strictly
-         * RLLR RLLR... therefore we have exactly 50% on each channel 
-         * and we only need to normalize 50%
-         */
-        *mix_l /= ((float)player->module->num_channels / 2.0f);
-        *mix_r /= ((float)player->module->num_channels / 2.0f);
-    } else {
-        *mix_l /= ((float)player->module->num_channels);
-        *mix_r /= ((float)player->module->num_channels);
-    }
-#endif
 
     player->tick_pos--;
     
@@ -376,6 +340,7 @@ void player_init_defaults(player_t * player)
 float player_calc_tick_duration(const uint16_t bpm, const uint32_t sample_rate) 
 {
     return ((((float)sample_rate / ((float)bpm / 60.0f)) / 4.0f) / 6.0f);
+    //return (((sample_rate / (bpm / 60)) / 4) / 6);
 }
 
 
@@ -426,46 +391,48 @@ sample_t player_channel_fetch_sample(player_t * player,  const int channel_num)
     sample_mac_t s, s2;
     
     player_channel_t * channel = &(player->channels[channel_num]);
-    int sample_index = channel->sample_num - 1;
-
+    module_sample_t * sample = &(player->module->samples[channel->sample_num - 1]);
+    
     // no sample, no sound... 
     if (channel->sample_num == 0)
         return SAMPLE_T_ZERO;
 
     // trying to play a empty sample slot... play silence instead of segfault :)
-    if (player->module->samples[sample_index].data == 0)
+    //if (player->module->samples[sample_index].data == 0)
+    if (sample->data == 0)
         return SAMPLE_T_ZERO;
     
     // maintain looping
-    if (player->module->samples[sample_index].header.loop_enabled) {
-        while (channel->sample_pos >= (float)(player->module->samples[sample_index].header.loop_end)) {
-            channel->sample_pos -= (float)player->module->samples[sample_index].header.loop_length;
+    if (sample->header.loop_enabled) {
+        while (channel->sample_pos >= (float)(sample->header.loop_end)) {
+            channel->sample_pos -= (float)sample->header.loop_length;
         }
     } else {
-        if (channel->sample_pos >= (float)player->module->samples[sample_index].header.length)
+        if (channel->sample_pos >= (float)sample->header.length)
             return SAMPLE_T_ZERO;
     }
     
-    // fetch sample
-    s = sample_from_s8(player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos)]);
-
+    // fetch sample - TODO put conversion to loader code to improve performance
+    s = sample->data[(uint16_t)(channel->sample_pos)];
+    
     if (player->resampling == player_resampling_linear) {
         // do linear interpolation
-        if (player->module->samples[sample_index].header.loop_length > 2) {
+        if (sample->header.loop_length > 2) {
             // looping sample will interpolate to loop start
-            if (channel->sample_pos >= (float)(player->module->samples[sample_index].header.loop_length + player->module->samples[sample_index].header.loop_start)) 
-                s2 = sample_from_s8(player->module->samples[sample_index].data[player->module->samples[sample_index].header.loop_start]);
+            if (channel->sample_pos >= (float)(sample->header.loop_length + sample->header.loop_start)) 
+                s2 = sample->data[sample->header.loop_start];
             else 
-                s2 = sample_from_s8(player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos) + 1]);
+                s2 = sample->data[(uint16_t)(channel->sample_pos) + 1];
         } else {
-            if (channel->sample_pos < (player->module->samples[sample_index].header.length - 1)) 
-                s2 = sample_from_s8(player->module->samples[sample_index].data[(uint16_t)(channel->sample_pos) + 1]);
+            if (channel->sample_pos < (sample->header.length - 1)) 
+                s2 = sample->data[(uint16_t)(channel->sample_pos) + 1];
             else
                 s2 = s;
         }
+        // conversion to int will remove the fractional part of the sample_pos
         s += (s2 - s) * (channel->sample_pos - (float)((int)channel->sample_pos));  
     }
-
+    
     // advance sample position
     channel->sample_pos += channel->sample_step;
     //channel->sample_pos += ((float)channel->frequency / (float)player->sample_rate);
