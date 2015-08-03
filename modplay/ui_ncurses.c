@@ -2,7 +2,11 @@
 #include "player_command.h"
 #include "string.h"
 #include "mixing.h"
-//#include <signal.h>
+#include "platform.h"
+
+#ifdef PLATFORM_POSIX
+#include <signal.h>
+#endif
 
 
 #define UI_NCURSES_KEYBINDINGS_COUNT 6
@@ -30,7 +34,10 @@ void ui_ncurses_init()
     ui_ncurses_layout_init();
     term_resized = 0;
     
-    //signal(SIGWINCH, ui_ncurses_term_resized);
+#ifdef PLATFORM_POSIX
+    signal(SIGWINCH, ui_ncurses_term_resized);
+#endif
+    
 }
 
 void ui_ncurses_cleanup()
