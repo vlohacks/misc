@@ -51,6 +51,10 @@ int cmdline_parse_output_opts(char * cmdline, modplay_application_t * app)
     if (!strncmp(cmdline, "benchmark", 9)) {
         app->output_opts->driver = output_driver_benchmark;
     }
+
+    if (!strncmp(cmdline, "alsa", 4)) {
+        app->output_opts->driver = output_driver_alsa;
+    }
     
     return 0;    
 }

@@ -15,11 +15,11 @@ void * output_raw_writer(void * p) {
     sample_t mix_l, mix_r;
     int ret;
     while (thread_running) {
-        ret = player_read(output_raw_player, &mix_l, &mix_r);
+        ret = player_read((player_t *)output_raw_player, &mix_l, &mix_r);
         if (ret != 2)
             output_raw_player->playing = 0;
-        fwrite(&mix_l, sizeof(sample_t), 1, output_raw_file);
-        fwrite(&mix_r, sizeof(sample_t), 1, output_raw_file);
+        fwrite(&mix_l, sizeof(sample_t), 1, (FILE *)output_raw_file);
+        fwrite(&mix_r, sizeof(sample_t), 1, (FILE *)output_raw_file);
     }
     return 0;
 }
@@ -50,7 +50,7 @@ int output_raw_stop() {
     thread_running = 0;
     pthread_join(writer_thread, 0);
     if (output_raw_file)
-        fclose(output_raw_file);
+        fclose((FILE *)output_raw_file);
     output_raw_file = 0;
     return 0;
 }

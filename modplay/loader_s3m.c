@@ -5,6 +5,7 @@
 
 #include "io.h"
 #include "mixing.h"
+#include "string_enc.h"
 
 /* checks if given data is a s3m, returns 1 if data is valid 
  */
@@ -37,6 +38,7 @@ module_t * loader_s3m_load(io_handle_t * h)
     uint8_t tmp_u8;
     uint8_t channel_map[32];
     uint32_t sample_memseg;
+    char tmp_name[32];
     
     uint16_t num_patterns_internal;
     uint16_t * parapointer_pattern;
@@ -49,6 +51,9 @@ module_t * loader_s3m_load(io_handle_t * h)
     
     
     module->module_type = module_type_s3m;
+    // has no instruments..
+    module->instruments = 0;
+    module->num_instruments = 0;
 
     /* chech if we really deal with a S3M file. IF not, bail out */
     h->seek(h, 0x2c, io_seek_set);
@@ -124,9 +129,9 @@ module_t * loader_s3m_load(io_handle_t * h)
             channel_map[i] = module->num_channels;
             
             if (tmp_u8 <= 7) 
-                module->initial_panning[module->num_channels] = 0;
+                module->initial_panning[module->num_channels] = 0x33;
             else 
-                module->initial_panning[module->num_channels] = 0xff;
+                module->initial_panning[module->num_channels] = 0xcc;
             
             //printf("== %i == %i ==\n", module->num_channels, tmp_u8);
             
@@ -176,9 +181,11 @@ module_t * loader_s3m_load(io_handle_t * h)
         
         for (i = 0; i < 32; i++)  {
             h->read(&tmp_u8, sizeof(uint8_t), 1, h);
-            tmp_u8 &= 0x0f;
-            module->initial_panning[i] = (tmp_u8 << 4) | ((tmp_u8 << 1) + (tmp_u8>6?1:0));
-            //printf("===>>>%i<<< ===\n", tmp_u8);
+            if (tmp_u8 & 16) {
+                tmp_u8 &= 0x0f;
+                //module->initial_panning[i] = (tmp_u8 << 4) | ((tmp_u8 << 1) + (tmp_u8>6?1:0));
+            }
+//            printf("===>>>%i<<< ===\n", tmp_u8);
         }
         
     }
@@ -199,7 +206,7 @@ module_t * loader_s3m_load(io_handle_t * h)
     /* read sample headers (instruments) */
     for (i = 0; i < module->num_samples; i++) {
         uint8_t sample_type;
-        
+        uint8_t sample_16bit;
         /* we use c2spd - initialize finetune with 0 */
         module->samples[i].header.finetune = 0;
         
@@ -241,10 +248,13 @@ module_t * loader_s3m_load(io_handle_t * h)
         /* flags 
          * (1)          = loop
          * (1<<1)       = stereo sample (never used, ignored for now)
-         * (1<<2)       = 16 bit sample (never used, ignored for now)
+         * (1<<2)       = 16 bit sample: supported by IT/Schism S3M Export 
+         *              used by some Tracks of the UNREAL soundtrack
+         *              (The EPIC shooter game, not the FC demo ;-))
          */
         h->read(&tmp_u8, sizeof(uint8_t), 1, h);
         module->samples[i].header.loop_enabled = tmp_u8 & 1;    // loop flag
+        sample_16bit = tmp_u8 & (1<<2);
         
         /* c2spd */
         h->read(&tmp_u32, sizeof(uint32_t), 1, h);
@@ -255,7 +265,7 @@ module_t * loader_s3m_load(io_handle_t * h)
 
         /* sample name */
         h->read(module->samples[i].header.name, 1, 28, h);
-        
+                
         /* if we deal with a adlib instrument or a empty sample slot, continue
          * without loading data
          */
@@ -271,27 +281,19 @@ module_t * loader_s3m_load(io_handle_t * h)
         h->seek(h, sample_memseg << 4, io_seek_set);
 
         for (j=0; j<module->samples[i].header.length; j++) {
-            h->read(&tmp_u8, 1, 1, h);
-            /* we use signed samples interally */
-            tmp_u8 ^= 128;
-            module->samples[i].data[j] = sample_from_s8((int8_t)tmp_u8);
+            if (sample_16bit) {
+                h->read(&tmp_u16, 2, 1, h);
+                tmp_u16 ^= 32768;
+                module->samples[i].data[j] = sample_from_s16((int16_t)tmp_u16);
+            } else {
+                h->read(&tmp_u8, 1, 1, h);
+                /* we use signed samples interally */
+                tmp_u8 ^= 128;
+                module->samples[i].data[j] = sample_from_s8((int8_t)tmp_u8);
+            }
         }
             
     }
-    
-    /*
-    for (i=0; i< module->num_samples; i++) {
-        module_sample_header_t * h = &(module->samples[i].header);
-        printf ("l: %02i ls:%02i le:%02i ll:%02i v:%02i c2:%02i name:%s\n",
-                h->length,
-                h->loop_start,
-                h->loop_end,
-                h->loop_length,
-                h->volume,
-                h->c2spd,
-                h->name);
-    }
-    */
     
     /* allocate patterns */
     module->patterns = (module_pattern_t *)malloc(sizeof(module_pattern_t) * module->num_patterns /*num_patterns_internal*/);

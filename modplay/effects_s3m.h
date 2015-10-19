@@ -37,6 +37,7 @@ void effects_s3m_S3_setvibratowaveform(player_t * player, int channel);
 void effects_s3m_S4_settremolowaveform(player_t * player, int channel);
 void effects_s3m_S8_panning(player_t * player, int channel);
 void effects_s3m_SA_stereocontrol(player_t * player, int channel);
+void effects_s3m_SC_notecut(player_t * player, int channel);
 void effects_s3m_SD_delaysample(player_t * player, int channel);
 void effects_s3m_T_setbpm(player_t * player, int channel);
 void effects_s3m_X_panning(player_t * player, int channel) ;

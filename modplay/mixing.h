@@ -20,7 +20,7 @@
  * MIXING_S8: uses 8 bit signed int for sampling and 16 bit signed int for
  *      multiply/accumulate operations
  */
-#define MIXING_FLOAT
+#define MIXING_S16
 
 /* this defines how inter-sample calculations are done internally
  * (TODO not yet implemented)

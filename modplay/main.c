@@ -23,6 +23,8 @@ int main (int argc, char ** argv)
     modplay_application_t app;  
     int i;
     player_command_action_t action;
+    char * p;
+    char * q;
     
     app.player = player_init(44100, player_resampling_linear);
     app.output_opts = malloc(sizeof(output_opts_t));
@@ -72,11 +74,23 @@ int main (int argc, char ** argv)
             switch (app.ui_flavour) {
                 case ui_flavour_curses:
                     ui_ncurses_new_song_handler(mod);
+                    p = q = app.playlist[i];
+                    
+                    while (*q++) {
+                        if (*q == '/')
+                            p = q+1;
+                    }
+                    
+                    ui_ncurses_set_filename(p);
                     break;
                     
                 case ui_flavour_terminal:
                     ui_terminal_print_moduleinfo(mod);
                     break;
+                    
+                case ui_flavour_quiet:  // eliminte warning
+                default:
+                    break;      
                     
             }
 
@@ -88,6 +102,11 @@ int main (int argc, char ** argv)
                     case ui_flavour_curses:
                         action = ui_ncurses_handle_input();
                         break;
+                        
+                    case ui_flavour_quiet:  // eliminte warning
+                    default:
+                        break; 
+                    
                 }
                 
                 //fprintf(stderr, "%i\n", action);
@@ -118,6 +137,10 @@ int main (int argc, char ** argv)
                 // TODO here: UI input stuff etc.
                 switch (app.ui_flavour) {
                     case ui_flavour_curses: ui_ncurses_refresh(app.player, &(app.ui_dirty)); break;
+                    case ui_flavour_terminal: ui_terminal_refresh(app.player, &(app.ui_dirty)); break;
+                    case ui_flavour_quiet:  // eliminte warning
+                    default:
+                        break;                       
                 }
 #ifndef PLATFORM_DOS                
                 output_portaudio_wait();
@@ -130,7 +153,7 @@ int main (int argc, char ** argv)
             module_free(mod);
             
             i++;
-            if (i == app.playlist_count)
+            if ((i == app.playlist_count) || !app.running)
                 break;
             
         }
@@ -147,9 +170,10 @@ int main (int argc, char ** argv)
         case ui_flavour_curses:
             ui_ncurses_cleanup();
             break;
-            
+
+        case ui_flavour_quiet:  // eliminte warning
         default:
-            break;
+            break;     
     }
             
     return 0;

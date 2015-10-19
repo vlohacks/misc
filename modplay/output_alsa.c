@@ -8,11 +8,18 @@
 #include "output_alsa.h"
 #include <stdio.h>
 #include <alsa/asoundlib.h>
-
+#include "player.h"
+#include "mixing.h"
 snd_pcm_t *playback_handle;
+snd_async_handler_t *callback_handle;
+snd_pcm_hw_params_t * hw_params;    
+snd_pcm_sw_params_t *sw_params;
 
+   
 int16_t * output_buffer;
-int output_buffer_size = 1024;
+player_t * output_alsa_player;
+snd_pcm_uframes_t output_buffer_size = 1024;
+snd_pcm_uframes_t period_size = 64;
 int output_buffer_pos;
 
 int output_alsa_init(int output_argc, char ** output_argv) 
@@ -22,7 +29,7 @@ int output_alsa_init(int output_argc, char ** output_argv)
     output_buffer = (int16_t *)malloc(output_buffer_size * sizeof(int16_t));
     output_buffer_pos = 0;
 
-    snd_pcm_hw_params_t * hw_params;    
+
     
     char * device = "default";
 
@@ -56,8 +63,6 @@ int output_alsa_init(int output_argc, char ** output_argv)
 
   
     unsigned int rate = 44100;
-    int dir = 0;
-    unsigned int periods = 2;
     //snd_pcm_uframes_t periodsize = 8192;
     
     if ((err = snd_pcm_hw_params_set_rate_near(playback_handle, hw_params, &rate, 0)) < 0) {
@@ -73,19 +78,22 @@ int output_alsa_init(int output_argc, char ** output_argv)
         exit(1);
     }
 
+    if (snd_pcm_hw_params_set_buffer_size_near(playback_handle, hw_params, &output_buffer_size) < 0) {
+      fprintf(stderr, "Error setting buffersize.\n");
+      exit(1);
+    }    
     
-    if ((err = snd_pcm_hw_params_set_periods_near(playback_handle, hw_params, &periods, 0)) < 0) {
-        fprintf(stderr, "Error setting periods (%s)\n",
+    
+    if ((err = snd_pcm_hw_params_set_period_size_near(playback_handle, hw_params, &period_size, 0)) < 0) {
+        fprintf(stderr, "Error setting period size (%s)\n",
                 snd_strerror(err));
 
         exit(1);
     }    
-    fprintf(stderr, "periods = %i\n", periods);
-        
-    if (snd_pcm_hw_params_set_buffer_size(playback_handle, hw_params, (output_buffer_size * periods) >> 2) < 0) {
-      fprintf(stderr, "Error setting buffersize.\n");
-      exit(1);
-    }
+    fprintf(stderr, "period_size = %i\n", (int)period_size);
+    
+    
+
 
 
     if ((err = snd_pcm_hw_params(playback_handle, hw_params)) < 0) {
@@ -94,6 +102,12 @@ int output_alsa_init(int output_argc, char ** output_argv)
         exit(1);
     }
 
+    snd_pcm_sw_params_alloca (&sw_params);
+    
+    snd_pcm_sw_params_set_start_threshold(playback_handle, sw_params, output_buffer_size - period_size);
+    snd_pcm_sw_params_set_avail_min(playback_handle, sw_params, period_size);    
+    snd_pcm_sw_params(playback_handle, sw_params);
+    
     //snd_pcm_hw_params_free(hw_params);
 
     if ((err = snd_pcm_prepare(playback_handle)) < 0) {
@@ -102,6 +116,11 @@ int output_alsa_init(int output_argc, char ** output_argv)
         exit(1);
     }
     
+    printf("yay1\n");
+    
+    //snd_pcm_writei(playback_handle, output_buffer, 2 * period_size);
+    printf("yay2\n");
+    
     return 0;
 }
 
@@ -109,6 +128,49 @@ int output_alsa_cleanup()
 {
     snd_pcm_close(playback_handle);
     free(output_buffer);
+    return 0;
+}
+
+void output_alsa_callback(snd_async_handler_t *pcm_callback) {
+        snd_pcm_t * pcm_handle = snd_async_handler_get_pcm(pcm_callback);
+        snd_pcm_sframes_t avail;
+        int i;
+        int j;
+        sample_t l, r;
+        
+        printf("callback\n");
+        
+        avail = snd_pcm_avail_update(pcm_handle);
+        while (avail >= period_size) {
+            for (i=0,j=0; i<period_size; i++) {
+                player_read(output_alsa_player, &l, &r);
+                output_buffer[j++] = sample_to_s16(l);
+                output_buffer[j++] = sample_to_s16(r);
+            }
+            snd_pcm_writei(pcm_handle, output_buffer, period_size);
+            avail = snd_pcm_avail_update(pcm_handle);
+        }
+        
+}
+
+int output_alsa_start(player_t * player) {
+    printf( "shouldplay2\n");
+    output_alsa_player = player;
+    player->playing = 1;
+    int err = snd_async_add_pcm_handler(&callback_handle, playback_handle, output_alsa_callback, 0);
+    if (err != 0)
+        fprintf(stderr, "handler failed (%s)\n", snd_strerror(err));
+    if (snd_pcm_start(playback_handle) != 0) 
+        fprintf(stderr, "start failed\n");
+    printf( "shouldplay\n");
+    
+    return 0;
+}
+
+int output_alsa_stop() {
+    snd_pcm_drop(playback_handle);
+    snd_async_del_handler (callback_handle);
+    
     return 0;
 }
 

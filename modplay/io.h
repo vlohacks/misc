@@ -22,6 +22,7 @@ typedef size_t (*io_read_t)(void * ptr, size_t size, size_t n, struct io_handle_
 typedef size_t (*io_write_t)(const void * ptr, size_t size, size_t n, struct io_handle_t * handle);
 typedef size_t (*io_tell_t)(struct io_handle_t * handle);
 typedef int (*io_seek_t)(struct io_handle_t * handle, size_t n, io_seek_direction_t direction);
+typedef int (*io_feof_t)(struct io_handle_t * handle);
 
 struct io_handle_t {
     void * native_handle;
@@ -29,6 +30,7 @@ struct io_handle_t {
     io_write_t write;
     io_seek_t seek;
     io_tell_t tell;
+    io_feof_t feof;
 };
 
 typedef struct io_handle_t io_handle_t;

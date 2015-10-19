@@ -14,6 +14,7 @@
 #include "arch.h"
 #include "io.h"
 #include "mixing.h"
+#include "string_enc.h"
 
 /* checks if given data is a mod, returns 1 if data is valid */
 int loader_mod_check(io_handle_t * h)
@@ -73,6 +74,10 @@ module_t * loader_mod_load(io_handle_t * h)
     // Default values for MOD files
     module->initial_bpm = 125;
     module->initial_speed = 6;
+    
+    // has no instruments..
+    module->instruments = 0;
+    module->num_instruments = 0;
     
     // Determine mod file type by checking the signatuer (M.K., nCHN...)
     h->seek(h, 0x438, SEEK_SET);
@@ -222,7 +227,7 @@ int loader_mod_read_sample_header(module_sample_header_t * hdr, io_handle_t * h)
     if (r != 22)
         return 1;
     hdr->name[22] = 0;
-
+    
     r = h->read (&word, 2, 1, h);
     if (r != 1)
         return 1;

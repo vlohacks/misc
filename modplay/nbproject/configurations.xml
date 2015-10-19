@@ -12,29 +12,30 @@
       <in>cmdline.c</in>
       <in>effects_mod.c</in>
       <in>effects_s3m.c</in>
+      <in>effects_stm.c</in>
       <in>io_file.c</in>
       <in>io_mem.c</in>
       <in>loader.c</in>
+      <in>loader_it.c</in>
       <in>loader_mod.c</in>
       <in>loader_mtm.c</in>
+      <in>loader_psm_masi.c</in>
       <in>loader_s3m.c</in>
       <in>loader_stm.c</in>
       <in>main.c</in>
-      <in>mixing.h</in>
       <in>module.c</in>
+      <in>module_utils.c</in>
+      <in>murmur2.c</in>
       <in>output.c</in>
       <in>output_alsa.c</in>
       <in>output_benchmark.c</in>
-      <in>output_benchmark.h</in>
       <in>output_portaudio.c</in>
       <in>output_raw.c</in>
-      <in>output_raw.h</in>
       <in>output_sb16.c</in>
-      <in>output_sb16.h</in>
-      <in>platform.h</in>
       <in>player.c</in>
       <in>player_command.c</in>
       <in>sbtest.c</in>
+      <in>string_enc.c</in>
       <in>ui.c</in>
       <in>ui_ncurses.c</in>
       <in>ui_terminal.c</in>
@@ -58,6 +59,9 @@
         <dependencyChecking>false</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-g"/>
+      </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
       <makefileType>
@@ -68,74 +72,79 @@
           <executablePath>modplay</executablePath>
         </makeTool>
       </makefileType>
-      <item path="../../../portaudio/portaudio/include/pa_linux_alsa.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../portaudio/portaudio/include/portaudio.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="cmdline.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="effects_mod.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="effects_s3m.c" ex="false" tool="0" flavor2="2">
       </item>
-      <folder path="0">
-        <cTool>
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
-        </cTool>
-      </folder>
+      <item path="effects_stm.c" ex="false" tool="0" flavor2="2">
+      </item>
       <item path="io_file.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="io_mem.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="loader.c" ex="false" tool="0" flavor2="2">
       </item>
+      <item path="loader_it.c" ex="false" tool="0" flavor2="2">
+      </item>
       <item path="loader_mod.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+        </cTool>
       </item>
       <item path="loader_mtm.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="loader_psm_masi.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+        </cTool>
       </item>
       <item path="loader_s3m.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+        </cTool>
       </item>
       <item path="loader_stm.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="0">
+        </cTool>
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="mixing.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="module.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="output.c" ex="false" tool="0" flavor2="0">
+      <item path="module_utils.c" ex="false" tool="0" flavor2="2">
+      </item>
+      <item path="murmur2.c" ex="false" tool="0" flavor2="2">
+      </item>
+      <item path="output.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="output_alsa.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="output_benchmark.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="output_benchmark.h" ex="false" tool="3" flavor2="0">
+      <item path="output_benchmark.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="output_portaudio.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="output_raw.c" ex="false" tool="0" flavor2="0">
+      <item path="output_raw.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="output_raw.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="output_sb16.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="output_sb16.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="platform.h" ex="false" tool="3" flavor2="0">
+      <item path="output_sb16.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
       </item>
       <item path="player.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="player_command.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="sbtest.c" ex="false" tool="0" flavor2="0">
+      <item path="sbtest.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
+      </item>
+      <item path="string_enc.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="ui.c" ex="false" tool="0" flavor2="2">
       </item>

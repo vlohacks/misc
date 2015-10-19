@@ -2,13 +2,15 @@
 #include "io_file.h"
 #include "io_mem.h"
 
-#define LOADER_FORMATS_COUNT 4
+#define LOADER_FORMATS_COUNT 6
 
 static const loader_generic_t loader_formats[] = {
     { loader_mod_check, loader_mod_load, "mod", "Protracker/Fasttracker MOD" },
     { loader_s3m_check, loader_s3m_load, "s3m", "Scream Tracker 3" },
     { loader_mtm_check, loader_mtm_load, "mtm", "Multi Tracker" },
-    { loader_stm_check, loader_stm_load, "stm", "Scream Tracker" }
+    { loader_stm_check, loader_stm_load, "stm", "Scream Tracker" },
+    { loader_psm_masi_check, loader_psm_masi_load, "psm", "Protracker Studio (EPIC Megagames)" },
+    { loader_it_check,  loader_it_load,  "it",  "Impulse Tracker" }
 };
 
 module_t * loader_loadmem_by_header(void * ptr, size_t size)
@@ -82,10 +84,6 @@ module_t * loader_loadfile_by_extension(char * filename)
         io_file_close(h);
     }
 
-    
-    if (!module)
-        printf("oh no, could not recognize: >%s< >%s<\n", filename, tmp);
-        
     return module;    
     
 }

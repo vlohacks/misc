@@ -31,7 +31,6 @@ module_t * loader_mtm_load(io_handle_t * h)
 
     int i, j, k;
     uint8_t tmp_u8;
-    uint32_t tmp_u32;
     uint16_t num_tracks;
     uint16_t song_message_length;
     
@@ -52,6 +51,9 @@ module_t * loader_mtm_load(io_handle_t * h)
     module->initial_bpm = 125;
     module->initial_speed = 6;
     module->module_type = module_type_mtm;
+    // has no instruments..
+    module->instruments = 0;
+    module->num_instruments = 0;
     
     h->seek(h, 3, io_seek_set);
     h->read(&tmp_u8, sizeof(uint8_t), 1, h);

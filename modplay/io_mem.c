@@ -23,6 +23,7 @@ io_handle_t * io_mem_open(void * ptr, size_t size)
         handle->seek = io_mem_seek;
         handle->tell = io_mem_tell;
         handle->write = io_mem_write;
+        handle->feof = io_mem_feof;
     }
     
     return handle;
@@ -92,4 +93,9 @@ int io_mem_seek(struct io_handle_t * handle, size_t n, io_seek_direction_t direc
         native_handle->pos = native_handle->size;
     
     return 0;
+}
+
+int io_mem_feof(struct io_handle_t * handle ) {
+    io_mem_native_handle_t * native_handle = (io_mem_native_handle_t *)handle->native_handle;
+    return (native_handle->pos >= native_handle->size);
 }

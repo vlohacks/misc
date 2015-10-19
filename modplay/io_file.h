@@ -16,7 +16,7 @@ size_t io_file_read(void * ptr, size_t size, size_t n, io_handle_t * handle);
 size_t io_file_write(const void * ptr, size_t size, size_t n, io_handle_t * handle);
 size_t io_file_tell(io_handle_t * handle);
 int io_file_seek(struct io_handle_t * handle, size_t n, io_seek_direction_t direction);
-        
+int io_file_feof(struct io_handle_t * handle);
 
 #endif	/* IO_FILE_H */
 

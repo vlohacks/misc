@@ -46,6 +46,9 @@ module_t * loader_stm_load(io_handle_t * h)
     
     
     module->module_type = module_type_stm;
+    // has no instruments..
+    module->instruments = 0;
+    module->num_instruments = 0;
 
     /* chech if we really deal with a STM file. IF not, bail out */
     h->seek(h, 0x14, io_seek_set);

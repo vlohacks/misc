@@ -6,7 +6,7 @@
 #include "defs_mod.h"
 #include "defs_s3m.h"
 
-void ui_periodindex2note(int period_index, char * dest)
+void ui_periodindex2note(int period_index, char * dest, int first_octave)
 {
     
     static const char * notes[] = {
@@ -37,7 +37,7 @@ void ui_periodindex2note(int period_index, char * dest)
     
     //i = protracker_lookup_period_index(period);
     if (period_index >= 0)
-        sprintf(dest, "%s%1u", notes[period_index % 12], (period_index / 12) + 1);
+        sprintf(dest, "%s%1u", notes[period_index % 12], (period_index / 12) + first_octave);
     
 }
 
@@ -145,6 +145,7 @@ void ui_effect_to_humanreadable(char * buf, const uint8_t effect_num, const uint
                         case 0x4: strcpy(buf, "set tremolo waveform"); break;
                         case 0x8: strcpy(buf, "panning"); break;
                         case 0xA: strcpy(buf, "stereo control"); break;
+                        case 0xC: strcpy(buf, "note cut"); break;
                         case 0xD: strcpy(buf, "note delay"); break;
                         default: 
                             ui_map_effect_num(effect, module_type, effect_num);
@@ -196,12 +197,12 @@ int ui_lookup_period_index(const module_type_t type, const uint16_t period)
         case module_type_mtm:
         case module_type_mod: 
             num_periods = defs_mod_num_periods; 
-            period_table  = defs_mod_periods;
+            period_table  = (uint16_t *)defs_mod_periods;
             break;
             
         case module_type_s3m:
             num_periods = defs_s3m_num_periods; 
-            period_table  = defs_s3m_periods;
+            period_table  = (uint16_t *)defs_s3m_periods;
             break;
             
         default:

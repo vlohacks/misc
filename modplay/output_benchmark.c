@@ -1,4 +1,5 @@
 #include "output_benchmark.h"
+#include <stdio.h>
 #include <time.h>
 #include <pthread.h>
 
@@ -14,12 +15,12 @@ void * output_benchmark_writer(void * p) {
     int ret;
     while (output_benchmark_thread_running) {
         current_time = time(0);
-        ret = player_read(output_benchmark_player, &mix_l, &mix_r);
+        ret = player_read((player_t *)output_benchmark_player, &mix_l, &mix_r);
         if (ret != 2)
             output_benchmark_player->playing = 0;
         output_benchmark_sample_count++;
         if (current_time != last_time) {
-            printf("%llu samples/sec\n", output_benchmark_sample_count);
+            printf("%lu samples/sec\n", output_benchmark_sample_count);
             output_benchmark_sample_count = 0;
             last_time = current_time;
         }

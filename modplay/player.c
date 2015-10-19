@@ -35,6 +35,9 @@ player_t * player_init(const uint32_t sample_rate, const player_resampling_t res
     player->row_callback = 0;
     player->order_callback = 0;
     player->channel_sample_callback = 0;
+
+    player->loop_pattern = -1;
+    player->solo_channel = -1;
     
     player_set_protracker_strict_mode(player, 0);
 
@@ -144,7 +147,7 @@ void player_init_channels(player_t * player)
         player->channels[i].sample_pos = 0;
         player->channels[i].volume = 64;
         player->channels[i].volume_master = 64;
-        for (j = 0; j < 32; j++) {
+        for (j = 0; j < 26; j++) {
                 player->channels[i].effect_last_value[j] = 0;
                 player->channels[i].effect_last_value_y[j] = 0;
         }
@@ -246,10 +249,12 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
 
         // maintain effects
         for (k=0; k < player->module->num_channels; k++) {
+            /*
             if (player->current_tick == 0) {
                 if (player->channels[k].effect_value)
                     player->channels[k].effect_last_value[player->channels[k].effect_num] = player->channels[k].effect_value;
             }
+            */
             if ((player->effect_map)[player->channels[k].effect_num])
                 (player->effect_map)[player->channels[k].effect_num](player, k);
         }
@@ -269,7 +274,6 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
     // mixing
     mix_l = mix_r = 0;
     sample_mac_t cl, cr;
-    sample_t tmp;
     
     for (k = 0; k < player->module->num_channels; k++) {
         if ((player->solo_channel >= 0) && (k != player->solo_channel))
@@ -389,14 +393,18 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
 sample_t player_channel_fetch_sample(player_t * player,  const int channel_num) 
 {
     sample_mac_t s, s2;
-    
     player_channel_t * channel = &(player->channels[channel_num]);
+    
+    // avoid reading past num_samples (some MODs access sample slots beyond num_samples, for examples the UT soundtrack )
+    if (channel->sample_num > player->module->num_samples)
+        return SAMPLE_T_ZERO;
+    
     module_sample_t * sample = &(player->module->samples[channel->sample_num - 1]);
     
     // no sample, no sound... 
     if (channel->sample_num == 0)
         return SAMPLE_T_ZERO;
-
+    
     // trying to play a empty sample slot... play silence instead of segfault :)
     //if (player->module->samples[sample_index].data == 0)
     if (sample->data == 0)
@@ -412,14 +420,14 @@ sample_t player_channel_fetch_sample(player_t * player,  const int channel_num)
             return SAMPLE_T_ZERO;
     }
     
-    // fetch sample - TODO put conversion to loader code to improve performance
+    // fetch sample 
     s = sample->data[(uint16_t)(channel->sample_pos)];
     
     if (player->resampling == player_resampling_linear) {
         // do linear interpolation
-        if (sample->header.loop_length > 2) {
+        if (sample->header.loop_enabled) {
             // looping sample will interpolate to loop start
-            if (channel->sample_pos >= (float)(sample->header.loop_length + sample->header.loop_start)) 
+            if (channel->sample_pos >= (float)(sample->header.loop_end)) 
                 s2 = sample->data[sample->header.loop_start];
             else 
                 s2 = sample->data[(uint16_t)(channel->sample_pos) + 1];

@@ -1,31 +1,29 @@
 Fixes:
-- player: Implement missing effects (still some exotic shit missing... maybe 
+- effects_mod: Implement missing effects (still some exotic shit missing... maybe 
   i'll leave them out...)
 - player: fix little noises on looping points of samples (bug in interpolation?) 
   (overture.mod)
-- loader_mod: fix FLT8 loading
-- Effects: Vibrato still sounds weird in some mods which run faster than speed 6. 
-  Documentation (FMODDOC) says vibrato state should reset every new row, so I 
-  implemented it this way, but I don't think that's true. Maybe it must only 
-  reset with NEW NOTE.
-- Dynamic mapping of effect color in terminal output depending on module type
+- loader_mod: fix FLT8 loading (have no example file currently...)
+- UI: Dynamic mapping of effect color in terminal output depending on module type
   (s3m, mod...)
-- Annotation of channel numbers in pattern view and column names in channel view
-- Better color scheme (grey out stuff which has no information) 
-- Check vibrato effects again vs ST3 (still "feels" weird in some S3Ms)
-	* Shadow of Illusion/alone.s3m
-- do not segfault if there's not enough room to draw specific window :-)
+- UI: Annotation of channel numbers in pattern view and column names in channel view
+- UI: Better color scheme (grey out stuff which has no information) 
+- UI: do not segfault if there's not enough room to draw specific window :-)
+    => Overhaul complete Curses UI which is a fucking mess currently
 
 
 Features:
-- Overhaul window handling in ncurses, implement small tiling/overlay window manager
-- different narrow vs. nice pattern view styles
-- implement platform transparent handling of terminal resizing signalling
-- in-player playlist management and file browser
-- platform transparent (ncurses/unix <=> pdcurses/windows) key mappings
-- Sample view!!
-- scrolling (channel view: horizontally, channel and sample view vertically)
-
+- UI: Overhaul window handling in ncurses, implement small tiling/overlay window manager
+- UI: different narrow vs. nice pattern view styles
+- UI: implement platform transparent handling of terminal resizing signalling
+- UI: in-player playlist management and file browser
+- UI: platform transparent (ncurses/unix <=> pdcurses/windows) key mappings
+- UI: Sample view!!
+- UI: scrolling of views (channel view: horizontally, channel and sample view vertically)
+- FORMAT: Impulse Tracker (.IT) ... hardest piece of work ;-)
+- FORMAT: Fast Tracker 2 (.XM)
+- FORMAT: (.PSM) (Jazz JackRabbit ;-))
+- FORMAT: Oktalyzer (.OKT) => has weird effects..
 
 Window Layout (posibility to turn on/off any window):
 
@@ -48,6 +46,12 @@ Pat: xxx/xxx | Ord  xxx/xxx | Spd:  xx/ xx | BPM: xxx/xxx
 
 
 Done:
+- DONE 20150825 Check vibrato effects again vs ST3 (still "feels" weird in some S3Ms)
+	* Shadow of Illusion/alone.s3m
+- DONE 201507?? Effects: Vibrato still sounds weird in some mods which run faster than speed 6. 
+  Documentation (FMODDOC) says vibrato state should reset every new row, so I 
+  implemented it this way, but I don't think that's true. Maybe it must only 
+  reset with NEW NOTE. => Hopefully fixed now
 - DONE 201401?? s3m Effects
 - DONE 20131226 loader: S3M Loader
 - DONE 20131220 module: get rid of periods in module, only use indices

@@ -20,6 +20,7 @@ io_handle_t * io_file_open(char * filename, char * mode)
         handle->write = io_file_write;
         handle->tell = io_file_tell;
         handle->seek = io_file_seek;
+        handle->feof = io_file_feof;
     }
     return handle;
 }
@@ -53,4 +54,9 @@ int io_file_seek(struct io_handle_t * handle, size_t n, io_seek_direction_t dire
         case io_seek_end: whence = SEEK_END; break;
     }
     return fseek((FILE *)handle->native_handle, n, whence);
+}
+
+int io_file_feof(struct io_handle_t * handle)
+{
+    return feof((FILE *)handle->native_handle);
 }

@@ -68,12 +68,21 @@ void effects_s3m_newrowaction(player_t * player, module_pattern_data_t * data, i
 
     // set period (note)
     if (data->period_index >= 0) {
+        
+        // reset vibrato
+        if (player->channels[channel_num].vibrato_waveform < 4)
+            player->channels[channel_num].vibrato_state = 0;    
+        
+        // reset tremolo
+        if (player->channels[channel_num].tremolo_waveform < 4)
+            player->channels[channel_num].tremor_state = 0;
+        
         player->channels[channel_num].period_index = data->period_index;
         if (data->period_index == 254) { // note off
             player->channels[channel_num].sample_num = 0;
             return;
         } else {
-            // special hack for note portamento... TODO remove here
+            // special hack for note portamento... 
             if (data->effect_num == 0x7) {
                 //player->channels[channel_num].dest_period = player->period_table[data->period_index];
                 player->channels[channel_num].dest_period = effects_s3m_get_tuned_period(player, player->period_table[data->period_index], channel_num);
@@ -89,7 +98,6 @@ void effects_s3m_newrowaction(player_t * player, module_pattern_data_t * data, i
         }
     } 
     
-    //player->channels[channel_num].tremolo_state = 0;
     player->channels[channel_num].volume_master = 64;
     
     // do not set frequency for tone portamento effects
@@ -287,9 +295,6 @@ void effects_s3m_H_vibrato(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        if (player->channels[channel].vibrato_waveform < 4)
-            player->channels[channel].vibrato_state = 0;
-        
         if ((player->channels[channel].effect_value >> 4) != 0x00) 
             player->channels[channel].effect_last_value[player->channels[channel].effect_num] = (player->channels[channel].effect_value >> 4);
 
@@ -407,9 +412,6 @@ void effects_s3m_K_vibrato_volumeslide(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        if (player->channels[channel].vibrato_waveform < 4)        
-                player->channels[channel].vibrato_state = 0;
-        
         if (player->channels[channel].effect_value)
             player->channels[channel].effect_last_value[11] = player->channels[channel].effect_value;
 
@@ -626,6 +628,7 @@ void effects_s3m_S_special(player_t * player, int channel)
         case 0x4: effects_s3m_S4_settremolowaveform(player, channel); break;
         case 0x8: effects_s3m_S8_panning(player, channel); break;
         case 0xA: effects_s3m_SA_stereocontrol(player, channel); break;
+        case 0xC: effects_s3m_SC_notecut(player, channel); break;
         case 0xD: effects_s3m_SD_delaysample(player, channel); break;
         default: effects_s3m_unimplemented(player, channel);
     }
@@ -667,6 +670,11 @@ void effects_s3m_SA_stereocontrol(player_t * player, int channel)
     }
 }
 
+void effects_s3m_SC_notecut(player_t * player, int channel)
+{
+    if ((player->channels[channel].effect_value & 0x0f) <= player->current_tick)
+        player->channels[channel].volume = 0;
+}
 
 void effects_s3m_SD_delaysample(player_t * player, int channel)
 {

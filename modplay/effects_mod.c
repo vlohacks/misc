@@ -68,10 +68,10 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
         
         // reset tremolo
         if (player->channels[channel_num].tremolo_waveform < 4)
-            player->channels[channel_num].tremor_state = 0;
+            player->channels[channel_num].tremolo_state = 0;
         
         // special hack for note portamento... 
-        if (data->effect_num == 0x3) {
+        if ((data->effect_num == 0x3) || (data->effect_num == 0x5)) {
             player->channels[channel_num].dest_period = player->period_table[data->period_index];
             player->channels[channel_num].period_index = data->period_index;
         } else {
@@ -79,16 +79,16 @@ void effects_mod_newrowaction(player_t * player, module_pattern_data_t * data, i
                 player->channels[channel_num].period = player->period_table[data->period_index];
                 player->channels[channel_num].period_index = data->period_index;
                 player->channels[channel_num].sample_pos = 0;
-                //player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
+                player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
             }
         }
     } 
     
     player->channels[channel_num].volume_master = 64;
     
-    if ((data->effect_num) != 0x3 && (data->effect_num != 0x5)) {
-        if (data->period_index >= 0)
-            player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
+    if ((data->effect_num != 0x3) && (data->effect_num != 0x5)) {
+        //if (data->period_index >= 0)
+            //player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
     }
     
     // reset vibrato if necessary
@@ -192,7 +192,7 @@ void effects_mod_4_vibrato(player_t * player, int channel)
 
         if ((player->channels[channel].effect_value & 0xf) != 0x00) 
             player->channels[channel].effect_last_value_y[player->channels[channel].effect_num] = (player->channels[channel].effect_value & 0xf);
-
+        
         return;    
     }
 
@@ -423,7 +423,7 @@ void effects_mod_b_positionjump(player_t * player, int channel)
 {
     
     // prevent egoist-mods from looping back if no single-mod-loop is enabled
-    if (player->channels[channel].effect_value < player->current_order) {
+    if (player->channels[channel].effect_value <= player->current_order) {
         if (!player->loop_module)
             return;
     }

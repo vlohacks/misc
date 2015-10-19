@@ -23,6 +23,7 @@ size_t io_mem_read(void * ptr, size_t size, size_t n, io_handle_t * handle);
 size_t io_mem_write(const void * ptr, size_t size, size_t n, io_handle_t * handle);
 size_t io_mem_tell(io_handle_t * handle);
 int io_mem_seek(struct io_handle_t * handle, size_t n, io_seek_direction_t direction);
+int io_mem_feof(struct io_handle_t * handle);
 
 #endif	/* IO_MEM_H */
 

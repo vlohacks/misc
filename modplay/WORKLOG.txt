@@ -1,0 +1,31 @@
+2015-08-25
+    - Start IT implementation
+    - eliminate some warnings
+    - Fix Vibrato in S3M likewise i did in MOD 
+
+2015-09-05
+    - Continue IT Loader
+    - Add quick n dirty samples list in ncurses UI
+
+2015-09-18
+    - fix S3M default pannings
+      (FS3MDOC seemed to be on the complete
+      holzweg regarding these...)
+
+2015-09-19
+    - moved these aux module dump functions 
+      to module_utils.c (coz they do stuff which
+      should not be part of the core module model)
+
+2015-10-17
+    - Fixed wrong behaviour with portamento to note + vol slide
+    - Fixed wrong (old) handling of effect memory in player.c which caused
+      all these oddities in the vibrato effect >:-O
+    - "Fixed" nasty crash in curses code (actually I don't know how I 
+      fixed this)
+
+2015-10-18
+    - Work on MASI PSM Loader (again)
+
+2015-10-19
+    - (nearly?) Finish masi psm loader

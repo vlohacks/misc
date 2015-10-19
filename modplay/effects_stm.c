@@ -56,6 +56,11 @@ void effects_stm_newrowaction(player_t * player, module_pattern_data_t * data, i
 
     // set period (note)
     if (data->period_index >= 0) {
+        
+        // reset vibrato
+        if (player->channels[channel_num].vibrato_waveform < 4)
+            player->channels[channel_num].vibrato_state = 0;    
+        
         player->channels[channel_num].period_index = data->period_index;
         if (data->period_index == 254) { // note off
             player->channels[channel_num].sample_num = 0;
@@ -234,9 +239,6 @@ void effects_stm_H_vibrato(player_t * player, int channel)
     uint16_t delta;
     
     if (player->current_tick == 0) {
-        if (player->channels[channel].vibrato_waveform < 4)
-            player->channels[channel].vibrato_state = 0;
-        
         if ((player->channels[channel].effect_value >> 4) != 0x00) 
             player->channels[channel].effect_last_value[player->channels[channel].effect_num] = (player->channels[channel].effect_value >> 4);
 

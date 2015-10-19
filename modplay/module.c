@@ -8,9 +8,7 @@
  */
 
 #include "module.h"
-#include <stdio.h>
 #include <stdlib.h>
-
 /* Free all mem occupied by module
  */
 int module_free(module_t * module) 
@@ -26,6 +24,22 @@ int module_free(module_t * module)
     free(module->samples);
     module->samples = 0;
     
+    for (i = 0; i < module->num_instruments; i++) {
+        if (module->instruments[i].volume_envelope.nodes) 
+            free(module->instruments[i].volume_envelope.nodes);
+
+        if (module->instruments[i].pan_envelope.nodes) 
+            free(module->instruments[i].pan_envelope.nodes);
+
+        if (module->instruments[i].pitch_envelope.nodes)
+            free(module->instruments[i].pitch_envelope.nodes);
+    }
+    
+    if (module->instruments) {
+        free(module->instruments);
+        module->instruments = 0;
+    }
+    
     for (i = 0; i < module->num_patterns; i++) {
         if (module->patterns[i].rows) {
             for (j = 0; j < module->patterns[i].num_rows; j++) 
@@ -36,47 +50,12 @@ int module_free(module_t * module)
     }
     free(module->patterns);
     module->patterns = 0;
+
+    if (module->song_message)
+        free(module->song_message);
     
-    free(module->song_message);
+    module->song_message = 0;
 
     return 0;
 }
 
-/* Dump module data in human-readable form
- */
-void module_dump(module_t * module, FILE * fd)
-{
-    int i, j, k;
-    
-    char note[4];
-    char effect[2];
-    char volume[3];
-    
-    if (fd == 0)    
-        fd = stderr;
-    
-    for (i = 0; i < module->num_samples; i++) {
-        fprintf(fd, "%02i %22s: size=%7u, fine=%2i, volume=%2u, loopstart=%7u, looplength=%7u\n", 
-                i + 1, module->samples[i].header.name, module->samples[i].header.length, module->samples[i].header.finetune, module->samples[i].header.volume, module->samples[i].header.loop_start, module->samples[i].header.loop_length);
-    }
-    
-    for (i = 0; i < module->num_patterns; i++) {
-        fprintf(fd, "\npattern %i / %i:\n", i, module->num_patterns);
-        for (j = 0; j < module->patterns[i].num_rows; j++) {
-            fprintf(fd, "%02d | ", j);
-            for (k = 0; k < module->num_channels; k++) {
-                module_pattern_data_t * data = &(module->patterns[i].rows[j].data[k]);
-                ui_periodindex2note(data->period_index, note);
-                //sprintf(note, "%03i", data->period_index);
-                ui_map_effect_num(effect, module->module_type, data->effect_num);
-                if (data->volume > 64)
-                    sprintf(volume, "%s", "..");
-                else
-                    sprintf(volume, "%02i", data->volume);
-                
-                fprintf(fd, "%s %02d %s %s%02X | ", note, data->sample_num, volume, effect, data->effect_value);
-            }
-            fprintf(fd, "\n");
-        }
-    }
-}

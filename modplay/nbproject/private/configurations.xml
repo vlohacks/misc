@@ -5,10 +5,14 @@
       <df name="docs">
       </df>
       <df name="testmods">
+        <in>dreamit.mod</in>
         <in>news.mod</in>
         <in>overture.mod</in>
         <in>source.mod</in>
       </df>
+      <in>2ndpm.h</in>
+      <in>2ndpmtest.c</in>
+      <in>WORKLOG.txt</in>
       <in>application.h</in>
       <in>arch.h</in>
       <in>cmdline.c</in>
@@ -17,12 +21,17 @@
       <in>defs_mod.h</in>
       <in>defs_s3m.h</in>
       <in>defs_stm.h</in>
+      <in>dllist.c</in>
+      <in>dllist.h</in>
+      <in>dos2utf8.c</in>
+      <in>dreamitcomp.c</in>
       <in>effects_mod.c</in>
       <in>effects_mod.h</in>
       <in>effects_s3m.c</in>
       <in>effects_s3m.h</in>
       <in>effects_stm.c</in>
       <in>effects_stm.h</in>
+      <in>instrument.h</in>
       <in>io.h</in>
       <in>io_file.c</in>
       <in>io_file.h</in>
@@ -30,6 +39,8 @@
       <in>io_mem.h</in>
       <in>loader.c</in>
       <in>loader.h</in>
+      <in>loader_it.c</in>
+      <in>loader_it.h</in>
       <in>loader_mod.c</in>
       <in>loader_mod.h</in>
       <in>loader_mtm.c</in>
@@ -43,8 +54,13 @@
       <in>main.c</in>
       <in>main.h</in>
       <in>mixing.h</in>
+      <in>mod2c.c</in>
       <in>module.c</in>
       <in>module.h</in>
+      <in>module_utils.c</in>
+      <in>module_utils.h</in>
+      <in>murmur2.c</in>
+      <in>murmur2.h</in>
       <in>output.c</in>
       <in>output.h</in>
       <in>output_alsa.c</in>
@@ -65,13 +81,23 @@
       <in>player_command.c</in>
       <in>player_command.h</in>
       <in>sbtest.c</in>
+      <in>sllist.c</in>
+      <in>sllist.h</in>
+      <in>sourcemod.h</in>
+      <in>string_enc.c</in>
+      <in>string_enc.h</in>
+      <in>test.h</in>
       <in>test_io.c</in>
+      <in>testlist.c</in>
       <in>ui.c</in>
       <in>ui.h</in>
       <in>ui_ncurses.c</in>
       <in>ui_ncurses.h</in>
       <in>ui_terminal.c</in>
       <in>ui_terminal.h</in>
+      <in>vchannel.h</in>
+      <in>woplastics3m.h</in>
+      <in>woplstic_mur.h</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>

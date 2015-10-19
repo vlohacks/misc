@@ -82,21 +82,26 @@ void ui_terminal_print_moduleinfo(module_t * module)
     fprintf(ui_terminal_fd, "\n--== Samples ==--\n");
     for (i = 0; i < module->num_samples; i++) {
         module_sample_header_t * sh = &(module->samples[i].header);
-        fprintf(ui_terminal_fd, "%22s | v=%2i l=%6i ls=%6i ll=%6i le=%6i ft=%1i c2spd=%u\n", sh->name, sh->volume, sh->length, sh->loop_start, sh->loop_length, sh->loop_end, (sh->finetune >=8 ? -(16-sh->finetune) : sh->finetune), sh->c2spd );
+        fprintf(ui_terminal_fd, "%22s | v=%2i l=%6i lena= %1i, ls=%6i ll=%6i le=%6i ft=%1i c2spd=%u\n", sh->name, sh->volume, sh->length, sh->loop_enabled, sh->loop_start, sh->loop_length, sh->loop_end, (sh->finetune >=8 ? -(16-sh->finetune) : sh->finetune), sh->c2spd );
     }
 }
 
-void ui_terminal_print_order_info(player_t * player, int current_order, int current_pattern) 
+void ui_terminal_print_order_info(player_t * player) 
 {
+    int current_pattern = player->current_pattern;
+    int current_order = player->current_order;
     fprintf(ui_terminal_fd, "\n--== order: %i/%i, pattern: %i/%i spd: %i, tempo: %i ==--\n", current_order, player->module->num_orders, current_pattern, player->module->num_patterns, player->speed, player->bpm);
 }
 
-void ui_terminal_print_row_info(player_t * player, int current_order, int current_pattern, int current_row)
+void ui_terminal_print_row_info(player_t * player)
 {
     int i;
     char note[4];
     char effect[2];
     char volume[3];
+    
+    int current_row = player->current_row;
+    int current_pattern = player->current_pattern;
     
     char * the_std_color = current_row % 4 ? color_otherrow : color_4throw;
     
@@ -104,7 +109,7 @@ void ui_terminal_print_row_info(player_t * player, int current_order, int curren
     
     fprintf(ui_terminal_fd, "%s%02d|", the_std_color, current_row );
     for (i = 0; i < player->module->num_channels; i++) {
-        ui_periodindex2note(row->data[i].period_index, note);
+        ui_periodindex2note(row->data[i].period_index, note, player->module->module_type == module_type_it ? 0 : 1);
         
         if (row->data[i].volume >= 0)
             sprintf(volume, "%02i", row->data[i].volume);
@@ -122,3 +127,22 @@ void ui_terminal_print_row_info(player_t * player, int current_order, int curren
     
 }
 
+void ui_terminal_refresh(player_t * player, ui_dirty_t * ui_dirty) 
+{
+    if (ui_dirty->order) {
+        ui_dirty->order = 0;
+        ui_terminal_print_order_info(player);
+    }
+    
+    
+    if (ui_dirty->tick) {
+        ui_dirty->tick = 0;
+//        ui_ncurses_tick_handler(player);
+    }
+    
+    if (ui_dirty->row) {
+        ui_dirty->row = 0;
+        ui_terminal_print_row_info(player);
+    }
+    
+}

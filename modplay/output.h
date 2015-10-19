@@ -12,6 +12,7 @@
 
 typedef enum {
     output_driver_portaudio,
+    output_driver_alsa,
     output_driver_raw,
     output_driver_benchmark,
     output_driver_sb16
