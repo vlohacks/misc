@@ -96,7 +96,7 @@ module_t * loader_mtm_load(io_handle_t * h)
         h->read(&(module->samples[i].header.loop_end), sizeof(uint32_t), 1, h);
         module->samples[i].header.loop_end -= 1;
         module->samples[i].header.loop_length = (module->samples[i].header.loop_end - module->samples[i].header.loop_start) + 1;
-        if (module->samples[i].header.loop_length > 0)
+        if (module->samples[i].header.loop_length > 2)
             module->samples[i].header.loop_enabled = 1;
         else
             module->samples[i].header.loop_enabled = 0;
