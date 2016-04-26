@@ -47,6 +47,10 @@ module_t * loader_psm_masi_load(io_handle_t * h)
         return 0;
 
     state.module = malloc(sizeof(module_t));
+    
+    /* This is some kind of hack. however, the format shares a lot of things
+     * with the S3M format.
+     */
     state.module->module_type = module_type_s3m;
     state.module->song_message = 0;
     
@@ -56,6 +60,8 @@ module_t * loader_psm_masi_load(io_handle_t * h)
     state.module->num_orders = 0;
     state.module->num_patterns = 0;
     state.module->num_samples = 0;
+    
+    state.module->instruments = 0;
     
     /* 2 iterations - analysis phase and loading phase 
      * starting with analysis phase

@@ -194,7 +194,7 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
             player->current_tick = 0;
             
             // advance to next order if last row played or break upcoming
-            if ((player->current_row >= 64) || (player->do_break)) {
+            if ((player->current_row >= player->module->patterns[player->current_pattern].num_rows) || (player->do_break)) {
                 
                 player->current_order = player->next_order;
                 player->next_order++;
@@ -203,7 +203,7 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
                 player->pattern_delay_active = 0;
                 
                 // only if regular pattern end (no break)
-                if ((player->current_row) >= 64) {
+                if (player->current_row >= player->module->patterns[player->current_pattern].num_rows) {
                     player->current_row = 0;
                     player->next_row = 1;
                 }

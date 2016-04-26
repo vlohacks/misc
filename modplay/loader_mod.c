@@ -14,7 +14,6 @@
 #include "arch.h"
 #include "io.h"
 #include "mixing.h"
-#include "string_enc.h"
 
 /* checks if given data is a mod, returns 1 if data is valid */
 int loader_mod_check(io_handle_t * h)

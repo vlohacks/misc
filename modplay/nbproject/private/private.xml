@@ -9,25 +9,7 @@
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/home/vlo/code/github/misc/modplay/WORKLOG.txt</file>
-            <file>file:/home/vlo/code/github/misc/modplay/ui_terminal.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/Makefile</file>
-            <file>file:/home/vlo/code/github/misc/modplay/loader_psm_masi.h</file>
-            <file>file:/home/vlo/code/github/misc/modplay/ui.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/ui.h</file>
-            <file>file:/home/vlo/code/github/misc/modplay/docs/psm-epic.txt</file>
-            <file>file:/home/vlo/code/github/misc/modplay/application.h</file>
-            <file>file:/home/vlo/code/github/misc/modplay/loader_psm_masi.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/loader_s3m.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/module_utils.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/player.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/module_utils.h</file>
-            <file>file:/home/vlo/code/github/misc/modplay/ui_ncurses.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/ui_terminal.h</file>
-            <file>file:/home/vlo/code/github/misc/modplay/main.c</file>
-            <file>file:/home/vlo/code/github/misc/modplay/module.h</file>
-        </group>
+        <group/>
     </open-files>
     <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
         <module name="org-netbeans-modules-cnd-discovery">

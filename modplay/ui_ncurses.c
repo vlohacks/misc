@@ -207,7 +207,7 @@ void ui_ncurses_tick_handler(player_t * player)
         
         tmp2[0] = 0;
         if (data->effect_num)
-            ui_effect_to_humanreadable(tmp2, data->effect_num, player->channels[i].effect_last_value, player->module->module_type);
+            ui_effect_to_humanreadable(tmp2, data->effect_num, data->effect_value, player->channels[i].effect_last_value, player->module->module_type);
         
         //sprintf(tmp, "%-30s | %3s | %2i | %02x | %-27s | ", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
         //mvwprintw(ui_ncurses_layout.channel_panel.w, i+1, 1, tmp);

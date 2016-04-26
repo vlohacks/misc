@@ -5,7 +5,6 @@
 
 #include "io.h"
 #include "mixing.h"
-#include "string_enc.h"
 
 /* checks if given data is a s3m, returns 1 if data is valid 
  */
