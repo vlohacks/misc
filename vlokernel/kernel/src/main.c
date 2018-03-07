@@ -27,9 +27,9 @@ void kernel_main(struct pmm_mbs_info * mb_info) {
 	term_puts("keys:\n1 - 4 : Toggle test tasks\n");
 	term_puts("5     : cause exception: GPF (cli in userspace)\n");
 	term_puts("6     : cause exception: illegal intruction\n");
+	term_puts("7     : Show physical memory map\n");
+	term_puts("8     : ps\n");
 	term_setcolor(7, 0);
-
-
 /*	
 	for (i = 0; i < 128; i++) {
 		p = pmm_alloc_page();

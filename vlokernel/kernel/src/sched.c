@@ -1,30 +1,15 @@
 #define SCHED_MAX_TASKS		5
 #include "sched.h"
 #include "pmm.h"
+#include "term.h"
+#include "util.h"
 
-//static int sched_current_task = -1;
 static int sched_num_tasks = 0;
 static volatile int sched_enabled = 0;
-//static struct cpu_state * sched_task_states[SCHED_MAX_TASKS];
 
 static struct sched_entity * sched_entity_last = 0;
 static struct sched_entity * sched_entity_first = 0;
 static struct sched_entity * sched_entity_current = 0;
-
-/*
-static struct sched_entity sched_entities[SCHED_MAX_TASKS];
-
-static struct sched_entity * sched_first_entity = 0;
-static struct sched_entity * sched_current_entity = 0;
-
-void sched_init(void) {
-	int i;
-	for (i = 0; i < SCHED_MAX_TASKS; i++) {
-		sched_entities[i].cpu = 0;
-		sched_entities[i].next = 0;
-	}
-}
-*/
 
 struct cpu_state * sched_add_task(struct cpu_state * cpu) 
 {
@@ -66,8 +51,8 @@ struct cpu_state * sched_remove_task(struct cpu_state * cpu)
 	if(entity) {
 		// task we wanna kill currently runs! Just schedule next instead
 		sched_enabled = 0;
-		//if (entity == sched_entity_current)
-		//	sched_entity_current = entity->next;
+		if (entity == sched_entity_current)
+			sched_entity_current = entity->next;
 		
 		// task is first in queue - use next as first
 		if (entity == sched_entity_first)
@@ -114,6 +99,40 @@ struct cpu_state * sched_schedule(struct cpu_state * cpu)
 	cpu = sched_entity_current->cpu;
 
 	return cpu;
+}
+
+void sched_ps()
+{
+	char buf[32];
+	int i = 0;
+	struct sched_entity * tmp = sched_entity_first;
+	itoa(buf, sched_num_tasks, 10, 1);
+	term_puts("\nnum_tasks : ");
+	term_puts(buf);
+	term_puts("\n");
+	
+	term_puts("id   entity      cpu st8\n");
+	
+	while (tmp != 0) {
+		itoa(buf, i, 10, 2);
+		term_puts(buf);
+		term_putc(' ');
+
+		itoa(buf, tmp, 16, 8);
+		term_puts(buf);
+		term_putc(' ');
+
+		itoa(buf, tmp->cpu, 16, 8);
+    	term_puts(buf);
+    	term_puts("   ");
+    	
+    	term_putc((tmp == sched_entity_current) ? 'R' : 'S');
+    	
+		term_putc('\n');
+
+		i++;
+		tmp = tmp->next;
+	}
 }
 
 struct sched_entity * sched_list_add(struct sched_entity * parent, struct sched_entity * child) 

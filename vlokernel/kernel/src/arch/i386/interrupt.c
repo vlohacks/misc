@@ -154,6 +154,9 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 				pmm_show_bitmap(32, 8);
 			}
 
+			if (x == 137) {
+				sched_ps();
+			}
 			/*
 			term_puts("kbd scancode: ");
 			itoa(buf, x, 10, 3);
@@ -172,7 +175,6 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 		if (cpu->intr == 48) {
 			c = (char)cpu->eax;
 			term_putc(c);
-			
 		}
 	}
 
