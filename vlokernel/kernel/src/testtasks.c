@@ -4,6 +4,7 @@
 #include "term.h"
 #include "task.h"
 #include "sched.h"
+#include "util.h"
 
 #define TESTTASKS_COUNT		6
 

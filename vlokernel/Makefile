@@ -13,7 +13,8 @@ iso: kernel
 	grub-mkrescue -o image.iso iso/
 
 run: kernel
-	qemu-system-i386 -kernel kernel.bin
+	qemu-system-i386 -soundhw ac97 -kernel kernel.bin
+	#qemu-system-i386 -kernel kernel.bin
 
 clean:
 	$(MAKE) -C $(KERNEL_DIR) clean

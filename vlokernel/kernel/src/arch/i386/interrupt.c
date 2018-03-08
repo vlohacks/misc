@@ -126,7 +126,7 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 	//char buf[32];
 	int x;
 	char c;
-	interrupt_disable();
+	//interrupt_disable();
 	struct cpu_state * new_cpu = cpu;
 
 	if (cpu->intr <= 0x1f) {
@@ -185,7 +185,7 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 		}
 		outb(0x20, 0x20);
 	}
-	interrupt_enable();
+	//interrupt_enable();
 	return new_cpu;
 }
 

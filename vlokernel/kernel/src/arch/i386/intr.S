@@ -59,7 +59,7 @@ intr_stub 48
 
 .extern handle_interrupt
 intr_common_handler:
-
+	cli
 	// CPU-Zustand sichern
 	push %ebp
 	push %edi
@@ -98,5 +98,6 @@ intr_common_handler:
 	// Fehlercode und Interruptnummer vom Stack nehmen
 	add $8, %esp
  
+	sti
 	// Ruecksprung zum unterbrochenen Code
 	iret

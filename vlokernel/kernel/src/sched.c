@@ -3,6 +3,7 @@
 #include "pmm.h"
 #include "term.h"
 #include "util.h"
+#include "cpu_state.h"
 
 static int sched_num_tasks = 0;
 static volatile int sched_enabled = 0;
@@ -111,12 +112,18 @@ void sched_ps()
 	term_puts(buf);
 	term_puts("\n");
 	
-	term_puts("id   entity      cpu st8\n");
+	term_puts("id st   tstruct      cpu      eax      ebx      ecx      edx\n");
+	term_puts("            esp      ebp      esi      edi      eip   eflags\n");
+	//         00  R  deadbeef deadbeef deadbeef deadbeef deadbeef deadbeef
+	//                deadbeef deadbeef deadbeef deadbeef deadbeef deadbeef
 	
 	while (tmp != 0) {
 		itoa(buf, i, 10, 2);
 		term_puts(buf);
-		term_putc(' ');
+		
+		term_puts("  ");
+		term_putc((tmp == sched_entity_current) ? 'R' : 'S');
+		term_puts("  ");
 
 		itoa(buf, tmp, 16, 8);
 		term_puts(buf);
@@ -124,11 +131,52 @@ void sched_ps()
 
 		itoa(buf, tmp->cpu, 16, 8);
     	term_puts(buf);
-    	term_puts("   ");
+    	term_putc(' ');
     	
-    	term_putc((tmp == sched_entity_current) ? 'R' : 'S');
+		itoa(buf, tmp->cpu->eax, 16, 8);
+    	term_puts(buf);
+    	term_putc(' ');
+
+		itoa(buf, tmp->cpu->ebx, 16, 8);
+    	term_puts(buf);
+    	term_putc(' ');
+
+		itoa(buf, tmp->cpu->ecx, 16, 8);
+    	term_puts(buf);
+    	term_putc(' ');
+
+		itoa(buf, tmp->cpu->edx, 16, 8);
+    	term_puts(buf);
+    	term_puts("\n       ");
+    	
+    	
+		itoa(buf, tmp->cpu->esp, 16, 8);
+    	term_puts(buf);
+    	term_putc(' ');
+
+		itoa(buf, tmp->cpu->ebp, 16, 8);
+    	term_puts(buf);
+    	term_putc(' ');
+
+		itoa(buf, tmp->cpu->esi, 16, 8);
+    	term_puts(buf);
+    	term_putc(' ');
+
+		itoa(buf, tmp->cpu->edi, 16, 8);
+    	term_puts(buf);    	
+    	term_putc(' ');
+    	
+		itoa(buf, tmp->cpu->eip, 16, 8);
+    	term_puts(buf);    	
+    	term_putc(' ');
+
+		itoa(buf, tmp->cpu->eflags, 16, 8);
+    	term_puts(buf);    	
+    	
     	
 		term_putc('\n');
+		
+		//cpu_state_dump(tmp->cpu);
 
 		i++;
 		tmp = tmp->next;
