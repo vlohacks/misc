@@ -27,15 +27,17 @@ void kernel_main(struct pmm_mbs_info * mb_info)
 	
 	interrupt_init();
 	testtasks_init();
-	term_puts("enabling interrupts\n");
-	interrupt_enable();
+	
 	term_puts("keys:\n1 - 4 : Toggle test tasks\n");
 	term_puts("5     : cause exception: GPF (cli in userspace)\n");
 	term_puts("6     : cause exception: illegal intruction\n");
 	term_puts("7     : Show physical memory map\n");
 	term_puts("8     : process list / stats\n");
+	term_puts("enabling interrupts and just WALK AWAY\n");
+	
 	term_setcolor(7, 0);
-
+	interrupt_enable();
+	
 	for(;;);
 	
 }

@@ -89,23 +89,20 @@ void testtask_idle(void)
 	for(;;);
 }
 
-void testtasks_toggle(int task) 
+struct cpu_state * testtasks_toggle(int task, struct cpu_state * cpu) 
 {
 	char buf[32];
-	itoa(buf, task, 10, 2);
-	term_puts("\ntesttask ");
-	term_puts(buf);
 	
 	if (testtask_states[task]) {
-		term_puts(" terminating\n");		
-		sched_remove_task(testtask_states[task]->cpu);
+		cpu = sched_remove_task(cpu, testtask_states[task]->cpu);
 		task_free_user(testtask_states[task]);
 		testtask_states[task] = 0;
 	} else {
-		term_puts(" starting\n");
 		testtask_states[task] = task_init_user(testtask_entries[task]);
 		sched_add_task(testtask_states[task]->cpu);
 	}
+	
+	return cpu;
 }
 
 

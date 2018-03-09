@@ -1,11 +1,10 @@
-#define SCHED_MAX_TASKS		5
 #include "sched.h"
 #include "pmm.h"
 #include "term.h"
 #include "util.h"
 #include "cpu_state.h"
 
-static int sched_num_tasks = 0;
+static volatile int sched_num_tasks = 0;
 static volatile int sched_enabled = 0;
 
 static struct sched_entity * sched_entity_last = 0;
@@ -16,6 +15,7 @@ struct cpu_state * sched_add_task(struct cpu_state * cpu)
 {
 	if (sched_num_tasks == SCHED_MAX_TASKS)
 		return 0;
+		
 	sched_enabled = 0;
 	
 	struct sched_entity * entity = pmm_alloc_page();
@@ -23,7 +23,7 @@ struct cpu_state * sched_add_task(struct cpu_state * cpu)
 	entity->prev = 0;
 	entity->next = 0;
 	
-	if (sched_num_tasks) {
+	if (sched_num_tasks > 0) {
 		sched_list_add(sched_entity_last, entity);
 	} else {
 		sched_entity_first = entity;
@@ -36,24 +36,30 @@ struct cpu_state * sched_add_task(struct cpu_state * cpu)
 	return cpu;
 }
 
-struct cpu_state * sched_remove_task(struct cpu_state * cpu) 
+struct cpu_state * sched_remove_task(struct cpu_state * cpu, struct cpu_state * cpu_to_kill) 
 {
 	if (sched_num_tasks == 0)
 		return 0;
-		
+	
 	struct sched_entity * entity = sched_entity_first;
 	
 	// find task by cpu state O(N)
 	for(; entity; entity = entity->next) {
-		if (entity->cpu == cpu)
+		if (entity->cpu == cpu_to_kill)
 			break;
 	}
 	
 	if(entity) {
 		// task we wanna kill currently runs! Just schedule next instead
 		sched_enabled = 0;
-		if (entity == sched_entity_current)
-			sched_entity_current = entity->next;
+		if (entity == sched_entity_current) {
+			if (entity->next)
+				sched_entity_current = entity->next;
+			else
+				sched_entity_current = sched_entity_first;
+				
+			cpu = sched_entity_current->cpu;
+		}
 		
 		// task is first in queue - use next as first
 		if (entity == sched_entity_first)
@@ -68,8 +74,6 @@ struct cpu_state * sched_remove_task(struct cpu_state * cpu)
 		sched_num_tasks--;
 		sched_enabled = 1;
 	}
-	
-	
 		
 	return cpu;
 }

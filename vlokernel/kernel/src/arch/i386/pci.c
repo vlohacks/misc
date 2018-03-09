@@ -44,7 +44,18 @@ void pci_enum() {
 			if ((tmp & 0xffff) == 0xffff)
 				continue;
 			
-			term_puts("PCI: vendor=");	
+			term_puts("PCI " );
+			
+			itoa(buf, bus, 16, 2);
+			
+			term_puts(buf);
+			term_putc(':');
+			
+			
+			itoa(buf, slot, 16, 2);
+			term_puts(buf);
+			
+			term_puts(" vendor=");	
 			itoa(buf, tmp & 0xffff, 16, 4);
 			term_puts(buf);
 			

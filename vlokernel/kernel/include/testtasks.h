@@ -2,6 +2,6 @@
 #define _TESTTASKS_H
 
 void testtasks_init();
-void testtasks_toggle(int task);
+struct cpu_state * testtasks_toggle(int task, struct cpu_state * cpu);
 
 #endif

@@ -11,9 +11,9 @@ static struct idt_entry idt[IDT_NUM_ENTRIES];
 
 static inline uint8_t inb(uint16_t port)
 {
-        uint8_t result;
-        asm volatile ("inb %1, %0" : "=a" (result) : "Nd" (port));
-        return result;
+	uint8_t result;
+	asm volatile ("inb %1, %0" : "=a" (result) : "Nd" (port));
+	return result;
 }
 
 static inline void outb(uint16_t port, uint8_t data) 
@@ -126,7 +126,7 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 	//char buf[32];
 	int x;
 	char c;
-	//interrupt_disable();
+
 	struct cpu_state * new_cpu = cpu;
 
 	if (cpu->intr <= 0x1f) {
@@ -146,7 +146,8 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 				exception_fuck_system();
 			
 			if ((x >= 130) && (x <= 135)) {
-				testtasks_toggle(x-130);
+				new_cpu = testtasks_toggle(x-130, cpu);
+				gdt_update_tss((uint32_t)(new_cpu + 1));
 			}
 			
 			if (x == 136) {
@@ -185,7 +186,7 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 		}
 		outb(0x20, 0x20);
 	}
-	//interrupt_enable();
+
 	return new_cpu;
 }
 
