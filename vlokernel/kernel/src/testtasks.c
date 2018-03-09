@@ -15,67 +15,70 @@ static struct task_state * testtask_states[TESTTASKS_COUNT];
 
 void testtask_A(void) 																
 {
-	for(;;) {
-		asm (	"		xor %%eax, %%eax\n"
-				"		mov $0x41, %%bl\n"
-				"		mov $0x09, %%cl\n"
-				"		int $0x30\n"
-				"		movl $0x00ffffff, %%ecx\n"
-				"yoloa:	loop yoloa"
-				:
-				:
-				: "ecx", "eax", "bl", "cl"
-			);	
-	}
+	asm (	"		xor %%eax, %%eax\n"
+			"		mov $0x41, %%bl\n"
+			"		mov $0x09, %%cl\n"
+			"loopa: int $0x30\n"
+			"       push %%ecx\n"
+			"		movl $0x00ffffff, %%ecx\n"
+			"yoloa:	loop yoloa\n"
+			"       pop %%ecx\n"
+			"       jmp loopa"
+			:
+			:
+			: "ecx", "eax", "bl", "cl"
+		);
 }
 
 void testtask_B(void) 
 {
-
-	for(;;) { 
-		asm (	"		xor %%eax, %%eax\n"
-				"		mov $0x42, %%bl\n"
-				"		mov $0x0a, %%cl\n"
-				"		int $0x30\n"
-				"		movl $0x00ffffff, %%ecx\n"
-				"yolob:	loop yolob"
-				:
-				:
-				: "ecx", "eax", "bl", "cl"
-			);	
-	}
+	asm (	"		xor %%eax, %%eax\n"
+			"		mov $0x42, %%bl\n"
+			"		mov $0x0a, %%cl\n"
+			"loopb: int $0x30\n"
+			"       push %%ecx\n"
+			"		movl $0x00ffffff, %%ecx\n"
+			"yolob:	loop yolob\n"
+			"       pop %%ecx\n"
+			"       jmp loopb"
+			:
+			:
+			: "ecx", "eax", "bl", "cl"
+		);
 }
 
 void testtask_C(void) 
 {
-	for(;;) { 
-		asm (	"		xor %%eax, %%eax\n"
-				"		mov $0x43, %%bl\n"
-				"		mov $0x0b, %%cl\n"
-				"		int $0x30\n"
-				"		movl $0x00ffffff, %%ecx\n"
-				"yoloc:	loop yoloc"
-				:
-				:
-				: "ecx", "eax", "bl", "cl"
-			);	
-	}
+	asm (	"		xor %%eax, %%eax\n"
+			"		mov $0x43, %%bl\n"
+			"		mov $0x0b, %%cl\n"
+			"loopc: int $0x30\n"
+			"       push %%ecx\n"
+			"		movl $0x00ffffff, %%ecx\n"
+			"yoloc:	loop yoloc\n"
+			"       pop %%ecx\n"
+			"       jmp loopc"
+			:
+			:
+			: "ecx", "eax", "bl", "cl"
+		);
 }
 
 void testtask_D(void) 
 {
-	for(;;) { 
-		asm (	"		xor %%eax, %%eax\n"
-				"		mov $0x44, %%bl\n"
-				"		mov $0x0c, %%cl\n"
-				"		int $0x30\n"
-				"		movl $0x00ffffff, %%ecx\n"
-				"yolod:	loop yolod"
-				:
-				:
-				: "ecx", "eax", "bl", "cl"
-			);	
-	}
+	asm (	"		xor %%eax, %%eax\n"
+			"		mov $0x44, %%bl\n"
+			"		mov $0x0c, %%cl\n"
+			"loopd: int $0x30\n"
+			"       push %%ecx\n"
+			"		movl $0x00ffffff, %%ecx\n"
+			"yolod:	loop yolod\n"
+			"       pop %%ecx\n"
+			"       jmp loopd"
+			:
+			:
+			: "ecx", "eax", "bl", "cl"
+		);
 }
 
 void testtask_gpf(void) 
