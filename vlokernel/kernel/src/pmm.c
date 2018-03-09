@@ -44,7 +44,7 @@ void pmm_init(struct pmm_mbs_info * mbs_info)
 			addr = (uintptr_t)mmap->base;
 			addr_end = (uintptr_t)(addr + mmap->length);
 
-			term_puts("pmm: freeing ");
+			term_puts("pmm: freeing         : ");
 			itoa(buf, addr, 16, 8);
 			term_puts(buf);
 			term_puts(" - ");
@@ -59,6 +59,14 @@ void pmm_init(struct pmm_mbs_info * mbs_info)
 		}
 		mmap++;
 	}
+
+	term_puts("pmm: preserving kmem : ");
+	itoa(buf, &kernel_start, 16, 8);
+	term_puts(buf);
+	term_puts(" - ");
+	itoa(buf, &kernel_end, 16, 8);
+	term_puts(buf);
+	term_puts("\n");
 
 	addr = (uintptr_t) &kernel_start;
 	while (addr < (uintptr_t) &kernel_end) {
@@ -88,21 +96,6 @@ void * pmm_alloc_page()
 	return 0;
 }
 
-void pmm_show_bitmap(const uint32_t start, const uint32_t limit) 
-{
-	char buf[9];
-	uint32_t i;
-/*
-	if (limit > PMM_BITMAP_SIZE)
-		limit = PMM_BITMAP_SIZE;
-*/
-	for (i = start; i < (start+limit); i++) {
-		itoa(buf, pmm_bitmap[i], 16, 8);
-		term_puts(buf);
-		term_puts("\n");
-	}
-}
-
 void pmm_free_page(void * page) 
 {
 	uint32_t bm_index = ((uintptr_t)page) / PMM_PAGE_SIZE / 32;
@@ -111,10 +104,31 @@ void pmm_free_page(void * page)
 	if (bm_index < pmm_bottom_used) {
 		if (bm_index >= 32)
 			pmm_bottom_used = bm_index;
-			
 	}
 	
 	pmm_bitmap[bm_index] |= (1 << bm_bitindex);
 }
 
+void pmm_show_bitmap(const uint32_t start, const uint32_t limit) 
+{
+	char buf[9];
+	uint32_t i;
+/*
+	if (limit > PMM_BITMAP_SIZE)
+		limit = PMM_BITMAP_SIZE;
+*/
+	term_puts("physmap pages ");
+	itoa(buf, start, 16, 8);
+	term_puts(buf);
+	term_putc('-');
+	itoa(buf, start+limit, 16, 8);
+	term_puts(buf);
+	term_putc('\n');
+
+	for (i = start; i < (start+limit); i++) {
+		itoa(buf, pmm_bitmap[i], 16, 8);
+		term_puts(buf);
+		term_putc((i+1)&3 ? ' ' : '\n');
+	}
+}
 

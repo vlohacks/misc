@@ -16,13 +16,15 @@ static struct task_state * testtask_states[TESTTASKS_COUNT];
 void testtask_A(void) 																
 {
 	for(;;) {
-		asm (	"		mov $0x41, %%eax\r\n"
-				"		int $0x30\r\n"
-				"		movl $0x00ffffff, %%ecx\r\n"
+		asm (	"		xor %%eax, %%eax\n"
+				"		mov $0x41, %%bl\n"
+				"		mov $0x09, %%cl\n"
+				"		int $0x30\n"
+				"		movl $0x00ffffff, %%ecx\n"
 				"yoloa:	loop yoloa"
 				:
 				:
-				: "ecx", "eax"
+				: "ecx", "eax", "bl", "cl"
 			);	
 	}
 }
@@ -31,42 +33,48 @@ void testtask_B(void)
 {
 
 	for(;;) { 
-		asm (	"		mov $0x42, %%eax\r\n"
-				"		int $0x30\r\n"
-				"		movl $0x00ffffff, %%ecx\r\n"
+		asm (	"		xor %%eax, %%eax\n"
+				"		mov $0x42, %%bl\n"
+				"		mov $0x0a, %%cl\n"
+				"		int $0x30\n"
+				"		movl $0x00ffffff, %%ecx\n"
 				"yolob:	loop yolob"
 				:
 				:
-				: "ecx", "eax"
-			);
+				: "ecx", "eax", "bl", "cl"
+			);	
 	}
 }
 
 void testtask_C(void) 
 {
 	for(;;) { 
-		asm (	"		mov $0x43, %%eax\r\n"
-				"		int $0x30\r\n"
-				"		movl $0x00ffffff, %%ecx\r\n"
+		asm (	"		xor %%eax, %%eax\n"
+				"		mov $0x43, %%bl\n"
+				"		mov $0x0b, %%cl\n"
+				"		int $0x30\n"
+				"		movl $0x00ffffff, %%ecx\n"
 				"yoloc:	loop yoloc"
 				:
 				:
-				: "ecx", "eax"
-			);		
+				: "ecx", "eax", "bl", "cl"
+			);	
 	}
 }
 
 void testtask_D(void) 
 {
 	for(;;) { 
-		asm (	"		mov $0x44, %%eax\r\n"
-				"		int $0x30\r\n"
-				"		movl $0x00ffffff, %%ecx\r\n"
+		asm (	"		xor %%eax, %%eax\n"
+				"		mov $0x44, %%bl\n"
+				"		mov $0x0c, %%cl\n"
+				"		int $0x30\n"
+				"		movl $0x00ffffff, %%ecx\n"
 				"yolod:	loop yolod"
 				:
 				:
-				: "ecx", "eax"
-			);		
+				: "ecx", "eax", "bl", "cl"
+			);	
 	}
 }
 
@@ -86,7 +94,15 @@ void testtask_illegalins(void)
 
 void testtask_idle(void) 
 {
-	for(;;);
+	// syscall #1: yield / reschedule
+	asm (	"		xor %%eax, %%eax\n"
+			"		inc %%eax\n"
+			"idle:	int $0x30\n"
+			"		jmp idle"
+			:
+			:
+			: "eax"
+	);		
 }
 
 struct cpu_state * testtasks_toggle(int task, struct cpu_state * cpu) 

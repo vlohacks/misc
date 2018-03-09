@@ -125,21 +125,18 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 {
 	//char buf[32];
 	int x;
-	char c;
 
 	struct cpu_state * new_cpu = cpu;
 
 	if (cpu->intr <= 0x1f) {
 		// Exception
-
 		exception_lmaa(cpu);
 	
 	} else {
 		if (cpu->intr == 0x20) {
 			new_cpu = sched_schedule(cpu);
 			gdt_update_tss((uint32_t)(new_cpu + 1));
-		}
-		if (cpu->intr == 0x21) {
+		} else if (cpu->intr == 0x21) {
 			
 			x = (int)inb(0x60);
 			if (x == 1) 
@@ -151,31 +148,34 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 			}
 			
 			if (x == 136) {
-				term_puts("\nphysmap:\n");
-				pmm_show_bitmap(32, 8);
+				pmm_show_bitmap(0, 64);
 			}
 
 			if (x == 137) {
 				sched_ps();
 			}
+
+		} else if (cpu->intr == 48) {
+			// Syscall
+			new_cpu = syscall(cpu);
 			/*
-			term_puts("kbd scancode: ");
-			itoa(buf, x, 10, 3);
-			term_puts(buf);
-			term_putc(' ');
-			itoa(buf, x, 16, 2);
-			term_puts(buf);
-			term_putc(' ');
-			itoa(buf,x, 2, 8);
-			term_puts(buf);
-			term_putc(' ');
-			term_puts("     \n");
-			*/
-		}
-		// Syscall
-		if (cpu->intr == 48) {
-			c = (char)cpu->eax;
-			term_putc(c);
+			{
+				char c, cf, cb;
+				c = (char)cpu->eax;
+				cf = (char)cpu->ebx;
+				cb = (char)(cpu->ebx >> 8);
+				term_setcolor(cf, cb);
+				term_putc(c);
+				term_setcolor(7, 0);
+			}*/
+		} else {
+			{
+				char buf[5];
+				itoa(buf, cpu->intr, 10, 2);
+				term_puts("Unhandled interrupt: ");
+				term_puts(buf);
+				term_putc('\n');
+			}
 		}
 	}
 
