@@ -74,8 +74,6 @@ void pci_enum() {
 			term_puts(buf);
 			
 			term_putc('\n');
-			
-				
 		}
 	}
 		

@@ -1,13 +1,15 @@
 #include "term.h"
 #include "gdt.h"
 #include "pmm.h"
+#include "multiboot.h"
+#include "vmm.h"
 #include "testtasks.h"
 #include "interrupt.h"
 #include "cpu_state.h"
 #include "pci.h"
 
 
-void kernel_main(struct pmm_mbs_info * mb_info) 
+void kernel_main(struct multiboot_mbs_info * mbs_info) 
 {
 	
 	char buf[32];
@@ -17,16 +19,16 @@ void kernel_main(struct pmm_mbs_info * mb_info)
 	term_puts("vloOS 0.0.1337 Kernel\n");
 	term_setcolor(15, 0);
 	term_puts("initializing physical memory manager\n");
-	pmm_init(mb_info);
+	pmm_init(mbs_info);
+	//vmm_init();
 
 	term_puts("initializing GDT\n");
 	gdt_init();
-	term_puts("initializing IDT\n");
 	
 	pci_enum();
 	
 	interrupt_init();
-	testtasks_init();
+	testtasks_init(mbs_info);
 	
 	term_puts("keys:\n1 - 4 : Toggle test tasks\n");
 	term_puts("5     : cause exception: GPF (cli in userspace)\n");
@@ -39,7 +41,6 @@ void kernel_main(struct pmm_mbs_info * mb_info)
 	interrupt_enable();
 	
 	for(;;);
-	
 }
 
 

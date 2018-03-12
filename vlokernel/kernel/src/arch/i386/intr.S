@@ -1,3 +1,5 @@
+// macros for generating interrupt stub entries
+
 .macro intr_stub nr
 .global intr_stub_\nr
 intr_stub_\nr:
@@ -56,11 +58,10 @@ intr_stub 47
 intr_stub 48
 
 
-
 .extern handle_interrupt
 intr_common_handler:
 
-	// CPU-Zustand sichern
+	// save current CPU state
 	push %ebp
 	push %edi
 	push %esi
@@ -69,24 +70,27 @@ intr_common_handler:
 	push %ebx
 	push %eax
 
-	// Kernel DS und ES laden
+	// load kernel DS and ES
 	mov $0x10, %ax
 	mov %ax, %ds
 	mov %ax, %es
 
 
-	// Handler aufrufen
+	// call interrupt handler in C
 	push %esp
 	call interrupt_handle
+	
+	// realign stack to possibly new CPU state
+	// interrupt_handle might have returned a new state
+	// ie due to scheduling 
 	mov %eax, %esp
 
-	// User DS und ES laden
+	// load user DS and ES
 	mov $0x23, %ax
  	mov %ax, %ds
 	mov %ax, %es
 
-
-	// CPU-Zustand wiederherstellen
+	// restore CPU state
 	pop %eax
 	pop %ebx
 	pop %ecx
@@ -95,8 +99,9 @@ intr_common_handler:
 	pop %edi
 	pop %ebp
  
-	// Fehlercode und Interruptnummer vom Stack nehmen
+	// remove error code and interrupt number from stack
+	// which were pushed by interrupt stub handlers (see above)
 	add $8, %esp
 
-	// Ruecksprung zum unterbrochenen Code
+	// return to interrupted code
 	iret

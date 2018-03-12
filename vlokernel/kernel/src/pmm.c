@@ -8,7 +8,7 @@ static volatile uint32_t pmm_bottom_used;
 extern const void kernel_start;
 extern const void kernel_end;
 
-static void pmm_mark_used(void * page) 
+void pmm_mark_used(void * page) 
 {
 	uint32_t bm_index = ((uintptr_t)page) / PMM_PAGE_SIZE / 32;
 	uint32_t bm_bitindex = (((uintptr_t)page) / PMM_PAGE_SIZE) & 31;
@@ -24,11 +24,11 @@ static void pmm_mark_free(void * page)
 	pmm_bitmap[bm_index] |= (1 << bm_bitindex);
 }
 
-void pmm_init(struct pmm_mbs_info * mbs_info) 
+void pmm_init(struct multiboot_mbs_info * mbs_info) 
 {
 	char buf[64];
-	struct pmm_mbs_mmap * mmap = mbs_info->mbs_mmap_addr;
-	struct pmm_mbs_mmap * mmap_end = (void *)((uintptr_t *)mbs_info->mbs_mmap_addr + mbs_info->mbs_mmap_length);
+	struct multiboot_mbs_mmap * mmap = mbs_info->mbs_mmap_addr;
+	struct multiboot_mbs_mmap * mmap_end = (void *)((uintptr_t *)mbs_info->mbs_mmap_addr + mbs_info->mbs_mmap_length);
 
 	uintptr_t addr, addr_end;
 	int i;
@@ -44,7 +44,7 @@ void pmm_init(struct pmm_mbs_info * mbs_info)
 			addr = (uintptr_t)mmap->base;
 			addr_end = (uintptr_t)(addr + mmap->length);
 
-			term_puts("pmm: freeing         : ");
+			term_puts("pmm: freeing                        : ");
 			itoa(buf, addr, 16, 8);
 			term_puts(buf);
 			term_puts(" - ");
@@ -60,7 +60,8 @@ void pmm_init(struct pmm_mbs_info * mbs_info)
 		mmap++;
 	}
 
-	term_puts("pmm: preserving kmem : ");
+	term_puts("pmm: preserving kmem                : ");
+
 	itoa(buf, &kernel_start, 16, 8);
 	term_puts(buf);
 	term_puts(" - ");
@@ -73,7 +74,31 @@ void pmm_init(struct pmm_mbs_info * mbs_info)
 		pmm_mark_used((void *)addr);
 		addr += PMM_PAGE_SIZE;
 	}
+	
+	// preserve mutliboot structure and modules
+	//term_puts("pmm: preserving multiboot structure : ");
+	struct multiboot_module * mb_modules = mbs_info->mbs_mods_addr;
+	pmm_mark_used(mbs_info);
+	pmm_mark_used(mb_modules);
+	
+	for (i = 0; i < mbs_info->mbs_mods_count; i++) {
+		addr = mb_modules[i].mod_start;
+		term_puts(mb_modules[i].string);
+		term_putc(' ');
+		while (addr < mb_modules[i].mod_end) {
+			pmm_mark_used((void *)addr);
+			addr += PMM_PAGE_SIZE;
+		}
+		
+		itoa(buf, mb_modules[i].mod_start, 16, 8);
+		term_puts(buf);
+		term_putc('-');
 
+		itoa(buf, mb_modules[i].mod_end, 16, 8);
+		term_puts(buf);
+		term_putc('\n');		
+	}
+	
 }
 
 void * pmm_alloc_page() 

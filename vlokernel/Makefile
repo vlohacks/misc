@@ -1,19 +1,25 @@
-KERNEL_DIR	= kernel
+KERNEL_DIR		= kernel
+TESTTASK_DIR	= testtask
 
 .PHONY: kernel
-
+.PHONY: testtask
 
 
 kernel: 
 	$(MAKE) -C $(KERNEL_DIR)
 	cp $(KERNEL_DIR)/kernel.bin .
+	
+testtask:
+	$(MAKE) -C $(TESTTASK_DIR)
+	cp $(TESTTASK_DIR)/*.elf .
 
-iso: kernel
+iso: kernel testtask
 	cp kernel.bin iso/boot/
+	./setup_iso.sh	
 	grub-mkrescue -o image.iso iso/
 
-run: kernel
-	qemu-system-i386 -soundhw ac97 -kernel kernel.bin
+run: kernel testtask
+	qemu-system-i386 -D ./qemu.log -d int,cpu_reset -soundhw ac97 -kernel kernel.bin -initrd fibonacci.elf -initrd printA.elf
 	#qemu-system-i386 -kernel kernel.bin
 
 clean:

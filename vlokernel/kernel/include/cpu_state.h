@@ -5,7 +5,7 @@
 
 struct cpu_state 
 {
-	// Von Hand gesicherte Register
+	// registers we have to take care about in case of interrupt
 	uint32_t   eax;
 	uint32_t   ebx;
 	uint32_t   ecx;
@@ -17,7 +17,7 @@ struct cpu_state
 	uint32_t   intr;
 	uint32_t   error;
  
-	// Von der CPU gesichert
+	// registers saved / restored by the cpu
 	uint32_t   eip;
 	uint32_t   cs;
 	uint32_t   eflags;

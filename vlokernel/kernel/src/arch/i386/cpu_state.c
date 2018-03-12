@@ -12,10 +12,10 @@ void cpu_state_init_ring0(struct cpu_state * cpu, void * entry)
 	cpu->esi = 0;
 	cpu->edi = 0;
 	cpu->ebp = 0;
-	//.esp = ??,		// nur bei ringwechsel
+	//.esp = ??,		// ESP only changes on priv level change
 	cpu->eip = (uint32_t)entry;
 	cpu->cs = 0x08;		// ring 0 
-	//.ss = ??		// nur bei ringwechsel
+	//.ss = ??			// SS only changes on priv level change
 	
 	cpu->eflags = 0x202;
 }
@@ -29,7 +29,7 @@ void cpu_state_init_ring3(struct cpu_state * cpu, void * user_stack, void * entr
 	cpu->esi = 0;
 	cpu->edi = 0;
 	cpu->ebp = 0;
-	cpu->esp = (uint32_t)user_stack + PMM_PAGE_SIZE;		// nur bei ringwechsel
+	cpu->esp = (uint32_t)user_stack + PMM_PAGE_SIZE;
 	cpu->eip = (uint32_t)entry;
 	cpu->cs = 0x18 | 0x03;	
 	cpu->ss = 0x20 | 0x03;

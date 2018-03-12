@@ -34,7 +34,7 @@ struct task_state * task_init_user(void * entry)
 	struct cpu_state new_state;
 	cpu_state_init_ring3(&new_state, user_stack, entry);
 	
-	// state auf den task stack kopieren
+	// copy state onto stack memory
 	struct cpu_state * cpu = (void *) (kernel_stack + PMM_PAGE_SIZE - sizeof(struct cpu_state));
 	*cpu = new_state;
 	

@@ -158,16 +158,6 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 		} else if (cpu->intr == 48) {
 			// Syscall
 			new_cpu = syscall(cpu);
-			/*
-			{
-				char c, cf, cb;
-				c = (char)cpu->eax;
-				cf = (char)cpu->ebx;
-				cb = (char)(cpu->ebx >> 8);
-				term_setcolor(cf, cb);
-				term_putc(c);
-				term_setcolor(7, 0);
-			}*/
 		} else {
 			{
 				char buf[5];
@@ -182,9 +172,9 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 	// HW Interrupt acknowledgen
 	if (cpu->intr >= 0x20 && cpu->intr <= 0x2f) {
 		if (cpu->intr >= 0x28) {
-			outb(0xa0, 0x20);
+			outb(0xa0, 0x20);	// ack 2. pic
 		}
-		outb(0x20, 0x20);
+		outb(0x20, 0x20); 		// ack 1. pic
 	}
 
 	return new_cpu;
