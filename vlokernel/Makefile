@@ -16,7 +16,7 @@ testtask:
 iso: kernel testtask
 	cp kernel.bin iso/boot/
 	./setup_iso.sh	
-	grub-mkrescue -o image.iso iso/
+	grub-mkrescue -d /usr/lib/grub/i386-pc/ -o image.iso iso/
 
 run: kernel testtask
 	qemu-system-i386 -D ./qemu.log -d int,cpu_reset -soundhw ac97 -kernel kernel.bin -initrd fibonacci.elf -initrd printA.elf
@@ -24,6 +24,8 @@ run: kernel testtask
 
 clean:
 	$(MAKE) -C $(KERNEL_DIR) clean
+	$(MAKE) -C $(TESTTASK_DIR) clean
 	rm -f kernel.bin
+	rm -f *.elf
 	rm -f iso/boot/kernel.bin
 	rm -f image.iso
