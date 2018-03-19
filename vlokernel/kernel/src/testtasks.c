@@ -168,7 +168,7 @@ struct task_state * testtasks_run_module_elf(int module_index)
 	}
 
 	state = task_init_user(elfhdr->entry);
-	sched_add_task(state->cpu);
+	sched_add_task(state->cpu, state->context);
 	return state;
 }
 
@@ -187,7 +187,7 @@ void testtasks_init(struct multiboot_mbs_info * mbs_info)
 
 	testtask_idle_state = task_init_user(testtask_idle);
 
-	sched_add_task(testtask_idle_state->cpu);
+	sched_add_task(testtask_idle_state->cpu, testtask_idle_state->context);
 	
 	
 

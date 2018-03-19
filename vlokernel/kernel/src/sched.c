@@ -10,7 +10,7 @@ static struct sched_entity * sched_entity_last = 0;
 static struct sched_entity * sched_entity_first = 0;
 static struct sched_entity * sched_entity_current = 0;
 
-struct cpu_state * sched_add_task(struct cpu_state * cpu) 
+struct cpu_state * sched_add_task(struct cpu_state * cpu, struct vmm_context * context) 
 {
 	if (sched_num_tasks == SCHED_MAX_TASKS)
 		return 0;
