@@ -85,9 +85,12 @@ struct cpu_state * sched_schedule(struct cpu_state * cpu)
 	if (!sched_enabled)
 		return cpu;
 
+	struct sched_entity * sched_entity_save = sched_entity_current;
+
 	// first schedule - schedule first task
 	if (!sched_entity_current) {
 		sched_entity_current = sched_entity_first;
+		vmm_switch_context(sched_entity_current->context);
 		return sched_entity_current->cpu;
 	}
 	
@@ -99,7 +102,9 @@ struct cpu_state * sched_schedule(struct cpu_state * cpu)
 	} else {
 		sched_entity_current = sched_entity_first;
 	}
-	
+	if (sched_entity_current != sched_entity_save)
+		vmm_switch_context(sched_entity_current->context);
+		
 	cpu = sched_entity_current->cpu;
 
 	return cpu;
