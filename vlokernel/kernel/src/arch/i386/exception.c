@@ -49,20 +49,9 @@ void exception_lmaa(struct cpu_state * cpu)
 
 	term_setcolor(12, 0);
 
-	term_puts("\n\nLECK MICH AM ARSCH!\n");
-	term_puts("unhandled exception: ");
-	itoa(buf, cpu->intr, 16, 2);
-	term_puts(buf);
-
-	term_puts(" (");
-	term_puts(exception_texts[cpu->intr]);
-	term_puts(")");
-	
-	term_puts("\nerror code: 0x");
-	itoa(buf, cpu->error, 16, 8);
-	term_puts(buf);
-	
-	term_puts("\n\n");
+	vk_printf("\n\nLECK MICH AM ARSCH!\n");
+	vk_printf("unhandled exception: 0x%02x (%s)\n", cpu->intr, exception_texts[cpu->intr]);
+	vk_printf("error code: 0x%08x\n\n", cpu->error);
 
 	cpu_state_dump(cpu);
 
@@ -70,5 +59,13 @@ void exception_lmaa(struct cpu_state * cpu)
 		asm volatile("cli; hlt");
 	}
 
+}
+
+void panic(char * text)
+{
+	vk_printf("OH NO! %s, we all gonna die!\n", text);
+	for (;;) {
+		asm volatile("cli; hlt");
+	}
 }
 

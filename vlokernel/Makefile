@@ -18,8 +18,8 @@ iso: kernel testtask
 	./setup_iso.sh	
 	grub-mkrescue -d /usr/lib/grub/i386-pc/ -o image.iso iso/
 
-run: kernel testtask
-	qemu-system-i386 -D ./qemu.log -d int,cpu_reset -soundhw ac97 -kernel kernel.bin -initrd fibonacci.elf -initrd printA.elf
+run: kernel testtask iso
+	qemu-system-i386 -D ./qemu.log -d int,cpu_reset -soundhw ac97 -cdrom image.iso
 	#qemu-system-i386 -kernel kernel.bin
 
 clean:

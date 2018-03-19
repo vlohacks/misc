@@ -1,7 +1,6 @@
 #include "cpu_state.h"
 #include "pmm.h"
 #include "util.h"
-#include "term.h"
 
 void cpu_state_init_ring0(struct cpu_state * cpu, void * entry) 
 {
@@ -39,32 +38,17 @@ void cpu_state_init_ring3(struct cpu_state * cpu, void * user_stack, void * entr
 
 void cpu_state_dump(struct cpu_state * cpu) 
 {
-	char buf[32];
 	uint8_t * p;
 	int i;
-	term_puts("eax=0x");	itoa(buf, cpu->eax, 16, 8);	term_puts(buf);
-	term_puts("  ebx=0x");	itoa(buf, cpu->ebx, 16, 8);	term_puts(buf);
-	term_puts("  ecx=0x");	itoa(buf, cpu->ecx, 16, 8);	term_puts(buf);
-	term_puts("  edx=0x");	itoa(buf, cpu->edx, 16, 8);	term_puts(buf);
-
-	term_puts("\nesi=0x");	itoa(buf, cpu->esi, 16, 8);	term_puts(buf);
-	term_puts("  edi=0x");	itoa(buf, cpu->edi, 16, 8);	term_puts(buf);
-
-	term_puts("\nesp=0x");	itoa(buf, cpu->esp, 16, 8);	term_puts(buf);
-	term_puts("  ebp=0x");	itoa(buf, cpu->ebp, 16, 8);	term_puts(buf);
-	term_puts("  eip=0x");	itoa(buf, cpu->eip, 16, 8);	term_puts(buf);
-
-	term_puts("\neflags=0x");	itoa(buf, cpu->eflags, 16, 8);	term_puts(buf);
-	term_puts("  cs=0x");	itoa(buf, cpu->cs, 16, 4);	term_puts(buf);
-	term_puts("  ss=0x");	itoa(buf, cpu->ss, 16, 4);	term_puts(buf);
 	
-	term_puts("\n\ncode @ eip: ");
+	vk_printf("   eax=0x%08x  ebx=0x%08x  ecx=0x%08x, edx=0x%08x\n", cpu->eax, cpu->ebx, cpu->ecx, cpu->edx);
+	vk_printf("   esi=0x%08x  edi=0x%08x\n", cpu->esi, cpu->edi);
+	vk_printf("   esp=0x%08x  ebp=0x%08x  eip=0x%08x\n", cpu->esp, cpu->ebp, cpu->eip);
+	vk_printf("eflags=0x%08x   cs=0x%04x       ss=0x%04x\n", cpu->eflags, cpu->cs, cpu->ss);
+	
+	vk_printf("\ncode @ eip: ");
+
 	p = (uint8_t *)cpu->eip;
-
-	for (i=0; i<32; i++) {
-		itoa(buf, *p++, 16, 2);
-		term_puts(buf);
-		term_putc(' ');
-	}
-	
+	for (i=0; i<32; i++)
+		vk_printf("%02x", *p++);
 }

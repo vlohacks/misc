@@ -123,7 +123,6 @@ void interrupt_disable(void)
 
 struct cpu_state * interrupt_handle(struct cpu_state * cpu) 
 {
-	//char buf[32];
 	int x;
 
 	struct cpu_state * new_cpu = cpu;
@@ -159,13 +158,8 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 			// Syscall
 			new_cpu = syscall(cpu);
 		} else {
-			{
-				char buf[5];
-				itoa(buf, cpu->intr, 10, 2);
-				term_puts("Unhandled interrupt: ");
-				term_puts(buf);
-				term_putc('\n');
-			}
+			vk_printf("unhandled interrupt: 0x%02x", cpu->intr);
+			panic("Unhandled interrupt");
 		}
 	}
 

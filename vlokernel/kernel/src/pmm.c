@@ -1,6 +1,5 @@
 #include "pmm.h"
 #include "util.h"
-#include "term.h"
 
 static uint32_t pmm_bitmap[PMM_BITMAP_SIZE];
 static volatile uint32_t pmm_bottom_used;
@@ -38,20 +37,16 @@ void pmm_init(struct multiboot_mbs_info * mbs_info)
 	for (i=0; i<PMM_BITMAP_SIZE; i++) 
 		pmm_bitmap[i] = 0;
 
+	vk_printf("test: pmm bitmap addr: 0x%08x\n", pmm_bitmap);
+	vk_printf("pmm: freeing memory ...\n");
 	while (mmap < mmap_end) {
 
 		if (mmap->type == 1) {
 			addr = (uintptr_t)mmap->base;
 			addr_end = (uintptr_t)(addr + mmap->length);
 
-			term_puts("pmm: freeing                        : ");
-			itoa(buf, addr, 16, 8);
-			term_puts(buf);
-			term_puts(" - ");
-			itoa(buf, addr_end, 16, 8);
-			term_puts(buf);
-			term_puts("\n");
-		
+			vk_printf("     freeing                : %08x - %08x\n", addr, addr_end);
+			
 			while (addr < addr_end) {
 				pmm_mark_free((void *)addr);
 				addr += PMM_PAGE_SIZE;
@@ -59,15 +54,8 @@ void pmm_init(struct multiboot_mbs_info * mbs_info)
 		}
 		mmap++;
 	}
-
-	term_puts("pmm: preserving kmem                : ");
-
-	itoa(buf, &kernel_start, 16, 8);
-	term_puts(buf);
-	term_puts(" - ");
-	itoa(buf, &kernel_end, 16, 8);
-	term_puts(buf);
-	term_puts("\n");
+	
+	vk_printf("pmm: preserving kernel mem  : %08x - %08x\n", (unsigned int)&kernel_start, (unsigned int)&kernel_end);
 
 	addr = (uintptr_t) &kernel_start;
 	while (addr < (uintptr_t) &kernel_end) {
@@ -80,25 +68,16 @@ void pmm_init(struct multiboot_mbs_info * mbs_info)
 	struct multiboot_module * mb_modules = mbs_info->mbs_mods_addr;
 	pmm_mark_used(mbs_info);
 	pmm_mark_used(mb_modules);
-	
+	vk_printf("pmm: preserving memory for multiboot modules...\n");
 	for (i = 0; i < mbs_info->mbs_mods_count; i++) {
 		addr = mb_modules[i].mod_start;
-		term_puts(mb_modules[i].string);
-		term_putc(' ');
 		while (addr < mb_modules[i].mod_end) {
 			pmm_mark_used((void *)addr);
 			addr += PMM_PAGE_SIZE;
 		}
-		
-		itoa(buf, mb_modules[i].mod_start, 16, 8);
-		term_puts(buf);
-		term_putc('-');
 
-		itoa(buf, mb_modules[i].mod_end, 16, 8);
-		term_puts(buf);
-		term_putc('\n');		
+		vk_printf("     module %-16s: %08x - %08x\n", mb_modules[i].string, mb_modules[i].mod_start, mb_modules[i].mod_end);
 	}
-	
 }
 
 void * pmm_alloc_page() 
@@ -109,6 +88,31 @@ void * pmm_alloc_page()
 	for (i=pmm_bottom_used; i<PMM_BITMAP_SIZE; i++) {
 		if (pmm_bitmap[i]) {
 			for (j=0; j<32; j++) {
+				if (pmm_bitmap[i] & (1<<j)) {
+					pmm_bitmap[i] &= ~(1<<j);
+					page = PMM_PAGE_SIZE * ((i << 5) + j);
+					pmm_bottom_used = i;
+					return (void *)page;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+void * pmm_alloc_page_base(void * base) 
+{
+	uintptr_t i, j;
+	uintptr_t page;
+	uint32_t bm_index = ((uintptr_t)base) / PMM_PAGE_SIZE / 32;
+	uint32_t bm_bitindex = (((uintptr_t)base) / PMM_PAGE_SIZE) & 31;
+	
+	if (base == 0)
+		bm_index = pmm_bottom_used;
+		
+	for (i=bm_index; i<PMM_BITMAP_SIZE; i++) {
+		if (pmm_bitmap[i]) {
+			for (j=(i==0?bm_bitindex:0); j<32; j++) {
 				if (pmm_bitmap[i] & (1<<j)) {
 					pmm_bitmap[i] &= ~(1<<j);
 					page = PMM_PAGE_SIZE * ((i << 5) + j);
@@ -136,24 +140,11 @@ void pmm_free_page(void * page)
 
 void pmm_show_bitmap(const uint32_t start, const uint32_t limit) 
 {
-	char buf[9];
 	uint32_t i;
-/*
-	if (limit > PMM_BITMAP_SIZE)
-		limit = PMM_BITMAP_SIZE;
-*/
-	term_puts("physmap pages ");
-	itoa(buf, start, 16, 8);
-	term_puts(buf);
-	term_putc('-');
-	itoa(buf, start+limit, 16, 8);
-	term_puts(buf);
-	term_putc('\n');
 
-	for (i = start; i < (start+limit); i++) {
-		itoa(buf, pmm_bitmap[i], 16, 8);
-		term_puts(buf);
-		term_putc((i+1)&3 ? ' ' : '\n');
-	}
+	vk_printf("\nphysmap pages 0x%08x - 0x%08x\n", start, start+limit);
+
+	for (i = start; i < (start+limit); i++)
+		vk_printf("%08x%c", pmm_bitmap[i], (i+1)&3 ? ' ' : '\n');
 }
 

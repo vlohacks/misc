@@ -3,6 +3,8 @@
 
 #include "types.h"
 
-void itoa(char * buf, uint32_t val, uint32_t base, uint32_t zpad);
+void vk_itoa(char * buf, uint32_t val, uint32_t base, int padsize, char padchar);
+void vk_printf(char * format, ...);
+
 
 #endif

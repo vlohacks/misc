@@ -25,5 +25,4 @@ SECTIONS {
 
 	. = ALIGN(4K);
 	kernel_end = .;
-	
 }

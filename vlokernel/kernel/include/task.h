@@ -2,12 +2,16 @@
 #define _TASK_H
 
 #include "types.h"
+#include "vmm.h"
+
+#define TASK_DEFAULT_USER_STACK_VIRTUAL		0x00ff0000
 
 struct task_state 
 {
 	void * kernel_stack;
 	void * user_stack;
 	struct cpu_state * cpu;
+	struct vmm_context * context;
 };
 
 struct task_state * task_init_kernel(void * entry);

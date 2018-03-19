@@ -13,21 +13,6 @@ void term_out(const char c, uint8_t color, size_t x, size_t y) {
 	term_mem[y * TERM_WIDTH + x] = ((uint16_t)color) << 8 | c;
 }
 
-void term_putc_noint(const char c) 
-{
-	asm volatile("cli");
-	term_putc(c);
-	asm volatile("sti");
-}
-
-void term_puts_noint(const char * s) 
-{
-	asm volatile("cli");
-	term_puts(s);
-	asm volatile("sti");
-}
-	
-
 void term_putc(const char c) 
 {
 	if (c > 31) 

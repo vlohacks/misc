@@ -177,16 +177,19 @@ void testtasks_init(struct multiboot_mbs_info * mbs_info)
 	int i;
 
 	testtask_mbs_info = mbs_info;
-
+	
 	testtask_entries[0] = testtask_A;
 	testtask_entries[1] = testtask_B;
 	testtask_entries[2] = testtask_C;
 	testtask_entries[3] = testtask_D;
 	testtask_entries[4] = testtask_gpf;
 	testtask_entries[5] = testtask_illegalins;
-	
+
 	testtask_idle_state = task_init_user(testtask_idle);
+
 	sched_add_task(testtask_idle_state->cpu);
+	
+	
 
 	testtask_state_mb_module = 0;
 	for(i = 0; i < TESTTASKS_COUNT; i++) {

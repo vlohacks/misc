@@ -4,9 +4,10 @@
 
 struct task_state * task_init_kernel(void * entry) 
 {
-	struct task_state * task = pmm_alloc_page();
-	uint8_t * kernel_stack = pmm_alloc_page();
+	struct task_state * task = vmm_kfixedmem_alloc_page();
+	uint8_t * kernel_stack = vmm_kfixedmem_alloc_page();
 
+	task->context = vmm_get_kernel_context();
 	task->kernel_stack = (void *)kernel_stack;
 	task->user_stack = (void *)0;
 
@@ -24,10 +25,12 @@ struct task_state * task_init_kernel(void * entry)
 
 struct task_state * task_init_user(void * entry) 
 {
-	struct task_state * task = pmm_alloc_page();
-	uint8_t * kernel_stack = pmm_alloc_page();
-	uint8_t * user_stack = pmm_alloc_page();
+	struct vmm_context * context = vmm_alloc_context();
+	struct task_state * task = vmm_kfixedmem_alloc_page();
+	uint8_t * kernel_stack = vmm_kfixedmem_alloc_page();
+	uint8_t * user_stack = vmm_alloc_page(context, TASK_DEFAULT_USER_STACK_VIRTUAL, VMM_PT_PRESENT | VMM_PT_RW | VMM_PT_USER);
 	
+	task->context = context;
 	task->kernel_stack = (void *)kernel_stack;
 	task->user_stack = (void *)user_stack;
 

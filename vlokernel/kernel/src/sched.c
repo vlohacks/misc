@@ -1,6 +1,5 @@
 #include "sched.h"
 #include "pmm.h"
-#include "term.h"
 #include "util.h"
 #include "cpu_state.h"
 
@@ -18,7 +17,7 @@ struct cpu_state * sched_add_task(struct cpu_state * cpu)
 		
 	sched_enabled = 0;
 	
-	struct sched_entity * entity = pmm_alloc_page();
+	struct sched_entity * entity = vmm_kfixedmem_alloc_page();
 	entity->cpu = cpu;
 	entity->prev = 0;
 	entity->next = 0;
@@ -111,76 +110,20 @@ void sched_ps()
 	char buf[32];
 	int i = 0;
 	struct sched_entity * tmp = sched_entity_first;
-	itoa(buf, sched_num_tasks, 10, 1);
-	term_puts("\nnum_tasks : ");
-	term_puts(buf);
-	term_puts("\n");
+
+	vk_printf("\nnum_tasks : %d\n", sched_num_tasks);
 	
-	term_puts("id st   tstruct      cpu      eax      ebx      ecx      edx\n");
-	term_puts("            esp      ebp      esi      edi      eip   eflags\n");
+	vk_printf("id st   tstruct      cpu      eax      ebx      ecx      edx\n");
+	vk_printf("            esp      ebp      esi      edi      eip   eflags\n");
 	//         00  R  deadbeef deadbeef deadbeef deadbeef deadbeef deadbeef
 	//                deadbeef deadbeef deadbeef deadbeef deadbeef deadbeef
 	
 	while (tmp != 0) {
-		itoa(buf, i, 10, 2);
-		term_puts(buf);
-		
-		term_puts("  ");
-		term_putc((tmp == sched_entity_current) ? 'R' : 'S');
-		term_puts("  ");
+		vk_printf("%02d  %c  %08x %08x %08x %08x %08x %08x\n", 
+			(tmp == sched_entity_current) ? 'R' : 'S', i, tmp, tmp->cpu, tmp->cpu->eax, tmp->cpu->ebx, tmp->cpu->ecx, tmp->cpu->edx);
 
-		itoa(buf, tmp, 16, 8);
-		term_puts(buf);
-		term_putc(' ');
-
-		itoa(buf, tmp->cpu, 16, 8);
-    	term_puts(buf);
-    	term_putc(' ');
-    	
-		itoa(buf, tmp->cpu->eax, 16, 8);
-    	term_puts(buf);
-    	term_putc(' ');
-
-		itoa(buf, tmp->cpu->ebx, 16, 8);
-    	term_puts(buf);
-    	term_putc(' ');
-
-		itoa(buf, tmp->cpu->ecx, 16, 8);
-    	term_puts(buf);
-    	term_putc(' ');
-
-		itoa(buf, tmp->cpu->edx, 16, 8);
-    	term_puts(buf);
-    	term_puts("\n       ");
-    	
-    	
-		itoa(buf, tmp->cpu->esp, 16, 8);
-    	term_puts(buf);
-    	term_putc(' ');
-
-		itoa(buf, tmp->cpu->ebp, 16, 8);
-    	term_puts(buf);
-    	term_putc(' ');
-
-		itoa(buf, tmp->cpu->esi, 16, 8);
-    	term_puts(buf);
-    	term_putc(' ');
-
-		itoa(buf, tmp->cpu->edi, 16, 8);
-    	term_puts(buf);    	
-    	term_putc(' ');
-    	
-		itoa(buf, tmp->cpu->eip, 16, 8);
-    	term_puts(buf);    	
-    	term_putc(' ');
-
-		itoa(buf, tmp->cpu->eflags, 16, 8);
-    	term_puts(buf);    	
-    	
-    	
-		term_putc('\n');
-		
-		//cpu_state_dump(tmp->cpu);
+		vk_printf("       %08x %08x %08x %08x %08x %08x\n", 
+			tmp->cpu->esp, tmp->cpu->ebp, tmp->cpu->esi, tmp->cpu->edi, tmp->cpu->eip, tmp->cpu->eflags);
 
 		i++;
 		tmp = tmp->next;
