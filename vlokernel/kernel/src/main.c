@@ -25,8 +25,6 @@ void kernel_main(struct multiboot_mbs_info * mbs_info)
 	
 	vk_printf("initializing paging...\n");
 	vmm_init();
-	vk_printf("WOHOOO we survived :-)\n");
-	
 
 	vk_printf("initializing GDT\n");
 	gdt_init();
@@ -34,10 +32,6 @@ void kernel_main(struct multiboot_mbs_info * mbs_info)
 	pci_enum();
 
 	interrupt_init();
-	
-
-	//vmm_map_page(vmm_get_kernel_context(), 0xa0000, 0xa0000, VMM_PT_PRESENT | VMM_PT_RW);
-	//vmm_show_mappings(vmm_get_kernel_context());
 
 	testtasks_init(mbs_info);
 
