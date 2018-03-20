@@ -36,8 +36,6 @@ void pci_enum()
 	uint8_t slot;
 	uint32_t tmp, tmp2;
 	
-	char buf[32];
-	
 	for (bus = 0; bus < 256; bus++) {
 		for (slot = 0; slot < 32; slot++) {
 			tmp = pci_config_read(bus, slot, 0x00, 0x00);

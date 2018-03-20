@@ -1,5 +1,6 @@
 #include "sched.h"
 #include "pmm.h"
+#include "vmm.h"
 #include "util.h"
 #include "cpu_state.h"
 
@@ -114,7 +115,6 @@ struct cpu_state * sched_schedule(struct cpu_state * cpu)
 
 void sched_ps()
 {
-	char buf[32];
 	int i = 0;
 	struct sched_entity * tmp = sched_entity_first;
 

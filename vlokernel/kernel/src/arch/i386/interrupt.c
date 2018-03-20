@@ -4,7 +4,8 @@
 #include "exception.h"
 #include "testtasks.h"
 #include "sched.h"
-#include "term.h"
+#include "syscall.h"
+#include "util.h"
 #include "pmm.h"
 
 static struct idt_entry idt[IDT_NUM_ENTRIES];

@@ -8,6 +8,7 @@
 #include "multiboot.h"
 #include "pmm.h"
 #include "elf.h"
+#include "exception.h"
 
 #define TESTTASKS_COUNT		6
 
@@ -129,15 +130,15 @@ struct cpu_state * testtasks_toggle(int task, struct cpu_state * cpu)
 	return cpu;
 }
 
-struct task_state * testtasks_run_module_elf(int module_index)
+struct task_state * testtasks_run_module_elf(uint32_t module_index)
 {
 	struct task_state * state;
 	struct elf_header * elfhdr;
 	struct elf_program_header * elfphdr;
-	struct vmm_current_context * last_context;
+	struct vmm_context * last_context;
 	
 	char * srcimage;
-	int i, j;
+	uint32_t i, j;
 	int ret;
 	
 	uintptr_t dst_physpage, src, dst, dst_aligned;
@@ -145,16 +146,16 @@ struct task_state * testtasks_run_module_elf(int module_index)
 	struct multiboot_module * modules;
 
 	if (testtask_mbs_info->mbs_mods_count <= module_index)
-		return;
+		return 0;
 		
 	modules = testtask_mbs_info->mbs_mods_addr;
 	
-	srcimage = modules[module_index].mod_start;
-	elfhdr = srcimage;
+	srcimage = (char *)modules[module_index].mod_start;
+	elfhdr = (struct elf_header *)srcimage;
 
 	// TODO: BAAAD!! Do not trust header blindly
 	
-	state = task_init_user(elfhdr->entry);
+	state = task_init_user((void *)elfhdr->entry);
 	
 	// switch to newly created context, backup currently running context
 	last_context = vmm_get_current_context();
@@ -169,7 +170,7 @@ struct task_state * testtasks_run_module_elf(int module_index)
 			
 		dst = elfphdr->virt_addr;
 		dst_aligned = ((uintptr_t)dst & ~(VMM_PAGE_SIZE - 1));
-		src = srcimage + elfphdr->offset;
+		src = (uintptr_t)(srcimage + elfphdr->offset);
 			
 		//vk_printf("loading ELF phdr(%02d): file_size=%08x mem_size=%08x virt_addr=%08x entry=%08x src_offset=%08x\n", i, elfphdr->file_size, elfphdr->mem_size, dst, elfhdr->entry, src);
 		

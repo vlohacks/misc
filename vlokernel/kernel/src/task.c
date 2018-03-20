@@ -1,11 +1,12 @@
 #include "task.h"
 #include "cpu_state.h"
-#include "pmm.h"
+#include "vmm.h"
+#include "exception.h"
 
 struct task_state * task_init_kernel(void * entry) 
 {
 	struct task_state * task = vmm_kfixedmem_alloc_page();
-	uint8_t * kernel_stack = vmm_kfixedmem_alloc_page();
+	char * kernel_stack = vmm_kfixedmem_alloc_page();
 
 	task->context = vmm_get_kernel_context();
 	task->kernel_stack = (void *)kernel_stack;
@@ -27,12 +28,12 @@ struct task_state * task_init_user(void * entry)
 {
 	struct vmm_context * context = vmm_alloc_context_user();
 	struct task_state * task = vmm_kfixedmem_alloc_page();
-	uint8_t * kernel_stack = vmm_kfixedmem_alloc_page();
+	char * kernel_stack = vmm_kfixedmem_alloc_page();
 	
 	if (vmm_alloc_page(context, TASK_DEFAULT_USER_STACK_VIRTUAL, 0, VMM_PT_PRESENT | VMM_PT_RW | VMM_PT_USER) != VMM_ERR_SUCCESS)
 		panic("error allocating user stack");
 	
-	uint8_t * user_stack = TASK_DEFAULT_USER_STACK_VIRTUAL;
+	char * user_stack = (char *)TASK_DEFAULT_USER_STACK_VIRTUAL;
 	
 	task->context = context;
 	task->kernel_stack = (void *)kernel_stack;
@@ -51,7 +52,7 @@ struct task_state * task_init_user(void * entry)
 
 void task_free_user(struct task_state * task) 
 {
-	if (vmm_free_page(task->context, task->user_stack) != VMM_ERR_SUCCESS)
+	if (vmm_free_page(task->context, (uintptr_t)task->user_stack) != VMM_ERR_SUCCESS)
 		panic("error freeing user stack");
 	vmm_free_context_user(task->context);
 	vmm_kfixedmem_free_page(task->kernel_stack);

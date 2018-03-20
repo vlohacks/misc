@@ -43,8 +43,6 @@ static const char * exception_texts[] = {
 
 void exception_lmaa(struct cpu_state * cpu) 
 {
-	char buf[32];
-
 	asm volatile("cli");
 
 	term_setcolor(12, 0);

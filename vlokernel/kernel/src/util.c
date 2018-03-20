@@ -1,9 +1,9 @@
 #include "util.h"
 
-static void (*_putc)(char);
-static void (*_puts)(char*);
+static void (*_putc)(const char);
+static void (*_puts)(const char*);
 
-void vk_itoa(char * buf, uint32_t val, uint32_t base, int padsize, char padchar) 
+void vk_itoa(char * buf, uint32_t val, uint32_t base, uint32_t padsize, char padchar) 
 {
 	const char chars[] = "0123456789abcdef";
 
@@ -33,7 +33,7 @@ int vk_strlen(char * str) {
 }
 
 // setup low level i/o functions for text output
-void vk_setup_io(void (*putc_func)(char), void (*puts_func)(char*)) 
+void vk_setup_io(void (*putc_func)(const char), void (*puts_func)(const char*)) 
 {
 	_putc = putc_func;
 	_puts = puts_func;
@@ -86,34 +86,34 @@ static void vk_printf_inner(char * format, int ** va)
 				
 			switch(fc) {
 			case 'x':
-				vk_itoa(buf, *va, 16, padlength, padchar);
+				vk_itoa(buf, (uint32_t)*va, 16, padlength, padchar);
 				va++;
 				_puts(buf);
 				break;
 				
 			case 'd':
-				vk_itoa(buf, *va, 10, padlength, padchar);
+				vk_itoa(buf, (uint32_t)*va, 10, padlength, padchar);
 				va++;
 				_puts(buf);
 				break;
 				
 			case 's':
 				if (padright)
-					_puts(*va);
-				for (i = 0; i < (padlength-vk_strlen(*va)); i++)
+					_puts((char*)*va);
+				for (i = 0; i < (padlength-vk_strlen((char *)*va)); i++)
 					_putc(padchar);
 				if (!padright)
-					_puts(*va);
+					_puts((char *)*va);
 				va++;
 				break;
 				
 			case 'c':
 				if (padright)
-					_putc(*va);
+					_putc((char)*va);
 				for (i = 0; i < (padlength-1); i++)
 					_putc(padchar);
 				if (!padright)
-					_putc(*va);
+					_putc((char)*va);
 				va++;
 				break;
 				
@@ -136,10 +136,12 @@ void vk_printf(char * format, ...)
 void * vk_memcpy(void * dest, const void * src, uint32_t num)
 {
 	register char * cdest = dest;
-	register char * csrc = src;
+	register char * csrc = (char *)src;
 	
 	while(num--)
 		*cdest++ = *csrc++;
+		
+	return dest;
 }
 
 void * vk_memset(void * dest, char val, uint32_t num)
@@ -148,4 +150,6 @@ void * vk_memset(void * dest, char val, uint32_t num)
 
 	while(num--)
 		*cdest++ = val;
+		
+	return dest;
 }

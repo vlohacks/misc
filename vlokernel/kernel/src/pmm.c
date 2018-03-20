@@ -34,12 +34,12 @@ void pmm_init(struct multiboot_mbs_info * mbs_info)
 	struct multiboot_mbs_mmap * mmap_end = (void *)((uintptr_t *)mbs_info->mbs_mmap_addr + mbs_info->mbs_mmap_length);
 
 	uintptr_t addr, addr_end;
-	int i;
+	uint32_t i;
 
 
 	// find highest end address which is the amount of usable physical 
 	// ram
-	for (mmap = mbs_info->mbs_mmap_addr; mmap < mmap_end; mmap++) {
+	for (mmap = (struct multiboot_mbs_mmap *)mbs_info->mbs_mmap_addr; mmap < mmap_end; mmap++) {
 		if (mmap->type == 1) {
 			tmp = mmap->base + mmap->length;
 			if (tmp > phys_ram_size)
@@ -53,15 +53,15 @@ void pmm_init(struct multiboot_mbs_info * mbs_info)
 	
 	
 	// place pmm bitmap right after kernel (for now)
-	pmm_bitmap = &kernel_end;
+	pmm_bitmap = (uint32_t *)&kernel_end;
 
-	for (i=0; i<pmm_bitmap_size; i++) 
-		pmm_bitmap[i] = 0;
+	for (addr = 0; addr < pmm_bitmap_size; addr++) 
+		pmm_bitmap[addr] = 0;
 
 	vk_printf("test: pmm bitmap addr: 0x%08x\n", pmm_bitmap);
 	vk_printf("pmm: freeing memory ...\n");
 
-	for (mmap = mbs_info->mbs_mmap_addr; mmap < mmap_end; mmap++) {
+	for (mmap = (struct multiboot_mbs_mmap *)mbs_info->mbs_mmap_addr; mmap < mmap_end; mmap++) {
 
 		if (mmap->type == 1) {
 			addr = (uintptr_t)mmap->base;
@@ -78,12 +78,12 @@ void pmm_init(struct multiboot_mbs_info * mbs_info)
 
 	// mark pages used by bitmap itself
 	vk_printf("pmm: preserving pmm bitmap  : %08x - %08x\n", pmm_bitmap, (char*)pmm_bitmap + pmm_bitmap_mem_size);
-	for (i = 0; i < pmm_bitmap_mem_size; i += PMM_PAGE_SIZE)
-		pmm_mark_used((void *)((char*)pmm_bitmap) + i);
+	for (addr = 0; addr < pmm_bitmap_mem_size; addr += PMM_PAGE_SIZE)
+		pmm_mark_used((void *)((char*)pmm_bitmap) + addr);
 	
 	vk_printf("pmm: preserving kernel mem  : %08x - %08x\n", (unsigned int)&kernel_start, (unsigned int)&kernel_end);
 	addr = (uintptr_t) &kernel_start;
-	while (addr < (uintptr_t) &kernel_end) {
+	while (addr < (uintptr_t)&kernel_end) {
 		pmm_mark_used((void *)addr);
 		addr += PMM_PAGE_SIZE;
 	}

@@ -22,6 +22,8 @@ struct cpu_state * sched_add_task(struct cpu_state * cpu, struct vmm_context * c
 struct cpu_state * sched_remove_task(struct cpu_state * current_cpu, struct cpu_state * cpu_to_kill);
 struct cpu_state * sched_schedule(struct cpu_state * cpu);
 
+void sched_ps();
+
 struct sched_entity * sched_list_add(struct sched_entity * parent, struct sched_entity * child);
 struct sched_entity * sched_list_remove(struct sched_entity * child);
 

@@ -2,6 +2,7 @@
 #include "pmm.h"
 #include "types.h"
 #include "util.h"
+#include "exception.h"
 
 static struct vmm_context * vmm_kernel_context_phys;
 static struct vmm_context * vmm_kernel_context_virt;
@@ -11,10 +12,62 @@ static int vmm_paging_enabled;
 extern const void kernel_start;
 extern const void kernel_end;
 
+static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struct vmm_context ** context_phys);
+
+
+static void * vmm_kfixedmem_phys2virt(void * phys_addr)
+{
+	return (void *)(VMM_KFIXEDMEM_VIRT_BASE + ((uintptr_t)phys_addr) - VMM_KFIXEDMEM_PHYS_BASE);
+}
+
+static void * vmm_kfixedmem_virt2phys(void * virt_addr)
+{
+	return (void *)(((uintptr_t)virt_addr + VMM_KFIXEDMEM_PHYS_BASE) - VMM_KFIXEDMEM_VIRT_BASE);
+}
+
+
+// allocate a page in the premapped kernel-memory reserved physical memory
+static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t * addr_phys)
+{
+	uintptr_t vpage;
+	uintptr_t ppage;
+	
+	ppage = (uintptr_t)pmm_alloc_page_base((void *)VMM_KFIXEDMEM_PHYS_BASE);
+	vpage = (uintptr_t)vmm_kfixedmem_phys2virt((void *)ppage);
+
+	//vk_printf("kfixedmem allocating: %08x->%08x\n", vpage, ppage);
+	
+	if (((uint32_t)ppage - VMM_KFIXEDMEM_PHYS_BASE) > VMM_KFIXEDMEM_SIZE)
+		panic("out of KFIXEDMEM :-(");
+		
+	if (addr_phys != 0)
+		*addr_phys = ppage;
+		
+	if (addr_virt != 0)
+		*addr_virt = vpage;
+		
+	//vk_printf("==>A(%08x)\n", vpage);
+}
+
+void * vmm_kfixedmem_alloc_page()
+{
+	uintptr_t vpage;
+	vmm_kfixedmem_alloc_page_internal(&vpage, 0);
+	return (void *)vpage;
+}
+
+void vmm_kfixedmem_free_page(void * page)
+{
+	//vk_printf("==>F(%08x)\n", page);
+	pmm_free_page(vmm_kfixedmem_virt2phys(page));
+}
+
+
 // Enable VMM in CR0 register
 void vmm_init(void)
 {
-	int i, ret;
+	uint32_t i;
+	int ret;
 	uintptr_t vaddr;
 	uintptr_t paddr;
 	
@@ -36,7 +89,7 @@ void vmm_init(void)
 
 	vk_printf("identity mapping used physmem\n");
 	for (i = 0; i < 0x01000000; i += VMM_PAGE_SIZE) {
-		if (pmm_is_page_free(i) == 0) {
+		if (pmm_is_page_free((void *)i) == 0) {
 			//vk_printf("  mapping page: %08x\n", i);
 			ret = vmm_map_page(vmm_kernel_context_phys, i, i, VMM_PT_PRESENT | VMM_PT_RW);
 			
@@ -57,15 +110,6 @@ void vmm_init(void)
 	vmm_paging_enabled = 1;
 }
 
-static void * vmm_kfixedmem_phys2virt(void * phys_addr)
-{
-	return (VMM_KFIXEDMEM_VIRT_BASE + ((uint32_t)phys_addr) - VMM_KFIXEDMEM_PHYS_BASE);
-}
-
-static void * vmm_kfixedmem_virt2phys(void * virt_addr)
-{
-	return (((uint32_t)virt_addr + VMM_KFIXEDMEM_PHYS_BASE) - VMM_KFIXEDMEM_VIRT_BASE);
-}
 
 struct vmm_context * vmm_get_kernel_context(void)
 {
@@ -90,7 +134,7 @@ void vmm_show_mappings(struct vmm_context * context)
 	for (i = 0; i < 1024; i++) {
 		if (page_directory[i] != 0) {
 			vk_printf("PDIndex    %04d %08x\n", i, page_directory[i] & ~(VMM_PAGE_SIZE - 1));
-			page_table = page_directory[i] & ~(VMM_PAGE_SIZE -1);
+			page_table = (uint32_t *)(page_directory[i] & ~(VMM_PAGE_SIZE -1));
 			if (vmm_paging_enabled)
 				page_table = vmm_kfixedmem_phys2virt(page_table);
 			for (j = 0; j < 1024; j++) {
@@ -116,14 +160,14 @@ struct vmm_context * vmm_get_current_context(void)
 // allocate initial context (only physical mapping)
 static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struct vmm_context ** context_phys) 
 {
-	int i;
+	uint32_t i;
 	
 	struct vmm_context * contextv;
 	struct vmm_context * contextp;
 	struct vmm_context * context;
 	uint32_t * page_directory;
 	
-	vmm_kfixedmem_alloc_page_internal(&contextv, &contextp);
+	vmm_kfixedmem_alloc_page_internal((uintptr_t *)&contextv, (uintptr_t *)&contextp);
 	
 	if (vmm_paging_enabled)
 		context = contextv;
@@ -132,7 +176,7 @@ static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struc
 		
 	context->self_phys = contextp;
 	
-	vmm_kfixedmem_alloc_page_internal(&(context->page_directory_virt), &(context->page_directory_phys));
+	vmm_kfixedmem_alloc_page_internal((uintptr_t *)&(context->page_directory_virt), (uintptr_t *)&(context->page_directory_phys));
 
 	if (vmm_paging_enabled)
 		page_directory = context->page_directory_virt;
@@ -142,10 +186,10 @@ static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struc
 	for (i = 0; i < (PMM_PAGE_SIZE / sizeof(uint32_t)); i++)
 		page_directory[i] = 0;
 		
-	if (context_virt > 0)
+	if (context_virt != 0)
 		*context_virt = contextv;
 
-	if (context_phys > 0)
+	if (context_phys != 0)
 		*context_phys = contextp;
 		
 }
@@ -156,7 +200,6 @@ static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struc
 struct vmm_context * vmm_alloc_context_user(void) 
 {
 	struct vmm_context * context;
-	struct vmm_context * kernel_context;
 	int i;
 	
 	if (!vmm_paging_enabled)
@@ -189,15 +232,15 @@ void vmm_free_context_user(struct vmm_context * context)
 	if (!vmm_paging_enabled)
 		panic("tried to free user context without paging enabled");
 	
-	int i, j;
+	uint32_t i, j;
 	
 	// unmap and free all user space memory pages occupied by this context
 	for (i = pd_index; i < (PMM_PAGE_SIZE / sizeof(uint32_t)); i++) {
 		if(context->page_directory_virt[i] != 0) {
-			page_table = vmm_kfixedmem_phys2virt(context->page_directory_virt[i] & ~(VMM_PAGE_SIZE - 1));
+			page_table = vmm_kfixedmem_phys2virt((void *)(context->page_directory_virt[i] & ~(VMM_PAGE_SIZE - 1)));
 			for (j = (i==0?pt_index:0); j < (PMM_PAGE_SIZE / sizeof(uint32_t)); j++) {
 				if (page_table[j] & VMM_PT_PRESENT) {
-					pmm_free_page(page_table[j] & ~(VMM_PAGE_SIZE - 1));
+					pmm_free_page((void *)(page_table[j] & ~(VMM_PAGE_SIZE - 1)));
 					vmm_unmap_page(context, i * VMM_PAGE_SIZE * 1024 +  (j * 1024));	
 				}
 			}
@@ -212,7 +255,7 @@ void vmm_free_context_user(struct vmm_context * context)
 // takes care itself if paging is enabled or not
 int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t addr_phys, int flags)
 {
-	int i;
+	uint32_t i;
 	
 	uint32_t pagenum = addr_virt / VMM_PAGE_SIZE;
 	uint32_t pd_index = pagenum / 1024;
@@ -244,8 +287,8 @@ int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t ad
 	if (page_directory[pd_index] & VMM_PT_PRESENT) {
 		//vk_printf("PT_EXISTS virt=%08x phys=%08x pd=%08x pt=%08x ctx=%08x\n", addr_virt, addr_phys, pd_index, pt_index, context);
 		// use already existing pagetable
-		page_table_phys = page_directory[pd_index] & ~(VMM_PAGE_SIZE - 1);
-		page_table_virt = vmm_kfixedmem_phys2virt(page_table_phys);
+		page_table_phys = (uint32_t *)(page_directory[pd_index] & ~(VMM_PAGE_SIZE - 1));
+		page_table_virt = (uint32_t *)vmm_kfixedmem_phys2virt(page_table_phys);
 		
 		if (vmm_paging_enabled)
 			page_table = page_table_virt;
@@ -254,10 +297,10 @@ int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t ad
 	} else {
 		//vk_printf("PT_ISNEW  virt=%08x phys=%08x pd=%08x pt=%08x ctx=%08x\n", addr_virt, addr_phys, pd_index, pt_index, context);
 		// allocate new page table if there is no record in page directory
-		vmm_kfixedmem_alloc_page_internal(&page_table_virt, &page_table_phys);
+		vmm_kfixedmem_alloc_page_internal((uintptr_t *)&page_table_virt, (uintptr_t *)&page_table_phys);
 
 		// insert physical address of new page table into the page directory
-		page_directory[pd_index] = (uint32_t*)((uint32_t)page_table_phys | flags);
+		page_directory[pd_index] = (uint32_t)page_table_phys | flags;
 		
 		// if paging is enabled, initialize page table mapped in virtual address space, else in physical address space
 		if (vmm_paging_enabled) {
@@ -319,13 +362,13 @@ int vmm_alloc_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t 
 	int ret;
 	
 	// allocate phys page beyond kernel-reserved memory
-	uintptr_t addr_phys = pmm_alloc_page_base((VMM_KFIXEDMEM_PHYS_BASE + VMM_KFIXEDMEM_SIZE + VMM_PAGE_SIZE) & ~(VMM_PAGE_SIZE - 1));
+	uintptr_t addr_phys = (uintptr_t)pmm_alloc_page_base((void *)((VMM_KFIXEDMEM_PHYS_BASE + VMM_KFIXEDMEM_SIZE + VMM_PAGE_SIZE) & ~(VMM_PAGE_SIZE - 1)));
 	
 	ret = vmm_map_page(context, addr_virt, addr_phys, flags);
 
 	if (ret != VMM_ERR_SUCCESS) {
 		// in case of error free physical page again 
-		pmm_free_page(addr_phys);
+		pmm_free_page((void *)addr_phys);
 	} else {
 		// on success return physical pointer if desired by callee
 		if (addr_phys_p != 0)
@@ -349,7 +392,7 @@ int vmm_free_page(struct vmm_context * context, uintptr_t addr_virt)
 	else
 		page_directory = context->page_directory_phys;
 		
-	page_table = page_directory[pd_index] & ~(VMM_PAGE_SIZE - 1);
+	page_table = (uint32_t *)(page_directory[pd_index] & ~(VMM_PAGE_SIZE - 1));
 	
 	if (page_table == 0)
 		return VMM_ERR_DOUBLE_FREE;
@@ -358,48 +401,14 @@ int vmm_free_page(struct vmm_context * context, uintptr_t addr_virt)
 		page_table = vmm_kfixedmem_phys2virt(page_table);
 		
 	if (page_table[pt_index] & VMM_PT_PRESENT) {
-		pmm_free_page(page_table[pt_index] & ~(VMM_PAGE_SIZE - 1));
+		pmm_free_page((void *)(page_table[pt_index] & ~(VMM_PAGE_SIZE - 1)));
 		return vmm_unmap_page(context, addr_virt);
 	} else {
 		return VMM_ERR_DOUBLE_FREE;
 	}
 }
 
-// allocate a page in the premapped kernel-memory reserved physical memory
-static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t * addr_phys)
-{
-	uintptr_t vpage;
-	uintptr_t ppage;
-	
-	ppage = pmm_alloc_page_base(VMM_KFIXEDMEM_PHYS_BASE);
-	vpage = vmm_kfixedmem_phys2virt(ppage);
 
-	//vk_printf("kfixedmem allocating: %08x->%08x\n", vpage, ppage);
-	
-	if (((uint32_t)ppage - VMM_KFIXEDMEM_PHYS_BASE) > VMM_KFIXEDMEM_SIZE)
-		panic("out of KFIXEDMEM :-(");
-		
-	if (addr_phys > 0)
-		*addr_phys = ppage;
-		
-	if (addr_virt > 0)
-		*addr_virt = vpage;
-		
-	//vk_printf("==>A(%08x)\n", vpage);
-}
-
-void * vmm_kfixedmem_alloc_page()
-{
-	uintptr_t vpage;
-	vmm_kfixedmem_alloc_page_internal(&vpage, 0);
-	return vpage;
-}
-
-void vmm_kfixedmem_free_page(void * page)
-{
-	//vk_printf("==>F(%08x)\n", page);
-	pmm_free_page(vmm_kfixedmem_virt2phys(page));
-}
 
 
 

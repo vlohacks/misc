@@ -2,6 +2,7 @@
 #include "cpu_state.h"
 #include "sched.h"
 #include "term.h"
+#include "gdt.h"
 
 struct cpu_state * syscall(struct cpu_state * cpu)
 {

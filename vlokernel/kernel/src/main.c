@@ -46,5 +46,3 @@ void kernel_main(struct multiboot_mbs_info * mbs_info)
 	
 	for(;;);
 }
-
-

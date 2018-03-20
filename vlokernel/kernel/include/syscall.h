@@ -7,4 +7,6 @@
 #define		SYSCALL_SCHED		1   //
 #define		SYSCALL_PUTS		2   // ebx:strptr, cl:forecolor, ch:backcolor
 
+struct cpu_state * syscall(struct cpu_state * cpu);
+
 #endif

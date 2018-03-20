@@ -35,20 +35,23 @@ struct vmm_context {
 	struct vmm_context * self_phys;
 };
 
+//static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t * addr_phys);
+void * vmm_kfixedmem_alloc_page();
+void vmm_kfixedmem_free_page(void * page);
+
 void vmm_init(void);
+struct vmm_context * vmm_get_kernel_context(void);
+struct vmm_context * vmm_get_current_context(void);
 void vmm_switch_context(struct vmm_context * context);
 
-static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struct vmm_context ** context_phys);
 struct vmm_context * vmm_alloc_context_user(void);
-void vmm_free_context(struct vmm_context * context);
+void vmm_free_context_user(struct vmm_context * context);
 
 int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t addr_phys, int flags);
 int vmm_unmap_page(struct vmm_context * context, uintptr_t addr_virt);
 int vmm_alloc_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t * addr_phys_p, int flags);
 int vmm_free_page(struct vmm_context * context, uintptr_t addr_virt);
 
-static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t * addr_phys);
-void * vmm_kfixedmem_alloc_page();
 
 
 #endif
