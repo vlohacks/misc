@@ -35,9 +35,7 @@ void kernel_main(struct multiboot_mbs_info * mbs_info)
 
 	testtasks_init(mbs_info);
 
-	vk_printf("keys:\n1 - 4 : Toggle test tasks\n");
-	vk_printf("5     : cause exception: GPF (cli in userspace)\n");
-	vk_printf("6     : cause exception: illegal intruction\n");
+	vk_printf("keys:\n1 - 6 : Toggle test tasks (multiboot elf modules)\n");
 	vk_printf("7     : Show physical memory map\n");
 	vk_printf("8     : process list / stats\n");
 	vk_printf("enabling interrupts and just WALK AWAY\n");
