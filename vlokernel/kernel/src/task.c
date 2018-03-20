@@ -25,10 +25,14 @@ struct task_state * task_init_kernel(void * entry)
 
 struct task_state * task_init_user(void * entry) 
 {
-	struct vmm_context * context = vmm_alloc_context();
+	struct vmm_context * context = vmm_alloc_context_user();
 	struct task_state * task = vmm_kfixedmem_alloc_page();
 	uint8_t * kernel_stack = vmm_kfixedmem_alloc_page();
-	uint8_t * user_stack = vmm_alloc_page(context, TASK_DEFAULT_USER_STACK_VIRTUAL, VMM_PT_PRESENT | VMM_PT_RW | VMM_PT_USER);
+	
+	if (vmm_alloc_page(context, TASK_DEFAULT_USER_STACK_VIRTUAL, 0, VMM_PT_PRESENT | VMM_PT_RW | VMM_PT_USER) != VMM_ERR_SUCCESS)
+		panic("error allocating user stack");
+	
+	uint8_t * user_stack = TASK_DEFAULT_USER_STACK_VIRTUAL;
 	
 	task->context = context;
 	task->kernel_stack = (void *)kernel_stack;
@@ -47,14 +51,16 @@ struct task_state * task_init_user(void * entry)
 
 void task_free_user(struct task_state * task) 
 {
-	pmm_free_page(task->kernel_stack);
-	pmm_free_page(task->user_stack);
-	pmm_free_page(task);
+	if (vmm_free_page(task->context, task->user_stack) != VMM_ERR_SUCCESS)
+		panic("error freeing user stack");
+	vmm_free_context_user(task->context);
+	vmm_kfixedmem_free_page(task->kernel_stack);
+	vmm_kfixedmem_free_page(task);
 }
 
 void task_free_kernel(struct task_state * task) 
 {
-	pmm_free_page(task->kernel_stack);
-	pmm_free_page(task);
+	vmm_kfixedmem_free_page(task->kernel_stack);
+	vmm_kfixedmem_free_page(task);
 }
 

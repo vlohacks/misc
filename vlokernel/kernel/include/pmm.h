@@ -13,5 +13,6 @@ void * pmm_alloc_page_base(void * base);
 void pmm_free_page(void * page);
 void pmm_show_bitmap(const uint32_t start, const uint32_t limit);
 void pmm_mark_used(void * page);
+int pmm_is_page_free(void * page);
 
 #endif

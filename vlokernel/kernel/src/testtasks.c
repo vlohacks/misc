@@ -118,8 +118,6 @@ void testtask_idle(void)
 
 struct cpu_state * testtasks_toggle(int task, struct cpu_state * cpu) 
 {
-	char buf[32];
-	
 	if (testtask_states[task]) {
 		cpu = sched_remove_task(cpu, testtask_states[task]->cpu);
 		task_free_user(testtask_states[task]);
@@ -136,12 +134,16 @@ struct task_state * testtasks_run_module_elf(int module_index)
 	struct task_state * state;
 	struct elf_header * elfhdr;
 	struct elf_program_header * elfphdr;
+	struct vmm_current_context * last_context;
+	
 	char * srcimage;
 	int i, j;
+	int ret;
 	
-	char buf[32];
+	uintptr_t dst_physpage, src, dst, dst_aligned;
+	
 	struct multiboot_module * modules;
-	
+
 	if (testtask_mbs_info->mbs_mods_count <= module_index)
 		return;
 		
@@ -149,26 +151,50 @@ struct task_state * testtasks_run_module_elf(int module_index)
 	
 	srcimage = modules[module_index].mod_start;
 	elfhdr = srcimage;
-	
+
 	// TODO: BAAAD!! Do not trust header blindly
+	
+	state = task_init_user(elfhdr->entry);
+	
+	// switch to newly created context, backup currently running context
+	last_context = vmm_get_current_context();
+	vmm_switch_context(state->context);
+	
 	elfphdr = (struct elf_program_header *)(srcimage + elfhdr->ph_offset);
+	
 	for (i = 0; i < elfhdr->ph_entry_count; i++) {
-		char * dst = elfphdr->virt_addr;
-		char * src = srcimage + elfphdr->offset;
+		
 		if (elfphdr->type != 1)
 			continue;
-		
-		for (j = 0; j < elfphdr->mem_size; j++)
-			dst[j] = 0;
 			
-		for (j = 0; j < elfphdr->file_size; j++)
-			dst[j] = src[j];
+		dst = elfphdr->virt_addr;
+		dst_aligned = ((uintptr_t)dst & ~(VMM_PAGE_SIZE - 1));
+		src = srcimage + elfphdr->offset;
+			
+		//vk_printf("loading ELF phdr(%02d): file_size=%08x mem_size=%08x virt_addr=%08x entry=%08x src_offset=%08x\n", i, elfphdr->file_size, elfphdr->mem_size, dst, elfhdr->entry, src);
 		
-		pmm_mark_used(dst);
+		for (j = 0; j < elfphdr->mem_size; j += VMM_PAGE_SIZE) {
+			// map memory in task context
+			if ((ret = vmm_alloc_page(state->context, dst_aligned + j, &dst_physpage, VMM_PT_PRESENT | VMM_PT_USER | VMM_PT_RW)) != VMM_ERR_SUCCESS) {
+				// ignore double mapping here, it should not harm
+				if (ret != VMM_ERR_ALREADY_MAPPED) {
+					vk_printf("error: %08x", ret);
+					panic("error allocating mem in user context");
+				} else {
+					//vk_printf("mapped %08x->%08x", dst_aligned + j, dst_physpage);
+				}
+			}
+		}
+		
+		vk_memset((void*)dst, 0, elfphdr->mem_size);
+		vk_memcpy((void*)dst, (void*)src, elfphdr->file_size);
+		
+		elfphdr++;
 	}
 
-	state = task_init_user(elfhdr->entry);
 	sched_add_task(state->cpu, state->context);
+	vmm_switch_context(last_context);
+	
 	return state;
 }
 
@@ -185,7 +211,7 @@ void testtasks_init(struct multiboot_mbs_info * mbs_info)
 	testtask_entries[4] = testtask_gpf;
 	testtask_entries[5] = testtask_illegalins;
 
-	testtask_idle_state = task_init_user(testtask_idle);
+	testtask_idle_state = task_init_kernel(testtask_idle);//testtasks_run_module_elf(1);//task_init_user(testtask_idle);
 
 	sched_add_task(testtask_idle_state->cpu, testtask_idle_state->context);
 	

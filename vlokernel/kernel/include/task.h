@@ -4,7 +4,7 @@
 #include "types.h"
 #include "vmm.h"
 
-#define TASK_DEFAULT_USER_STACK_VIRTUAL		0x00ff0000
+#define TASK_DEFAULT_USER_STACK_VIRTUAL		0x0ff00000
 
 struct task_state 
 {

@@ -35,16 +35,7 @@ void kernel_main(struct multiboot_mbs_info * mbs_info)
 
 	interrupt_init();
 	
-	/*
-	uintptr_t base, res;
-	base = 0x00001000;
-	res = pmm_alloc_page_base(base);
-	vk_printf("base=%08x, res=%08x\n", base, res);
-	res = pmm_alloc_page_base(base);
-	vk_printf("base=%08x, res=%08x\n", base, res);
-	*/
-	
-	
+
 	//vmm_map_page(vmm_get_kernel_context(), 0xa0000, 0xa0000, VMM_PT_PRESENT | VMM_PT_RW);
 	//vmm_show_mappings(vmm_get_kernel_context());
 

@@ -114,7 +114,7 @@ static void vk_printf_inner(char * format, int ** va)
 					_putc(padchar);
 				if (!padright)
 					_putc(*va);
-				
+				va++;
 				break;
 				
 			default:
@@ -131,4 +131,21 @@ void vk_printf(char * format, ...)
 {
 	int ** va = ((int **)&format) + 1;
 	vk_printf_inner(format, va);
+}
+
+void * vk_memcpy(void * dest, const void * src, uint32_t num)
+{
+	register char * cdest = dest;
+	register char * csrc = src;
+	
+	while(num--)
+		*cdest++ = *csrc++;
+}
+
+void * vk_memset(void * dest, char val, uint32_t num)
+{
+	register char * cdest = dest;
+
+	while(num--)
+		*cdest++ = val;
 }

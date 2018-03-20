@@ -80,6 +80,15 @@ void pmm_init(struct multiboot_mbs_info * mbs_info)
 	}
 }
 
+int pmm_is_page_free(void * page)
+{
+	uint32_t bm_index = ((uintptr_t)page) / PMM_PAGE_SIZE / 32;
+	uint32_t bm_bitindex = (((uintptr_t)page) / PMM_PAGE_SIZE) & 31;
+
+	return (pmm_bitmap[bm_index] & (1 << bm_bitindex));
+}
+
+
 void * pmm_alloc_page() 
 {
 	uintptr_t i, j;

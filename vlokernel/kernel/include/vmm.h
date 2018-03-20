@@ -10,7 +10,7 @@ extern const void kernel_end;
 
 // static contigious mapped memory for kernel management structures
 // like pagetables and so on
-#define VMM_KFIXEDMEM_VIRT_BASE		0xc0000000
+#define VMM_KFIXEDMEM_VIRT_BASE		0x30000000
 #define VMM_KFIXEDMEM_PHYS_BASE		0x00500000  //((uint32_t)(&kernel_end + VMM_PAGE_SIZE)) & ~(PMM_PAGE_SIZE-1);
 #define VMM_KFIXEDMEM_NUM_PAGES		256
 #define VMM_KFIXEDMEM_SIZE		    (VMM_KFIXEDMEM_NUM_PAGES * VMM_PAGE_SIZE)
@@ -27,20 +27,28 @@ extern const void kernel_end;
 #define VMM_ERR_ALREADY_MAPPED		-1
 #define VMM_ERR_NOT_ALIGNED			-2
 #define VMM_ERR_BAD_FLAGS			-3
+#define VMM_ERR_DOUBLE_FREE			-4
 
 struct vmm_context {
 	uint32_t * page_directory_phys;
 	uint32_t * page_directory_virt;
+	struct vmm_context * self_phys;
 };
 
 void vmm_init(void);
 void vmm_switch_context(struct vmm_context * context);
+
 static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struct vmm_context ** context_phys);
-struct vmm_context * vmm_alloc_context(void);
+struct vmm_context * vmm_alloc_context_user(void);
 void vmm_free_context(struct vmm_context * context);
+
 int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t addr_phys, int flags);
+int vmm_unmap_page(struct vmm_context * context, uintptr_t addr_virt);
+int vmm_alloc_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t * addr_phys_p, int flags);
+int vmm_free_page(struct vmm_context * context, uintptr_t addr_virt);
+
 static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t * addr_phys);
 void * vmm_kfixedmem_alloc_page();
-int vmm_alloc_page(struct vmm_context * context, uintptr_t addr_virt, int flags);
+
 
 #endif

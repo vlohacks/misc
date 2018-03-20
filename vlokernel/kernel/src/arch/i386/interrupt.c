@@ -153,7 +153,7 @@ struct cpu_state * interrupt_handle(struct cpu_state * cpu)
 			if (x == 137) {
 				sched_ps();
 			}
-
+			
 		} else if (cpu->intr == 48) {
 			// Syscall
 			new_cpu = syscall(cpu);

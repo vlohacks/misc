@@ -1,5 +1,5 @@
 #include "cpu_state.h"
-#include "pmm.h"
+#include "vmm.h"
 #include "util.h"
 
 void cpu_state_init_ring0(struct cpu_state * cpu, void * entry) 
@@ -28,7 +28,7 @@ void cpu_state_init_ring3(struct cpu_state * cpu, void * user_stack, void * entr
 	cpu->esi = 0;
 	cpu->edi = 0;
 	cpu->ebp = 0;
-	cpu->esp = (uint32_t)user_stack + PMM_PAGE_SIZE;
+	cpu->esp = (uint32_t)user_stack + VMM_PAGE_SIZE;
 	cpu->eip = (uint32_t)entry;
 	cpu->cs = 0x18 | 0x03;	
 	cpu->ss = 0x20 | 0x03;

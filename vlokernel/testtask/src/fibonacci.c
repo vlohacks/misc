@@ -22,8 +22,8 @@ void _start()
 				"		mov $0xd, %%cl\n"
 				"		mov $0x2, %%eax\n"
 				"		int $0x30\n"
-//				"		mov $0x00ffffff, %%ecx\n"
-//				"l:		loop l\n"
+				"		mov $0x00ffffff, %%ecx\n"
+				"l:		loop l\n"
 				: 
 				: "r" (buf) 
 				: "eax", "ebx", "ecx"

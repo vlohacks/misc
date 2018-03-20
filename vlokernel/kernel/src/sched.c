@@ -19,6 +19,7 @@ struct cpu_state * sched_add_task(struct cpu_state * cpu, struct vmm_context * c
 	
 	struct sched_entity * entity = vmm_kfixedmem_alloc_page();
 	entity->cpu = cpu;
+	entity->context = context;
 	entity->prev = 0;
 	entity->next = 0;
 	
@@ -57,6 +58,7 @@ struct cpu_state * sched_remove_task(struct cpu_state * cpu, struct cpu_state * 
 			else
 				sched_entity_current = sched_entity_first;
 				
+			vmm_switch_context(sched_entity_current->context);
 			cpu = sched_entity_current->cpu;
 		}
 		
@@ -68,7 +70,7 @@ struct cpu_state * sched_remove_task(struct cpu_state * cpu, struct cpu_state * 
 			sched_entity_last = entity->prev;
 					
 		sched_list_remove(entity);
-		pmm_free_page((void *)entity);
+		vmm_kfixedmem_free_page((void *)entity);
 		
 		sched_num_tasks--;
 		sched_enabled = 1;
@@ -86,7 +88,7 @@ struct cpu_state * sched_schedule(struct cpu_state * cpu)
 		return cpu;
 
 	struct sched_entity * sched_entity_save = sched_entity_current;
-
+	
 	// first schedule - schedule first task
 	if (!sched_entity_current) {
 		sched_entity_current = sched_entity_first;
@@ -125,7 +127,7 @@ void sched_ps()
 	
 	while (tmp != 0) {
 		vk_printf("%02d  %c  %08x %08x %08x %08x %08x %08x\n", 
-			(tmp == sched_entity_current) ? 'R' : 'S', i, tmp, tmp->cpu, tmp->cpu->eax, tmp->cpu->ebx, tmp->cpu->ecx, tmp->cpu->edx);
+			i, ((tmp == sched_entity_current) ? 'R' : 'S'), tmp, tmp->cpu, tmp->cpu->eax, tmp->cpu->ebx, tmp->cpu->ecx, tmp->cpu->edx);
 
 		vk_printf("       %08x %08x %08x %08x %08x %08x\n", 
 			tmp->cpu->esp, tmp->cpu->ebp, tmp->cpu->esi, tmp->cpu->edi, tmp->cpu->eip, tmp->cpu->eflags);

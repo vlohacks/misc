@@ -5,6 +5,7 @@
 
 static struct vmm_context * vmm_kernel_context_phys;
 static struct vmm_context * vmm_kernel_context_virt;
+static struct vmm_context * vmm_current_context;
 static int vmm_paging_enabled;
 
 extern const void kernel_start;
@@ -32,48 +33,19 @@ void vmm_init(void)
 		vaddr += VMM_PAGE_SIZE;
 		paddr += PMM_PAGE_SIZE;
 	}
-	
-	
-	/*
-	for (i = 0; i < 0xb8000; i+= VMM_PAGE_SIZE) {
-		vmm_map_page(vmm_kernel_context, i, i, VMM_PT_PRESENT | VMM_PT_RW);
-	}*/
-	
-	
-	vk_printf("mapping VGA memory\n");
-	for (i = 0xb8000; i <= 0xbffff; i += VMM_PAGE_SIZE) {
-		ret = vmm_map_page(vmm_kernel_context_phys, i, i, VMM_PT_PRESENT | VMM_PT_RW);
-		if (ret != VMM_ERR_SUCCESS) {
-			vk_printf("error: %08x\n", ret);
-			panic("vmm alloc failed");
-		}
-	}
-	
-	vk_printf("mapping kernel memory\n");	
-	for (i = &kernel_start; i < &kernel_end; i += VMM_PAGE_SIZE) {
-		ret = vmm_map_page(vmm_kernel_context_phys, i, i, VMM_PT_PRESENT | VMM_PT_RW);
-		if (ret != VMM_ERR_SUCCESS) {
-			vk_printf("error: %08x\n", ret);
-			panic("vmm alloc failed");
-		}
-	}
-/*	
-	// map kernel pagetables created above
-	
-	for (i = 0; i < (VMM_PAGE_SIZE / sizeof(uint32_t)); i++) {
-		if (vmm_kernel_context->page_directory[i] != 0) {
-			vk_printf("**PDIndex    %04d %08x\n", i, vmm_kernel_context->page_directory[i] & ~(VMM_PAGE_SIZE - 1));
-			uint32_t * pt = vmm_kernel_context->page_directory[i] & ~(VMM_PAGE_SIZE -1);
-			for (int j = 0; j < 1024; j++) {
-				uint32_t ptentry = pt[j] &  ~(VMM_PAGE_SIZE - 1);
-				vmm_map_page(vmm_kernel_context, ptentry, ptentry, VMM_PT_PRESENT | VMM_PT_RW);
-				vk_printf("**   PT=%08x\n", pt);
-				if (pt[j] != 0)
-					vk_printf("**  PDIndex %04d PT=%08x PTIndex %04d %08x\n", i, j, ptentry);
+
+	vk_printf("identity mapping used physmem\n");
+	for (i = 0; i < 0x01000000; i += VMM_PAGE_SIZE) {
+		if (pmm_is_page_free(i) == 0) {
+			//vk_printf("  mapping page: %08x\n", i);
+			ret = vmm_map_page(vmm_kernel_context_phys, i, i, VMM_PT_PRESENT | VMM_PT_RW);
+			
+			if (ret != VMM_ERR_SUCCESS) {
+				vk_printf("error: %08x\n", ret);
+				panic("Error mapping kfixedmem");
 			}
 		}
-	}	
-*/	
+	}
 
 	vmm_switch_context(vmm_kernel_context_phys);
 		
@@ -105,25 +77,40 @@ struct vmm_context * vmm_get_kernel_context(void)
 
 void vmm_show_mappings(struct vmm_context * context)
 {
-	/* .... TODO ....
+
 	int i, j;
+	uint32_t * page_directory;
+	uint32_t * page_table;
+	
+	if (vmm_paging_enabled)
+		page_directory = context->page_directory_virt;
+	else
+		page_directory = context->page_directory_phys;
+	
 	for (i = 0; i < 1024; i++) {
-		if (context->page_directory[i] != 0) {
-			vk_printf("PDIndex    %04d %08x\n", i, context->page_directory[i] & ~(VMM_PAGE_SIZE - 1));
-			uint32_t * pt = context->page_directory[i] & ~(VMM_PAGE_SIZE -1);
+		if (page_directory[i] != 0) {
+			vk_printf("PDIndex    %04d %08x\n", i, page_directory[i] & ~(VMM_PAGE_SIZE - 1));
+			page_table = page_directory[i] & ~(VMM_PAGE_SIZE -1);
+			if (vmm_paging_enabled)
+				page_table = vmm_kfixedmem_phys2virt(page_table);
 			for (j = 0; j < 1024; j++) {
-				vk_printf("   PT=%08x\n", pt);
-				if (pt[j] != 0)
-					vk_printf("  PDIndex %04d PT=%08x PTIndex %04d %08x\n", i, j, pt[j] &  ~(VMM_PAGE_SIZE - 1));
+				if (page_table[j] != 0)
+					vk_printf("%08x->%08x\n", i * VMM_PAGE_SIZE * 1024 +  (j * 1024), page_table[j] &  ~(VMM_PAGE_SIZE - 1));
 			}
 		}
-	}*/
+	}
 }
 
 void vmm_switch_context(struct vmm_context * context)
 {
+	vmm_current_context = context;
 	// PLATFORM SPECFIC: Switch context by loading CR3 with PageDirectory
     asm volatile("mov %0, %%cr3" : : "r" (context->page_directory_phys));
+}
+
+struct vmm_context * vmm_get_current_context(void)
+{
+	return vmm_current_context;
 }
 
 // allocate initial context (only physical mapping)
@@ -142,6 +129,8 @@ static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struc
 		context = contextv;
 	else
 		context = contextp;
+		
+	context->self_phys = contextp;
 	
 	vmm_kfixedmem_alloc_page_internal(&(context->page_directory_virt), &(context->page_directory_phys));
 
@@ -162,45 +151,65 @@ static void vmm_alloc_context_internal(struct vmm_context ** context_virt, struc
 }
 
 
-// allocate a vmm context containing a blank page directory, return
+// allocate a vmm context with a copy of kernel context, return
 // virtual address of context
-struct vmm_context * vmm_alloc_context(void) 
+struct vmm_context * vmm_alloc_context_user(void) 
 {
 	struct vmm_context * context;
+	struct vmm_context * kernel_context;
+	int i;
+	
+	if (!vmm_paging_enabled)
+		panic("tried to allocate user context without paging enabled");
+	
 	vmm_alloc_context_internal(&context, 0);
+	for (i = 0; i < (VMM_USERMEM_START / VMM_PAGE_SIZE / 1024); i++) {
+		if (vmm_kernel_context_virt->page_directory_virt[i]) {
+			//vk_printf("copy kernel mapping: %08x(%08x)\n", vmm_kernel_context_virt->page_directory_virt[i], i * VMM_PAGE_SIZE * 1024);
+			context->page_directory_virt[i] = vmm_kernel_context_virt->page_directory_virt[i];
+			/*asm volatile(
+				"	mov $0x01000000, %%ecx\n"
+				"xx:loop xx" : : : "ecx");*/
+		}
+	}
+	
 	return context;
 }
 
 // free a complete vmm context including allocated pagetables, page 
 // directory and the context itself
-void vmm_free_context(struct vmm_context * context) 
+void vmm_free_context_user(struct vmm_context * context) 
 {
-	/* .... TODO ....
-	int i;
-	for (i = 0; i < (PMM_PAGE_SIZE / sizeof(uint32_t)); i++) {
-		if(context->page_directory[i] != 0)
-			pmm_free_page(context->page_directory_phys[i]);
-	}
-	pmm_free_page(context->page_directory_phys);
-	pmm_free_page(context);
-	*/
-}
+	uint32_t * page_table;
 
-int vmm_unmap_page(struct vmm_context * context, uintptr_t addr_virt) 
-{
-	int i;
-	
-	uint32_t pagenum = addr_virt / VMM_PAGE_SIZE;
+	uint32_t pagenum = VMM_USERMEM_START / VMM_PAGE_SIZE;
 	uint32_t pd_index = pagenum / 1024;
 	uint32_t pt_index = pagenum % 1024;
-
-//	uint32_t * page_table = context->page_directory_virt[pd_index];
-//  .... TODO .....
-	if ((addr_virt & (VMM_PAGE_SIZE - 1)) != 0)
-		return VMM_ERR_NOT_ALIGNED;
 	
+	if (!vmm_paging_enabled)
+		panic("tried to free user context without paging enabled");
+	
+	int i, j;
+	
+	// unmap and free all user space memory pages occupied by this context
+	for (i = pd_index; i < (PMM_PAGE_SIZE / sizeof(uint32_t)); i++) {
+		if(context->page_directory_virt[i] != 0) {
+			page_table = vmm_kfixedmem_phys2virt(context->page_directory_virt[i] & ~(VMM_PAGE_SIZE - 1));
+			for (j = (i==0?pt_index:0); j < (PMM_PAGE_SIZE / sizeof(uint32_t)); j++) {
+				if (page_table[j] & VMM_PT_PRESENT) {
+					pmm_free_page(page_table[j] & ~(VMM_PAGE_SIZE - 1));
+					vmm_unmap_page(context, i * VMM_PAGE_SIZE * 1024 +  (j * 1024));	
+				}
+			}
+		}
+	}
+	
+	vmm_kfixedmem_free_page(context->page_directory_virt);
+	vmm_kfixedmem_free_page(context);
 }
 
+// map physical page into virtual memory.
+// takes care itself if paging is enabled or not
 int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t addr_phys, int flags)
 {
 	int i;
@@ -210,10 +219,11 @@ int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t ad
 	uint32_t pt_index = pagenum % 1024;
 
 	uint32_t * page_directory;
-
 	uint32_t * page_table_phys;
 	uint32_t * page_table_virt;
 	uint32_t * page_table;
+	
+	int page_table_empty;
 	
 	// use physical or virtual address of page directory dependent if paging is enabled or not
 	if (vmm_paging_enabled)
@@ -264,9 +274,28 @@ int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t ad
 	}
 	
 	//vk_printf("=====pt=%08x==pte=%081=\n", page_table, page_table[pt_index]);
-	// check if page is already mapped
-	if (page_table[pt_index] > 0) 
-		return VMM_ERR_ALREADY_MAPPED;
+	if (addr_phys == 0) {
+		// Physical address 0: unmap page
+		page_table[pt_index] = 0;
+		
+		// check if page table has still entries, if not unmap it and remove
+		// page directory entry
+		page_table_empty = 1;
+		for (i = 0; i < (PMM_PAGE_SIZE / sizeof(uint32_t)); i++) {
+			if (page_table[i] != 0) {
+				page_table_empty = 0;
+				break;
+			}
+		}
+		if (page_table_empty) {
+			vmm_kfixedmem_free_page(page_table_virt);
+			page_directory[pd_index] = 0;
+		}
+	} else {
+		// check if page is already mapped
+		if (page_table[pt_index] > 0) 
+			return VMM_ERR_ALREADY_MAPPED;
+	}
 	
 	// flags are the lower (unused due to alignment) part of the address
 	page_table[pt_index] = addr_phys | flags;
@@ -277,7 +306,64 @@ int vmm_map_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t ad
 	return VMM_ERR_SUCCESS;
 }
 
+// removes virtual mapping of page
+int vmm_unmap_page(struct vmm_context * context, uintptr_t addr_virt)
+{
+	return vmm_map_page(context, addr_virt, 0, 0);
+}
 
+// allocate physical memory page and map to given virtual address.
+// Optional return physical page into addr_phys_p
+int vmm_alloc_page(struct vmm_context * context, uintptr_t addr_virt, uintptr_t * addr_phys_p, int flags)
+{
+	int ret;
+	
+	// allocate phys page beyond kernel-reserved memory
+	uintptr_t addr_phys = pmm_alloc_page_base((VMM_KFIXEDMEM_PHYS_BASE + VMM_KFIXEDMEM_SIZE + VMM_PAGE_SIZE) & ~(VMM_PAGE_SIZE - 1));
+	
+	ret = vmm_map_page(context, addr_virt, addr_phys, flags);
+
+	if (ret != VMM_ERR_SUCCESS) {
+		// in case of error free physical page again 
+		pmm_free_page(addr_phys);
+	} else {
+		// on success return physical pointer if desired by callee
+		if (addr_phys_p != 0)
+			*addr_phys_p = addr_phys;
+	}
+	
+	return ret;	
+}
+
+int vmm_free_page(struct vmm_context * context, uintptr_t addr_virt)
+{
+	uint32_t pagenum = addr_virt / VMM_PAGE_SIZE;
+	uint32_t pd_index = pagenum / 1024;
+	uint32_t pt_index = pagenum % 1024;
+
+	uint32_t * page_directory;
+	uint32_t * page_table;
+	
+	if (vmm_paging_enabled)
+		page_directory = context->page_directory_virt;
+	else
+		page_directory = context->page_directory_phys;
+		
+	page_table = page_directory[pd_index] & ~(VMM_PAGE_SIZE - 1);
+	
+	if (page_table == 0)
+		return VMM_ERR_DOUBLE_FREE;
+
+	if (vmm_paging_enabled)
+		page_table = vmm_kfixedmem_phys2virt(page_table);
+		
+	if (page_table[pt_index] & VMM_PT_PRESENT) {
+		pmm_free_page(page_table[pt_index] & ~(VMM_PAGE_SIZE - 1));
+		return vmm_unmap_page(context, addr_virt);
+	} else {
+		return VMM_ERR_DOUBLE_FREE;
+	}
+}
 
 // allocate a page in the premapped kernel-memory reserved physical memory
 static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t * addr_phys)
@@ -288,7 +374,7 @@ static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t *
 	ppage = pmm_alloc_page_base(VMM_KFIXEDMEM_PHYS_BASE);
 	vpage = vmm_kfixedmem_phys2virt(ppage);
 
-	vk_printf("kfixedmem allocating: %08x->%08x\n", vpage, ppage);
+	//vk_printf("kfixedmem allocating: %08x->%08x\n", vpage, ppage);
 	
 	if (((uint32_t)ppage - VMM_KFIXEDMEM_PHYS_BASE) > VMM_KFIXEDMEM_SIZE)
 		panic("out of KFIXEDMEM :-(");
@@ -298,20 +384,22 @@ static void vmm_kfixedmem_alloc_page_internal(uintptr_t * addr_virt, uintptr_t *
 		
 	if (addr_virt > 0)
 		*addr_virt = vpage;
+		
+	//vk_printf("==>A(%08x)\n", vpage);
 }
 
 void * vmm_kfixedmem_alloc_page()
 {
-		uintptr_t vpage;
-		vmm_kfixedmem_alloc_page_internal(&vpage, 0);
-		return vpage;
+	uintptr_t vpage;
+	vmm_kfixedmem_alloc_page_internal(&vpage, 0);
+	return vpage;
 }
 
-// allocate physical memory page and map to given virtual address
-int vmm_alloc_page(struct vmm_context * context, uintptr_t addr_virt, int flags)
+void vmm_kfixedmem_free_page(void * page)
 {
-	// allocate phys page beyond kernel-reserved memory
-	uintptr_t addr_phys = pmm_alloc_page_base(VMM_KFIXEDMEM_PHYS_BASE + VMM_KFIXEDMEM_SIZE);
-	return vmm_map_page(context, addr_virt, addr_phys, flags);
+	//vk_printf("==>F(%08x)\n", page);
+	pmm_free_page(vmm_kfixedmem_virt2phys(page));
 }
+
+
 
