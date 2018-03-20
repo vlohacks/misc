@@ -30,8 +30,9 @@ int main (int argc, char ** argv)
     app.output_opts = malloc(sizeof(output_opts_t));
     app.loop_playlist = 0;
     app.running = 1;
-    //app.ui_flavour = ui_flavour_terminal;
-    app.ui_flavour = ui_flavour_curses;
+    app.ui_flavour = ui_flavour_terminal;
+    //app.ui_flavour = ui_flavour_curses;
+    
     //app.ui_flavour = ui_flavour_quiet;
     
     if (cmdline_parse(argc, argv, &app)) 
@@ -44,6 +45,7 @@ int main (int argc, char ** argv)
     player_register_order_callback(app.player, ui_generic_order_handler);
     player_register_row_callback(app.player, ui_generic_row_handler);
     player_register_tick_callback(app.player, ui_generic_tick_handler);
+    player_register_channel_sample_callback(app.player, ui_generic_sample_handler, 0x03);
     
     switch(app.ui_flavour) {
         

@@ -212,7 +212,7 @@ void ui_ncurses_tick_handler(player_t * player)
         //sprintf(tmp, "%-30s | %3s | %2i | %02x | %-27s | ", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "", note, channels[i].volume, channels[i].panning, tmp2);
         //mvwprintw(ui_ncurses_layout.channel_panel.w, i+1, 1, tmp);
         mvwprintw(ui_ncurses_layout.channel_panel.w, i+1, 1, "%-30s", channels[i].sample_num ? player->module->samples[channels[i].sample_num - 1].header.name : "");
-        mvwprintw(ui_ncurses_layout.channel_panel.w, i+1, 27, "| %3s | %2i | %02x | %-27s |", note, channels[i].volume, channels[i].panning, tmp2);
+        mvwprintw(ui_ncurses_layout.channel_panel.w, i+1, 27, "| %3s | %2i | %02x | %05x/%05x %08i | %-27s |", note, channels[i].volume, channels[i].panning, (int)channels[i].sample_pos, player->module->samples[channels[i].sample_num-1].header.length, channels[i].frequency, tmp2);
         wattroff(ui_ncurses_layout.channel_panel.w, A_BOLD);
     }
 
@@ -431,6 +431,11 @@ void ui_ncurses_show_help()
 
 void ui_ncurses_refresh(player_t * player, ui_dirty_t * ui_dirty) 
 {
+    if (ui_dirty->sample) {
+        ui_dirty->sample = 0;
+        ui_ncurses_tick_handler(player);
+    }
+        
     if (ui_dirty->tick) {
         ui_dirty->tick = 0;
         ui_ncurses_tick_handler(player);

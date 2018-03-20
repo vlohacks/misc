@@ -126,6 +126,9 @@ struct player_t {
     int solo_channel;
     
     int playing;
+    
+    //uint32_t * frequency_table;                       // tried to get rid of periods...
+    
 };
 
 typedef struct player_t player_t;

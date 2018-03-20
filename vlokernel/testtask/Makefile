@@ -4,7 +4,7 @@ CC		= i686-elf-gcc
 LD		= i686-elf-ld
 STRIP	= i686-elf-strip
 
-TESTPROGS = fibonacci printA printB
+TESTPROGS = 1_printA 2_printB 3_fibonacci 4_badopcode 5_division0
 
 ASFLAGS	= -m32
 CFLAGS 	= -m32 -O2 -Wall -fno-stack-protector

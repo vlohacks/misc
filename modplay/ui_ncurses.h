@@ -11,7 +11,7 @@
 #include "platform.h"
 
 #ifdef PLATFORM_POSIX
-#include <ncursesw/curses.h>
+#include <curses.h>
 #else
 #include <curses.h>
 #endif

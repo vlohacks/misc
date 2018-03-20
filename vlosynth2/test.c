@@ -14,8 +14,9 @@ void make_noise(osc_t * osc, int osc_count, scalar_t duration, scalar_t sample_f
 	int i, j;
 	scalar_t sample;
 	int16_t sample_int;
+	int duration_sec = (int)(sample_freq * duration);
 		
-	for (i=0; i< (int)(sample_freq * duration); i++) {
+	for (i=0; i < duration_sec; i++) {
 		sample = 0;
 		for (j=0; j<osc_count; j++) {
 			sample += osc_fetch_sample(&osc[j], sample_freq);
@@ -25,7 +26,7 @@ void make_noise(osc_t * osc, int osc_count, scalar_t duration, scalar_t sample_f
 		if (f != NULL)
 			filter_moog_process(f, &sample);
 
-		sample *= ((sample_freq * duration) - i) * decay;
+		sample *= (duration_sec - i) * decay;
 		sample_int = (int16_t)(sample * 32767);
 		fwrite(&sample_int, sizeof(int16_t), 1, stdout);
 		fflush(stdout);
@@ -38,12 +39,12 @@ int main(void)
 {
 	scalar_t sample_freq = 44100;
 	scalar_t i, j, freq;
-	int b;
+	scalar_t b;
+	int n;
 
-	osc_t osc[3];
-	osc_init(&osc[0], OSC_TYPE_SAWTOOTH);
-	osc_init(&osc[1], OSC_TYPE_SAWTOOTH);
-	osc_init(&osc[2], OSC_TYPE_SAWTOOTH);
+	osc_t osc[12];
+	for (n = 0; n<12;n++)
+		osc_init(&osc[n], OSC_TYPE_SAWTOOTH);
 
 	filter_moog_t f;
 	filter_moog_init(&f);
@@ -54,25 +55,18 @@ int main(void)
 	b = 0;
 // init oscillator state
 
-	for (b=0; b<7; b++) {
-		freq = note2freq(A, b);
-		fprintf(stderr, "freq=%3.2f, oct=%i\n", freq, b);
-		osc[0].freq = freq;
-		make_noise(osc, 1, 0.4f, sample_freq, 0.0001, NULL);
-	}
-
-	b=0;
-
 	//return 0;
+
+	filter_moog_set_params(&f, 0.05, 0.0f);
 
 	for (;;) {	
 		
 		
-		if (b++ == 1) {
+		if ((b+=.2) >= 1) {
 			b = 0;
 			j *= -1;
 		}
-
+/*
 		osc[0].freq = 109;
 		osc[1].freq = 111;
 		osc[2].freq = 55;
@@ -90,16 +84,26 @@ int main(void)
 		filter_moog_set_params(&f, i, 0.6f);
 
 		make_noise(osc, 3, 0.1f, sample_freq, 0.0002, &f);
-		
-		osc[0].freq = note2freq(Cb, 2) - 1;
-		osc[1].freq = note2freq(Cb, 2) + 1;
-		osc[2].freq = note2freq(Cb, 1);
+	*/
+		osc[4].freq = note2freq(A, 2) - 1;
+		osc[5].freq = note2freq(A, 2) + 1;
+		osc[6].freq = note2freq(A, 1);
+		osc[7].freq = note2freq(A, 0);
+	
+		osc[0].freq = note2freq(C, 2) - 1;
+		osc[1].freq = note2freq(C, 2) + 1;
+		osc[2].freq = note2freq(C, 1);
+		osc[3].freq = note2freq(C, 0);
+
+		osc[8].freq = note2freq(E, 2) - 1;
+		osc[9].freq = note2freq(E, 2) + 1;
+		osc[10].freq = note2freq(E, 1);
+		osc[11].freq = note2freq(E, 0);
 
 
 		i += j;
-		filter_moog_set_params(&f, i, 0.6f);
 
-		make_noise(osc, 3, 0.2f, sample_freq, 0.0001, &f);
+		make_noise(osc, 12, 0.6f, sample_freq, 0.00001, &f);
 
 		//osc_init(&osc, OSC_TYPE_SAWTOOTH);
 		//make_noise(&osc, 2, 2.0f, sample_freq);

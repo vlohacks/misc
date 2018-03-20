@@ -90,7 +90,7 @@ void ui_terminal_print_order_info(player_t * player)
 {
     int current_pattern = player->current_pattern;
     int current_order = player->current_order;
-    fprintf(ui_terminal_fd, "\n--== order: %i/%i, pattern: %i/%i spd: %i, tempo: %i ==--\n", current_order, player->module->num_orders, current_pattern, player->module->num_patterns, player->speed, player->bpm);
+    //fprintf(ui_terminal_fd, "\n--== order: %i/%i, pattern: %i/%i spd: %i, tempo: %i ==--\n", current_order, player->module->num_orders, current_pattern, player->module->num_patterns, player->speed, player->bpm);
 }
 
 void ui_terminal_print_row_info(player_t * player)
@@ -100,6 +100,7 @@ void ui_terminal_print_row_info(player_t * player)
     char effect[2];
     char volume[3];
     
+    int current_order = player->current_order;
     int current_row = player->current_row;
     int current_pattern = player->current_pattern;
     
@@ -107,7 +108,7 @@ void ui_terminal_print_row_info(player_t * player)
     
     module_pattern_row_t * row = &(player->module->patterns[current_pattern].rows[current_row]);
     
-    fprintf(ui_terminal_fd, "%s%02d|", the_std_color, current_row );
+    fprintf(ui_terminal_fd, "%s%02d:%02d:%02d|", the_std_color, current_order, current_pattern, current_row );
     for (i = 0; i < player->module->num_channels; i++) {
         ui_periodindex2note(row->data[i].period_index, note, player->module->module_type == module_type_it ? 0 : 1);
         

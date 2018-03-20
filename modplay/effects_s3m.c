@@ -101,7 +101,8 @@ void effects_s3m_newrowaction(player_t * player, module_pattern_data_t * data, i
     player->channels[channel_num].volume_master = 64;
     
     // do not set frequency for tone portamento effects
-    if ((data->effect_num != 0x7) && (data->effect_num != 0x5) && (data->effect_num != 0x6) && (data->effect_num != 0x8)) {
+    //if ((data->effect_num != 0x7) && (data->effect_num != 0x5) && (data->effect_num != 0x6) && (data->effect_num != 0x8)) {
+    if (data->effect_num != 0x7) {
         if (data->period_index >= 0)
             player_channel_set_frequency(player, player->channels[channel_num].period, channel_num);
     }

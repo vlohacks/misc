@@ -40,7 +40,7 @@ player_t * player_init(const uint32_t sample_rate, const player_resampling_t res
     player->solo_channel = -1;
     
     player_set_protracker_strict_mode(player, 0);
-
+    
     return player;
 }
 
@@ -294,11 +294,11 @@ int player_read(player_t * player, sample_t * out_l, sample_t * out_r)
             mix_r += cr;
         }
         
-        if (player->channel_sample_callback) 
-            (player->channel_sample_callback)(player, player->callback_user_ptr);
-        
     }
     
+    if (player->channel_sample_callback) 
+        (player->channel_sample_callback)(player, player->callback_user_ptr);
+
     mix_l /= ((sample_mac_t)player->module->num_channels);
     mix_r /= ((sample_mac_t)player->module->num_channels);
     *out_l = (sample_t)mix_l;
@@ -389,6 +389,35 @@ void player_channel_set_frequency(player_t * player, const uint16_t period, cons
     channel->sample_step = ((float)channel->frequency / (float)player->sample_rate);
     
 }
+
+/* try to interally use only linear frequencies
+void player_channel_set_note_frequency(player_t * player, const int note_index, const int channel_num)
+{
+    player->channels[channel_num].frequency = player->frequency_table[note_index];
+}
+
+void player_build_frequency_table(player_t * player)
+{
+    int i;
+    
+    if (player->frequency_table) {
+        free(player->frequency_table);
+        player->frequency_table = 0;
+    }
+        
+    
+    switch (player->module->module_type)
+    {
+        case module_type_stm:
+        case module_type_s3m:
+            player->frequency_table = malloc(sizeof(uint32_t) * defs_s3m_num_periods);
+            for (i = 0; i < defs_s3m_periods; i++)
+                player->frequency_table[i] = 14317056L / defs_s3m_periods[i];
+            
+            break;
+    }
+}
+*/
 
 sample_t player_channel_fetch_sample(player_t * player,  const int channel_num) 
 {
