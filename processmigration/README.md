@@ -1,4 +1,5 @@
 ### Process injection / migration examples
+This explains some windows process injection techniques by sourcecode 
 
 ## filez
 inject.cpp: injects a bind shell (listening on port 31337) into target process
