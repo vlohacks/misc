@@ -34,14 +34,14 @@ DWORD pid_by_exename(const char *exe_filename)
     
 	entry.dwSize = sizeof(entry);
 
-    if (Process32First(snapshot, &entry) == TRUE) {
-        while (Process32Next(snapshot, &entry) == TRUE) {
-            if (strcmp(entry.szExeFile, exe_filename) == 0) {
+	if (Process32First(snapshot, &entry) == TRUE) {
+		while (Process32Next(snapshot, &entry) == TRUE) {
+			if (strcmp(entry.szExeFile, exe_filename) == 0) {
 				ret = entry.th32ProcessID;
 				break;
 			}
-        }
-    }
+		}
+	}
 
 	CloseHandle(snapshot);
     return ret;
@@ -142,6 +142,8 @@ void callmebot_send_message(const char *message)
 	curl_global_cleanup();
 }
 
+
+
 int main(int argc, char **argv)
 {
 	DWORD		pid;
@@ -212,12 +214,14 @@ int main(int argc, char **argv)
 					if (ppl_ahead_last != 0xffffffff) {
 						ppl_delta = ppl_ahead_last - ppl_ahead;
 						time_delta = time(NULL) - time_last;
-						time_est = (time_t)(((float)time_delta / (float)ppl_delta) * (float)ppl_ahead);
+						time_est = (time_t)(((float)time_delta 	/ 
+							(float)ppl_delta) * (float)ppl_ahead);
 					}
 					time_last = time(NULL);			
 					ppl_ahead_last = ppl_ahead;
 					snprintf(msg, sizeof(msg), 
-						"there+are+still+%d+suckers+ahead. Est. time: %d min", ppl_ahead, time_est);
+						"there+are+still+%d+suckers+ahead. Est. time: %d min", 
+						ppl_ahead, time_est);
 					callmebot_send_message(msg);
 					printf("%s\n", msg);
 				}
