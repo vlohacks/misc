@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <windows.h>
 #include <tlhelp32.h>
+#include <time.h>
 
 /* 
  * This signature always reliably shows up next to the 32 bit login count in 
@@ -29,7 +30,7 @@ DWORD pid_by_exename(const char *exe_filename)
 {
 	PROCESSENTRY32 entry;
 	DWORD ret = 0;
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     
 	entry.dwSize = sizeof(entry);
 
@@ -38,7 +39,7 @@ DWORD pid_by_exename(const char *exe_filename)
             if (strcmp(entry.szExeFile, exe_filename) == 0) {
 				ret = entry.th32ProcessID;
 				break;
-            }
+			}
         }
     }
 
@@ -143,18 +144,22 @@ void callmebot_send_message(const char *message)
 
 int main(int argc, char **argv)
 {
-
 	DWORD		pid;
 	HANDLE		proc;
 	HANDLE		hToken;
-	uint32_t	suckers_ahead;
-	uint32_t	suckers_ahead_last = 0xffffffff;
+	uint32_t	ppl_ahead;
+	uint32_t	ppl_ahead_last = 0xffffffff;
+	uint32_t	ppl_delta;
 	SIZE_T		num_read;
 	char		msg[256];
 	char 		buffer[12];		// holds 4 byte login count + 8 bytes magic
 	int 		i;
 	void		*ptr;
 	const char	*str;
+	time_t		time_last;
+	time_t		time_init;
+	time_t		time_delta;
+	time_t		time_est;
 
 	const char	*exe_names[] = {
 		"ffxiv_dx11.exe",
@@ -192,6 +197,8 @@ int main(int argc, char **argv)
 		printf("Found memory location at: %016llx\n", ptr);
 	}
 
+	time_init = time(NULL);
+
 	for(;;) {
 		if (!ReadProcessMemory(proc, ptr, buffer, sizeof(buffer), &num_read)) {
 			errmsg(msg, sizeof(msg));
@@ -200,14 +207,20 @@ int main(int argc, char **argv)
 			// if magic signature still exists, login is in progress, 
 			// else the user is logged in
 			if (*(uint64_t*)&buffer[4] == MAGIC_SIGNATURE) {
-				suckers_ahead = *(uint32_t*)buffer;
-				if (suckers_ahead != suckers_ahead_last) {
-					suckers_ahead_last = suckers_ahead;
+				ppl_ahead = *(uint32_t*)buffer;
+				if (ppl_ahead != ppl_ahead_last) {
+					if (ppl_ahead_last != 0xffffffff) {
+						ppl_delta = ppl_ahead_last - ppl_ahead;
+						time_delta = time(NULL) - time_last;
+						time_est = (time_t)(((float)time_delta / (float)ppl_delta) * (float)ppl_ahead);
+					}
+					time_last = time(NULL);			
+					ppl_ahead_last = ppl_ahead;
 					snprintf(msg, sizeof(msg), 
-						"there+are+still+%d+suckers+ahead", suckers_ahead);
+						"there+are+still+%d+suckers+ahead. Est. time: %d min", ppl_ahead, time_est);
 					callmebot_send_message(msg);
+					printf("%s\n", msg);
 				}
-				printf("%d suckers ahead...\n", suckers_ahead);
 			} else {
 				callmebot_send_message("You+are+logged+in!");
 				printf("User logged in, bailing out...\n");
